@@ -10,9 +10,16 @@ Repository này không hỗ trợ Codex chạy độc lập ngoài Orca. Orca l�
 - Có Lead phụ khi một mảng công việc đủ lớn, ví dụ `ADMIN`, `AUTH`, `JOBS`.
 - Có worker lập trình, QA và worker kiểm tra cuối.
 - Tự tạo worker cho việc rõ ràng, độc lập và không đụng vùng code worker khác đang sửa.
+- Lead chỉ điều phối và kiểm tra; mọi việc có sửa file dự án phải thuộc một worker terminal nhìn thấy được.
 - Giữ danh sách việc, quyền sở hữu code, quy tắc và tình trạng team trong `.orca-team`.
 - Đổi model có kiểm soát khi worker/Lead thật sự lỗi.
 - Trao đổi hợp đồng API ngắn gọn giữa Lead Backend và Lead Frontend.
+- Tự tìm tài liệu/skill có kiểm soát khi task thật sự cần kiến thức chuyên biệt.
+- Bắt buộc nghiên cứu trước với việc UI/UX, sáng tạo, luồng người dùng, công nghệ mới hoặc phần rủi ro cao.
+- Có checklist riêng cho API, UI, database, tích hợp và review trước khi báo xong.
+- Có bước xem trước ngắn để người dùng chốt hướng trước khi làm màn hình/luồng lớn.
+- Có `$lead audit` để kiểm tra Lead/worker có đang vận hành đúng vai trò hay không.
+- Mọi agent nói trực tiếp với người dùng đều dùng tiếng Việt ngắn gọn, dễ hiểu.
 - Không tự chạy Git, migration database, restart, deploy hay thay đổi bên ngoài khi chưa được người dùng duyệt.
 
 ## Điều kiện dùng
@@ -43,6 +50,10 @@ Không gõ `/lead`, vì `/` là nhóm lệnh có sẵn của Codex Terminal. Có
 $lead Khởi tạo team cho dự án này.       # Dùng một lần đầu tiên trong mỗi dự án
 $lead <yêu cầu của bạn>                  # Giao yêu cầu cho Big Lead
 $lead status                             # Xem tình hình team
+$lead audit                              # Kiểm tra việc nào có worker thật và Lead có giữ đúng vai trò không
+$lead capability <nhu cầu>               # Tìm skill/cách làm phù hợp, chưa tự cài khi bạn chưa duyệt
+$lead research <chủ đề>                  # Tạo bản nghiên cứu ngắn trước một quyết định quan trọng
+$lead preview <chủ đề>                   # Chuẩn bị bản xem trước để bạn chốt hướng UI/UX lớn
 $lead recover                            # Dùng sau khi Orca bị khởi động lại
 $lead take over                          # Chỉ khi Big Lead cũ đã lỗi/dừng hoặc bạn xác nhận nó không còn dùng được
 $lead rules                              # Xem quy tắc đang áp dụng
@@ -79,6 +90,26 @@ Terminal xem có thể chạy `$lead status`, nhưng không được tự mở w
 
 Ngoài các tab terminal, Big Lead duy trì `.orca-team/TEAM_DASHBOARD.md` để nhìn sơ đồ toàn team và tình trạng từng nhánh công việc.
 
+Nếu bạn giao một việc có sửa code/file dự án mà không thấy worker terminal riêng, hãy dùng:
+
+```text
+$lead audit
+```
+
+Lead phải báo rõ việc đó đang chờ gì; Lead không được tự làm thay worker để cho nhanh. Chỉ các việc như hỏi trạng thái, thêm rule hoặc trả lời ngắn mới không cần worker.
+
+## Khi nào Lead tìm hiểu trước
+
+Với việc nhỏ, rõ và đã có cách làm trong dự án, worker làm trực tiếp. Với UI/UX, dashboard, mobile, nội dung, luồng người dùng, thư viện/công nghệ mới, kiến trúc, bảo mật, hiệu năng hoặc tích hợp lớn, Lead tạo bản nghiên cứu ngắn trước khi giao phần quyết định cho worker.
+
+Kết quả nghiên cứu được lưu trong `.orca-team/RESEARCH_NOTES/`, để những lần sau không phải tìm lại từ đầu. Khi cần skill mới, worker chỉ đề xuất; Lead kiểm tra nguồn, nội dung và rủi ro trước. Mặc định Lead phải hỏi bạn trước khi tải, cài hoặc chạy skill mới.
+
+## Khi nào bạn cần chốt trước
+
+Với màn hình mới, đổi giao diện lớn, menu/điều hướng, hoặc thay đổi luồng người dùng quan trọng, Lead gửi bạn bản tóm tắt ngắn trước khi worker làm phần quyết định hướng. Bản tóm tắt chỉ gồm mục tiêu, đề xuất, ảnh hưởng trên mobile/các trạng thái và đúng một điều cần bạn chốt.
+
+Trước khi báo xong, Lead dùng `.orca-team/QUALITY_GATES.md` để kiểm tra đúng loại việc: API, UI/UX, dữ liệu, tích hợp hoặc review. Vì vậy “build chạy được” không tự động có nghĩa là task đã xong.
+
 ## Chính sách model mặc định
 
 | Vai trò / loại việc | Model chính | Mức suy nghĩ | Model dự phòng |
@@ -99,7 +130,7 @@ Khi worker bị lỗi model, Big Lead/Lead phụ chỉ tạo worker thay thế s
 skills/lead/
   SKILL.md                 Quy trình Big Lead, Lead phụ và worker trong Orca
   agents/openai.yaml       Tên hiển thị trong Codex của Orca
-  references/              Quy tắc giao việc, model, khôi phục và nhận diện terminal
+  references/              Quy tắc giao việc, skill, nghiên cứu, chất lượng, audit, model và khôi phục
   scripts/bootstrap-project.ps1
 ```
 

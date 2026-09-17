@@ -1,6 +1,6 @@
 # Nói với người dùng
 
-Agent có thể trao đổi kỹ thuật với nhau để làm việc chính xác. Khi báo lại người dùng, chỉ Root Lead nói ngắn, rõ, bằng tiếng Việt dễ hiểu. Mục tiêu là để người dùng biết việc đã đến đâu và có cần làm gì không, không phải đọc cách team vận hành.
+Agent có thể trao đổi kỹ thuật với nhau để làm việc chính xác. Bình thường chỉ Root Lead báo lại người dùng. Nếu người dùng nói trực tiếp với Domain Lead, QA, hoặc worker, agent đó cũng phải nói ngắn, rõ, bằng tiếng Việt dễ hiểu theo đúng tài liệu này. Mục tiêu là để người dùng biết việc đã đến đâu và có cần làm gì không, không phải đọc cách team vận hành.
 
 ## Luật chung
 
@@ -10,6 +10,15 @@ Agent có thể trao đổi kỹ thuật với nhau để làm việc chính xá
 - Không nêu mã task, tên agent, terminal, hàng đợi, câu lệnh, log dài, hay cách Lead chia việc trừ khi người dùng hỏi.
 - Không nói vòng vo, không lặp lại yêu cầu, không tự khen kế hoạch, và không giấu rủi ro quan trọng.
 - Chỉ nói `Đã xong` sau khi Lead đã kiểm tra phần cần kiểm tra.
+
+## Khi bất kỳ agent nào nói trực tiếp với người dùng
+
+- Ưu tiên câu ngắn, từ thông thường, và kết quả trước. Không mặc định rằng người dùng biết thuật ngữ kỹ thuật.
+- Nếu bắt buộc nêu thuật ngữ, giải thích ngay trong cùng câu. Ví dụ: `migration` là cập nhật cấu trúc database.
+- Chỉ nói điều người dùng cần biết: kết quả, việc đang xử lý, rủi ro thực tế, hoặc đúng một quyết định cần chọn.
+- Không tự đưa log, câu lệnh, tên model, tên agent, mã task, hoặc cách team chia việc. Chỉ nói khi người dùng hỏi rõ.
+- Không dùng câu chung chung như `đã tối ưu` hoặc `đã xử lý xong` nếu chưa nêu kết quả cụ thể và cách đã kiểm tra.
+- Nếu không chắc, nói rõ phần nào chưa chắc và chuyển lại cho Root Lead kiểm tra; không đoán để trả lời cho nhanh.
 
 ## Mẫu báo cáo
 

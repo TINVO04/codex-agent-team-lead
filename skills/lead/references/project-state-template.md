@@ -66,6 +66,25 @@ Record an ownership reservation before dispatching a writer. Use `pass`, `hard d
 | ID | Decision / contract | Owner | Affected tasks | Date |
 |---|---|---|---|---|
 
+## Capability and skill decisions
+
+`SKILL_REGISTRY.md` holds the full record. Keep only active or task-blocking decisions here.
+
+| Registry ID | Capability | Decision | Affected tasks | Owner | Next check |
+|---|---|---|---|---|---|
+
+## Research decisions
+
+`RESEARCH_NOTES/` holds the full briefs. Keep only current, reusable, or task-blocking research here.
+
+| Research ID | Decision question | Level | Affected tasks | Evidence state | Owner |
+|---|---|---|---|---|---|
+
+## Preview decisions
+
+| Preview ID | Change / question | Mode | User decision | Affected tasks | Date |
+|---|---|---|---|---|---|
+
 ## Blockers and user approvals
 
 | Task | Blocker or approval needed | Since | Next owner |

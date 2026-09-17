@@ -31,6 +31,14 @@ For equal priority, schedule the oldest `READY` task first. Do not preempt a wri
 
 `max_workers` is the maximum number of implementation agents at one time, not a target. Default is three when one Lead has a four-slot environment. Prefer terminal reuse after a settled task. Create a new worker only when the task is `READY`, has an exclusive ownership zone, and no retained terminal is suitable.
 
+## Delegation Gate
+
+The Root Lead and any Domain Lead are coordinators, not hidden implementation workers. For a meaningful requested change to source, tests, configuration, documentation, assets, or generated deliverables, the Lead creates or reuses one visible Orca worker with an explicit Task Contract. A Lead may do only intake, planning, contracts, research notes, read-only inspection, verification, `.orca-team` state updates, and user reporting.
+
+Do not create a terminal for a pure status response, a clarification, a project rule, or a one-sentence answer. For several related tiny changes, dispatch one bounded worker rather than one terminal per edit. If no worker slot, safe ownership zone, or successful Orca launch exists, keep the task `QUEUED`/`BLOCKED`. The Lead must not implement it as a silent fallback.
+
+A dispatch counts as real only after Orca returns a live Task/Dispatch and terminal handle. Rename that terminal and enter it in `TEAM_DASHBOARD.md` immediately. If an implementation task has no visible worker terminal, treat delegation as missing and investigate it before reporting progress.
+
 Do not run two writers in the same workspace if their allowed paths overlap. If Git worktrees are chosen for isolation, obtain any project-required Git approval before creating them.
 
 Before serialization, try to break a fake dependency with a versioned contract, mock, fixture, stub, or test case. Record that contract in the state board and reserve shared DTO/config/migration ownership even when workers use separate worktrees.
