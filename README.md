@@ -86,17 +86,17 @@ Big Lead sẽ ghi task, kiểm tra vùng code, chọn worker phù hợp và ch�
 
 ```mermaid
 flowchart TD
-    U[Người dùng giao yêu cầu] --> B[00 | BIG | Big Lead]
-    B --> T{Task đã rõ và không trùng ownership?}
-    T -- Chưa --> Q[QUEUED / BLOCKED / hỏi người dùng]
-    T -- Rồi --> R{Đã có vai trò phù hợp?}
-    R -- Có --> W[Worker nhận Task Contract]
-    R -- Chưa --> C[CAPABILITY-SCOUT tìm role/skill]
+    U["Người dùng giao yêu cầu"] --> B["00 | BIG | Big Lead"]
+    B --> T{"Task đã rõ và không trùng ownership?"}
+    T -- "Chưa" --> Q["QUEUED / BLOCKED / hỏi người dùng"]
+    T -- "Rồi" --> R{"Đã có vai trò phù hợp?"}
+    R -- "Có" --> W["Worker nhận Task Contract"]
+    R -- "Chưa" --> C["CAPABILITY-SCOUT tìm role/skill"]
     C --> W
-    W --> E[Worker nghiên cứu / code / test]
-    E --> V[QA hoặc Final Review]
+    W --> E["Worker nghiên cứu / code / test"]
+    E --> V["QA hoặc Final Review"]
     V --> B
-    B --> O[Báo cáo ngắn gọn cho người dùng]
+    B --> O["Báo cáo ngắn gọn cho người dùng"]
 ```
 
 ## 👥 Ai làm việc gì?
