@@ -26,11 +26,18 @@ Kế hoạch model:
 - Launch thực tế: <chỉ điền sau khi runtime xác nhận model và effort>
 
 Capability và skill:
-- Capability Gate: <not needed | existing skill | approved project reference | candidate under review | user approval needed>
+- Capability Gate: <not needed | approved agency role | existing skill | approved project reference | candidate under review | user approval needed>
 - Capability cần: <none hoặc capability cụ thể>
 - Tài nguyên được dùng: <skill/path/reference đã duyệt hoặc none>
 - Registry: <SK-### hoặc none>
 - Cấm: <tải skill chưa duyệt, script/hook, chia sẻ credential, upload ngoài>
+
+Vai trò Agency:
+- Agency role: <none | AR-### tên vai trò>
+- Trạng thái role: <baseline | task-approved | approved | active>
+- Card/source revision: <AGENCY_PROFILE_REGISTRY.md record + URL/revision hoặc none>
+- Phạm vi áp dụng: <module/quyết định/checklist hẹp hoặc none>
+- Không được cấp quyền: <role chỉ là hướng dẫn; không tự cấp Git/cài tool/DB/deploy/credential/đổi model>
 
 Nghiên cứu:
 - Research Gate: <routine | research-first | research-deep>
@@ -39,6 +46,8 @@ Nghiên cứu:
 - Brief nghiên cứu: <RN-### path hoặc pending; cần trước phần triển khai phụ thuộc>
 - Loại nguồn được duyệt: <tài liệu chính thức, standard, public example đã nêu hoặc none>
 - Ranh giới IP/dữ liệu: <chỉ học nguyên tắc; không sao chép code/asset/chữ; không đưa dữ liệu riêng ra ngoài>
+- External research route: <not used | Agency source public-read | Agent-Reach public-only | nguồn khác đã được duyệt>
+- Agent-Reach boundary: <none | câu hỏi public hẹp, không login/cookie/token/source nội bộ; tool đã được duyệt>
 
 Chất lượng và xem trước:
 - Checklist: <API | UI/UX | data/change | integration | research/review; các mục cần có>
@@ -80,6 +89,7 @@ Báo cáo:
 - Một event: `DONE`, `BLOCKED`, `NEED_DECISION`, `CONTRACT_CHANGED` hoặc `FAILED`.
 - Nếu model/agent lỗi: evidence, file có thể đã đổi không và recovery an toàn cần gì.
 - Thiếu capability: gửi `CAPABILITY_REQUEST`; không tự tìm/cài/chạy skill.
+- Thiếu role: gửi `CAPABILITY_REQUEST`; không tự tải Agency bundle, cài custom agent hoặc dùng raw profile chưa có AR-###.
 - Thiếu evidence nghiên cứu: gửi `RESEARCH_REQUEST`; không browse rộng hay dùng material bên thứ ba ngoài source plan.
 - Trước `DONE`: chạy/báo checklist chất lượng. File đổi, build pass đơn lẻ hoặc worker claim chưa kiểm tra không đủ evidence.
 

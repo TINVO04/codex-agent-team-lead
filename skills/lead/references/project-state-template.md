@@ -73,6 +73,13 @@ Chi tiết ở `SKILL_REGISTRY.md`; chỉ giữ quyết định active hoặc ch
 | Registry ID | Capability | Quyết định | Task ảnh hưởng | Owner | Kiểm tra tiếp |
 |---|---|---|---|---|---|
 
+## Vai trò Agency
+
+Chi tiết ở `AGENCY_PROFILE_REGISTRY.md`; chỉ giữ role đang active, baseline pending hoặc đang chặn task ở đây.
+
+| Role ID | Vai trò | Trạng thái | Task ảnh hưởng | Owner | Kiểm tra tiếp |
+|---|---|---|---|---|---|
+
 ## Quyết định nghiên cứu
 
 Chi tiết ở `RESEARCH_NOTES/`; chỉ giữ brief đang dùng, dùng lại hoặc chặn task.

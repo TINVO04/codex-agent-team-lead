@@ -42,6 +42,8 @@ Brief phải ngắn để worker dùng được. Link và kết luận chắt l�
 4. Một số ít sản phẩm/ví dụ công khai nổi tiếng để học nguyên tắc tương tác/thông tin.
 5. Nguồn chuyên gia uy tín khi các nguồn trên chưa giải quyết câu hỏi.
 
+Agent-Reach chỉ là một đường lấy nguồn công khai ở bước 4–5, không đứng trên tài liệu chính thức và không phải lựa chọn mặc định. Chỉ Research Worker được dùng nó khi Task Contract ghi `Agent-Reach public-only`; xem [vai trò Agency và Agent-Reach](agency-profiles-and-agent-reach.md). Mỗi kết luận quan trọng phải dẫn tới nguồn gốc đã đọc, không chỉ dẫn tới kết quả tìm kiếm/tóm tắt của công cụ.
+
 Nghiên cứu visual/design phải xem hierarchy, mật độ thông tin, trạng thái, responsive và accessibility; không chỉ nhìn màu/screenshot. Nghiên cứu kỹ thuật phải xem compatibility, maintenance, bảo mật, chi phí vận hành, lỗi và khả năng migration/rollback.
 
 ## Ranh giới an toàn
@@ -49,6 +51,7 @@ Nghiên cứu visual/design phải xem hierarchy, mật độ thông tin, trạn
 - Học nguyên tắc, không sao chép code, asset, chữ hay toàn bộ thiết kế bên thứ ba.
 - Không đưa source riêng, token, dữ liệu khách hàng, log chưa lọc hay chi tiết DB production vào web query/issue/service ngoài.
 - Upload, login, công cụ trả phí, plugin, crawler, script hay API ngoài vẫn theo rule user approval và Skill Discovery riêng.
+- Agent-Reach chưa được cài/duyệt là `user approval needed`. Khi đã có, chỉ dùng kênh public không đăng nhập; không gửi query chứa source nội bộ, tên khách hàng, URL private, token, log chưa lọc hay dữ liệu production.
 - Worker chỉ đọc brief và nguồn được contract cho phép. Cần tìm thêm thì gửi `RESEARCH_REQUEST` cho Lead.
 
 ## Cách chạy với worker

@@ -14,7 +14,9 @@ Repository này không hỗ trợ Codex chạy độc lập ngoài Orca. Orca l�
 - Giữ danh sách việc, quyền sở hữu code, quy tắc và tình trạng team trong `.orca-team`.
 - Đổi model có kiểm soát khi worker/Lead thật sự lỗi.
 - Trao đổi hợp đồng API ngắn gọn giữa Lead Backend và Lead Frontend.
-- Tự tìm tài liệu/skill có kiểm soát khi task thật sự cần kiến thức chuyên biệt.
+- Tự tạo danh sách vai trò chuyên môn phù hợp với dự án từ Agency Agents, rồi chọn đúng vai trò cho từng worker khi có yêu cầu mới.
+- Khi thiếu vai trò mới, tạo worker chuyên tìm role/skill phù hợp thay vì để Lead tự ôm việc.
+- Dùng Agent-Reach có kiểm soát để Research Worker tìm nguồn công khai khi thật sự cần.
 - Bắt buộc nghiên cứu trước với việc UI/UX, sáng tạo, luồng người dùng, công nghệ mới hoặc phần rủi ro cao.
 - Có checklist riêng cho API, UI, database, tích hợp và review trước khi báo xong.
 - Có bước xem trước ngắn để người dùng chốt hướng trước khi làm màn hình/luồng lớn.
@@ -52,6 +54,7 @@ $lead <yêu cầu của bạn>                  # Giao yêu cầu cho Big Lead
 $lead status                             # Xem tình hình team
 $lead audit                              # Kiểm tra việc nào có worker thật và Lead có giữ đúng vai trò không
 $lead capability <nhu cầu>               # Tìm skill/cách làm phù hợp, chưa tự cài khi bạn chưa duyệt
+$lead roles                               # Xem các vai trò Agency đang phù hợp, đang dùng hoặc đang chờ kiểm tra
 $lead research <chủ đề>                  # Tạo bản nghiên cứu ngắn trước một quyết định quan trọng
 $lead preview <chủ đề>                   # Chuẩn bị bản xem trước để bạn chốt hướng UI/UX lớn
 $lead recover                            # Dùng sau khi Orca bị khởi động lại
@@ -98,11 +101,37 @@ $lead audit
 
 Lead phải báo rõ việc đó đang chờ gì; Lead không được tự làm thay worker để cho nhanh. Quét file, tìm web, đọc tài liệu sâu, debug, chạy test và tìm skill cũng là việc của worker. Chỉ các việc như hỏi trạng thái, thêm rule hoặc trả lời ngắn mới không cần worker.
 
+## Vai trò Agency và tìm nguồn bên ngoài
+
+Ngay sau khi bạn khởi tạo team, Big Lead không tự làm code. Nếu Orca còn chỗ, Lead tạo một worker chỉ-đọc để xem dự án thuộc loại gì, rồi lập danh sách vai trò phù hợp trong:
+
+```text
+.orca-team/AGENCY_PROFILE_REGISTRY.md
+```
+
+Ví dụ dự án API có thể có các vai trò nền như thiết kế backend, kiểm tra API, tối ưu database và kiểm tra quyền. Dự án FE có thể có vai trò frontend, UI/UX, accessibility và test giao diện. Danh sách này chỉ để chọn người phù hợp khi có việc; nó **không** tự mở sẵn nhiều terminal.
+
+Khi bạn giao yêu cầu mới, Big Lead làm theo thứ tự:
+
+```text
+Vai trò dự án đã duyệt
+        ↓ chưa có
+Worker tìm role phù hợp trong Agency Agents
+        ↓ vẫn chưa đủ
+Research Worker tìm tài liệu/nguồn công khai
+        ↓
+Worker triển khai nhận card vai trò ngắn và làm đúng phần việc
+```
+
+Agency Agents chỉ là bộ hướng dẫn nghề nghiệp cho worker. Nó không tạo một Big Lead khác, không tự mở terminal, không tự đổi model và không tự có quyền Git, database, deploy hay dùng tài khoản.
+
+Agent-Reach chỉ được Research Worker dùng để tìm/đọc nguồn **công khai** nếu công cụ đã có hoặc bạn đã duyệt cài. Mặc định nó không được dùng cookie, tài khoản đăng nhập, token, Chrome profile, proxy, dữ liệu dự án riêng hay bất kỳ thao tác đăng/gửi/tạo gì ở bên ngoài. Nếu cần cài thêm công cụ hoặc dùng đăng nhập, Lead sẽ hỏi bạn trước.
+
 ## Khi nào Lead tìm hiểu trước
 
 Với việc nhỏ, rõ và đã có cách làm trong dự án, worker làm trực tiếp. Với UI/UX, dashboard, mobile, nội dung, luồng người dùng, thư viện/công nghệ mới, kiến trúc, bảo mật, hiệu năng hoặc tích hợp lớn, Lead tạo bản nghiên cứu ngắn trước khi giao phần quyết định cho worker.
 
-Kết quả nghiên cứu được lưu trong `.orca-team/RESEARCH_NOTES/`, để những lần sau không phải tìm lại từ đầu. Khi cần skill mới, worker chỉ đề xuất; Lead kiểm tra nguồn, nội dung và rủi ro trước. Mặc định Lead phải hỏi bạn trước khi tải, cài hoặc chạy skill mới.
+Kết quả nghiên cứu được lưu trong `.orca-team/RESEARCH_NOTES/`, để những lần sau không phải tìm lại từ đầu. Khi cần role/skill mới, worker chỉ đề xuất; Lead kiểm tra nguồn, nội dung và rủi ro trước. Mặc định Lead phải hỏi bạn trước khi tải, cài hoặc chạy skill/công cụ mới.
 
 ## Khi nào bạn cần chốt trước
 
@@ -130,7 +159,7 @@ Khi worker bị lỗi model, Big Lead/Lead phụ chỉ tạo worker thay thế s
 skills/lead/
   SKILL.md                 Quy trình Big Lead, Lead phụ và worker trong Orca
   agents/openai.yaml       Tên hiển thị trong Codex của Orca
-  references/              Quy tắc giao việc, skill, nghiên cứu, chất lượng, audit, model và khôi phục
+  references/              Quy tắc giao việc, Agency role, Agent-Reach, skill, nghiên cứu, chất lượng, audit, model và khôi phục
   scripts/bootstrap-project.ps1
 ```
 

@@ -14,6 +14,8 @@ $statePath = Join-Path $teamPath 'TEAM_STATE.md'
 $leasePath = Join-Path $teamPath 'LEAD_LEASE.md'
 $dashboardPath = Join-Path $teamPath 'TEAM_DASHBOARD.md'
 $skillRegistryPath = Join-Path $teamPath 'SKILL_REGISTRY.md'
+$agencyRegistryPath = Join-Path $teamPath 'AGENCY_PROFILE_REGISTRY.md'
+$externalResearchPolicyPath = Join-Path $teamPath 'EXTERNAL_RESEARCH_POLICY.md'
 $researchNotesPath = Join-Path $teamPath 'RESEARCH_NOTES'
 $researchReadmePath = Join-Path $researchNotesPath 'README.md'
 $qualityGatesPath = Join-Path $teamPath 'QUALITY_GATES.md'
@@ -34,6 +36,8 @@ cross_project_policy: cần contract Lead-to-Lead trước khi triển khai
 terminal_policy: bắt buộc dùng Orca; terminal giữ lại có thể mất sau restart, phải recovery từ inventory live
 lead_identity_policy: mỗi dự án chỉ một Big Lead; terminal thứ hai là viewer đến khi recovery/takeover được xác minh
 skill_discovery_policy: suggest-only; Lead duyệt mọi candidate, không tự cài global
+agency_profile_policy: baseline theo dự án; Agency role chỉ là card hướng dẫn cho worker, không tự tạo Lead/terminal/cài agent; role task-approved phải có nguồn/revision rõ và không có quyền ngoài
+external_research_policy: ưu tiên source local/tài liệu chính thức; Agent-Reach chỉ do Research Worker dùng ở chế độ public-only khi đã được duyệt/có sẵn, không login/cookie/token/dữ liệu riêng
 research_policy: research-first cho thiết kế, UX, nội dung, user flow, kiến trúc/thư viện mới, bảo mật, hiệu năng và integration lớn
 quality_policy: mọi task phải có evidence quan sát được; dùng checklist phù hợp trước DONE
 preview_policy: hỏi người dùng chốt ngắn trước trang mới, redesign UI/UX đáng kể, đổi navigation hoặc user flow, trừ khi người dùng yêu cầu làm trực tiếp
@@ -65,6 +69,10 @@ Nội bộ có thể dùng chi tiết kỹ thuật. Khi báo người dùng, nó
 ## Skill và nghiên cứu
 
 Lead xem registry/context rồi giao skill-scout worker nếu cần. Worker không tự tải/cài/bật/chạy skill ngoài. Chế độ mặc định suggest-only: phải hỏi người dùng trước khi tải/cài/bật/chạy skill mới. Trusted-instruction-only chỉ là opt-in theo dự án, chỉ cho skill nguồn uy tín, đọc được toàn bộ, chỉ có hướng dẫn/reference, không script/hook/credential/upload/Git/DB/deploy.
+
+Agency Agents là nguồn card vai trò, không thay Lead/worker Orca. Sau khi khởi tạo, nếu Orca còn slot, Lead giao worker CAPABILITY-BASELINE chỉ-đọc để xác định role phù hợp với stack/domain và ghi AGENCY_PROFILE_REGISTRY.md. Khi task thiếu role, chỉ CAPABILITY-SCOUT mới được đọc Agency gốc; Lead dùng card AR-### ngắn, không dùng raw prompt dài. Role mới chỉ task-approved khi nguồn/revision rõ, chỉ là hướng dẫn, không có script/hook/package/login/quyền ngoài và không xung đột policy. Cài Agency/custom agent vẫn cần người dùng duyệt.
+
+Agent-Reach chỉ là đường tìm nguồn công khai tùy chọn cho Research Worker, không bắt buộc cho mọi URL/nghiên cứu. Ưu tiên source local, tài liệu chính thức và standard. Chỉ dùng Agent-Reach public-only khi Task Contract cho phép, tool đã được cài/duyệt; cấm cookie, login, token, proxy, query có dữ liệu riêng và mọi thao tác ghi trên nền tảng bên ngoài. Tool chưa có phải hỏi người dùng trước khi cài.
 
 Lead ghi routine, research-first hoặc research-deep lúc nhận task. UI/UX, visual, copy/content, user flow, framework/library mới, kiến trúc, bảo mật, hiệu năng và integration lớn cần research-first. Worker nghiên cứu chỉ-đọc tạo brief ngắn trước phần triển khai phụ thuộc nó.
 
@@ -178,6 +186,11 @@ Chỉ ghi ID từ Orca runtime live. Sau restart, ghi RECOVERY_REQUIRED đến k
 | Registry ID | Capability | Quyết định | Task ảnh hưởng | Owner | Kiểm tra tiếp |
 |---|---|---|---|---|---|
 
+## Vai trò Agency
+
+| Role ID | Vai trò | Trạng thái | Task ảnh hưởng | Owner | Kiểm tra tiếp |
+|---|---|---|---|---|---|
+
 ## Nghiên cứu
 
 | Research ID | Câu hỏi quyết định | Cấp | Task ảnh hưởng | Trạng thái evidence | Owner |
@@ -262,6 +275,82 @@ Quyết định: <vì sao duyệt/loại và ai duyệt>
     [System.IO.File]::WriteAllText($skillRegistryPath, $skillRegistryContents, $utf8NoBom)
 }
 
+if (-not (Test-Path -LiteralPath $agencyRegistryPath)) {
+    $agencyRegistryContents = @'
+# Sổ vai trò Agency
+
+Cập nhật gần nhất: chưa khởi tạo
+Nguồn ưu tiên: msitarzewski/agency-agents (chỉ đọc profile gốc theo URL/revision được ghi)
+
+Sổ này lưu card vai trò chuyên môn cho worker. Vai trò Agency không phải terminal, Lead mới, model route hay tool được cài. TEAM_POLICY.md, rule người dùng, ownership, Git/DB/deploy approval và Quality Gate luôn cao hơn card vai trò.
+
+## Baseline dự án
+
+| Role ID | Vai trò | Phù hợp với dự án vì | Trạng thái | Bằng chứng / worker xác định |
+|---|---|---|---|---|
+| AR-BL-001 | baseline pending | Chờ CAPABILITY-BASELINE đọc context dự án | pending | chưa có |
+
+## Danh sách role
+
+| ID | Vai trò | Nguồn/revision | Dùng cho | Trạng thái | Evidence |
+|---|---|---|---|---|---|
+
+Trạng thái: baseline, candidate, task-approved, approved, active, rejected, retired.
+
+## Card chi tiết khi cần
+
+~~~
+### AR-001 — <tên vai trò>
+Nguồn: <URL file/repository gốc>
+Revision đã kiểm tra: <commit SHA hoặc ngày/version>
+Phù hợp vì: <task/domain cụ thể>
+Dùng cho: <module/task và kết quả cần có>
+Checklist áp dụng: <3-5 nguyên tắc liên quan>
+Không được cấp quyền: <không tự cấp Git/cài tool/DB/deploy/credential/đổi model>
+Trạng thái: <baseline | candidate | task-approved | approved | active | rejected | retired>
+Evidence: <brief/test/review hoặc lý do loại>
+~~~
+
+Role `task-approved` chỉ được dùng cho một worker khi profile nguồn đọc được toàn bộ, nguồn/revision rõ, chỉ là hướng dẫn và không có script/hook/package/login/quyền ngoài. Không chép raw prompt dài vào Task Contract; chỉ dùng card đã thu hẹp phạm vi. Xem `references/agency-profiles-and-agent-reach.md` trong skill Lead để biết đầy đủ quy trình.
+'@
+    [System.IO.File]::WriteAllText($agencyRegistryPath, $agencyRegistryContents, $utf8NoBom)
+}
+
+if (-not (Test-Path -LiteralPath $externalResearchPolicyPath)) {
+    $externalResearchPolicyContents = @'
+# Chính sách nghiên cứu bên ngoài
+
+Trạng thái Agent-Reach: chưa cài/chưa xác nhận
+Chế độ mặc định: public-only
+
+## Thứ tự nguồn
+
+1. Rule, tài liệu, code pattern và research note nội bộ của dự án.
+2. Tài liệu chính thức và standard phù hợp.
+3. Nguồn công khai đáng tin khi hai nhóm trên chưa đủ.
+
+Agent-Reach chỉ là công cụ tùy chọn cho Research Worker ở bước 3. Nó không tự trở thành bắt buộc khi có URL, không thay thế nguồn gốc và không được dùng bởi Big Lead/Lead phụ.
+
+## Public-only
+
+Được dùng khi Task Contract ghi rõ câu hỏi hẹp, `Agent-Reach public-only`, loại nguồn và tool đã được người dùng duyệt/có sẵn:
+
+- đọc web/RSS/YouTube/GitHub public;
+- tìm thông tin công khai không chứa dữ liệu dự án nhạy cảm;
+- ghi source, kết luận và giới hạn evidence vào RN-###.
+
+## Cấm mặc định
+
+- cài Agent-Reach, package, plugin, browser extension hoặc dependency khi chưa có user approval;
+- cookie, Chrome profile, login, token, GitHub auth, proxy hoặc API key;
+- source nội bộ, tên khách hàng, URL private, credential, log chưa lọc, dữ liệu DB/production trong query hay URL gửi ra ngoài;
+- đăng bài, nhắn tin, like, tạo issue/PR hoặc thao tác ghi trên bất kỳ nền tảng ngoài nào.
+
+Nếu tool chưa có hoặc đòi login/quyền ngoài, Research Worker dừng phần đó và báo Lead để chuyển `WAITING_USER`. Approval dùng tool không thay thế các approval Git, database, deploy hoặc service khác.
+'@
+    [System.IO.File]::WriteAllText($externalResearchPolicyPath, $externalResearchPolicyContents, $utf8NoBom)
+}
+
 if (-not (Test-Path -LiteralPath $researchNotesPath)) {
     [System.IO.Directory]::CreateDirectory($researchNotesPath) | Out-Null
 }
@@ -305,6 +394,10 @@ Ngày / owner: <ngày và worker nghiên cứu>
 - research-deep: kế hoạch evidence và brief so sánh trước quyết định rủi ro/cost cao.
 
 Không tìm vô hạn. Dừng khi brief trả lời đủ bằng evidence đáng tin. Thiếu evidence hoặc cần nguồn login/trả phí thì báo Lead để hỏi người dùng.
+
+## Nghiên cứu bên ngoài
+
+Khi dùng nguồn ngoài, ưu tiên tài liệu chính thức. Agent-Reach chỉ dùng nếu Task Contract ghi `Agent-Reach public-only`, tool đã được duyệt/có sẵn và chỉ cần nguồn public. Không đưa dữ liệu riêng, không dùng login/cookie/token/proxy và không thao tác ghi trên nền tảng bên ngoài.
 '@
     [System.IO.File]::WriteAllText($researchReadmePath, $researchReadmeContents, $utf8NoBom)
 }
@@ -371,6 +464,8 @@ Ghi câu trả lời thành PV-### trong TEAM_STATE.md và Task Contract. Previe
     lease = $leasePath
     dashboard = $dashboardPath
     skillRegistry = $skillRegistryPath
+    agencyRegistry = $agencyRegistryPath
+    externalResearchPolicy = $externalResearchPolicyPath
     researchNotes = $researchNotesPath
     qualityGates = $qualityGatesPath
 } | ConvertTo-Json -Depth 3

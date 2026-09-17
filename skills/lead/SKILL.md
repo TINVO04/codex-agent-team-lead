@@ -17,7 +17,8 @@ Bạn là Lead của dự án: giữ trạng thái bền vững, nhận yêu c�
 - `$lead status`: chỉ đọc trạng thái và Orca đang chạy; không mở worker.
 - `$lead recover`: dùng sau khi Orca khởi động lại; đối chiếu worker thật trước khi tạo lại phần việc cần thiết.
 - `$lead take over`: chỉ thay Big Lead khi người dùng yêu cầu và Big Lead cũ đã được Orca xác nhận dừng/lỗi, hoặc người dùng xác nhận không dùng được.
-- `$lead capability <nhu cầu>`: ghi nhận nhu cầu kỹ năng; nếu cần tìm ngoài, giao worker chuyên tìm skill. Không tự tải/cài/bật skill mới.
+- `$lead capability <nhu cầu>`: ghi nhận nhu cầu kỹ năng/vai trò; ưu tiên role đã duyệt của dự án, nếu thiếu thì giao worker chuyên tìm Agency role hoặc skill. Không tự tải/cài/bật gì mới.
+- `$lead roles`: xem vai trò Agency baseline, đang dùng, chờ kiểm tra hoặc đã loại trong `AGENCY_PROFILE_REGISTRY.md`.
 - `$lead skills`: xem skill đang chờ duyệt, được duyệt, đang dùng hoặc đã loại trong `SKILL_REGISTRY.md`.
 - `$lead research <chủ đề>`: tạo/điều phối một nghiên cứu có phạm vi rõ; không tự nghiên cứu trong terminal Lead.
 - `$lead preview <chủ đề>`: chuẩn bị bản tóm tắt để người dùng chốt hướng cho thay đổi UI/UX, luồng hoặc hình ảnh lớn.
@@ -30,9 +31,9 @@ Chỉ dùng skill này trong terminal Codex mở bởi Orca. Gõ `$`, chọn `Or
 
 ## Lần đầu dùng trong mỗi dự án
 
-1. Không dùng Git. Kiểm tra `.orca-team/TEAM_POLICY.md`, `TEAM_RULES.md`, `TEAM_STATE.md`, `LEAD_LEASE.md`, `TEAM_DASHBOARD.md`, `SKILL_REGISTRY.md`, thư mục `RESEARCH_NOTES/` và `QUALITY_GATES.md`.
+1. Không dùng Git. Kiểm tra `.orca-team/TEAM_POLICY.md`, `TEAM_RULES.md`, `TEAM_STATE.md`, `LEAD_LEASE.md`, `TEAM_DASHBOARD.md`, `SKILL_REGISTRY.md`, `AGENCY_PROFILE_REGISTRY.md`, `EXTERNAL_RESEARCH_POLICY.md`, thư mục `RESEARCH_NOTES/` và `QUALITY_GATES.md`.
 2. Nếu thiếu bất kỳ file/thư mục bắt buộc nào, chạy `scripts/bootstrap-project.ps1 -ProjectPath <thư-mục-gốc-dự-án>`. Script chỉ tạo phần thiếu, không ghi đè dữ liệu có sẵn.
-3. Kiểm tra Orca đang chạy và xem inventory Run/task/terminal thật. Đọc tất cả file điều phối nêu trên, gồm `RESEARCH_NOTES/README.md` nếu có. Nếu không xem được Orca runtime, dừng và báo lý do.
+3. Kiểm tra Orca đang chạy và xem inventory Run/task/terminal thật. Đọc tất cả file điều phối nêu trên, gồm `RESEARCH_NOTES/README.md` nếu có. Sau khi Big Lead đã claim lease và state được khởi tạo, nếu có slot thì giao một worker `CAPABILITY-BASELINE` chỉ-đọc để ghi baseline vai trò theo stack/domain vào `AGENCY_PROFILE_REGISTRY.md`; không tự quét source hoặc xem catalog Agency trong terminal Lead. Nếu không xem được Orca runtime, dừng và báo lý do.
 4. Áp dụng rule chỉ một Big Lead trước khi mở bất kỳ worker nào. Nếu lease chưa có owner, terminal hiện tại trở thành `00 | BIG | <project> | RUN`; đổi tên terminal trong Orca rồi mới ghi lease, state và dashboard. Nếu Big Lead đang sống, terminal mới chỉ là viewer: đổi thành `90 | VIEW | <project>`, chỉ xem trạng thái, không mở worker/đổi owner. Nếu owner không rõ, giữ lease và dùng `$lead recover` hoặc chỉ takeover khi có xác nhận phù hợp. Nếu owner đã dừng/lỗi, khôi phục trước rồi mới trở thành Big Lead.
 5. Báo trạng thái khởi tạo, viewer hoặc khôi phục trước khi giao worker. Không đoán Run hay terminal cũ từ file state.
 
@@ -41,6 +42,8 @@ Chỉ dùng skill này trong terminal Codex mở bởi Orca. Gõ `$`, chọn `Or
 Đọc [mô hình rule team](references/team-rules.md) khi người dùng đưa rule chung, yêu cầu đổi rule, hoặc rule thay đổi lúc agent đang chạy. Đọc [quy tắc báo người dùng](references/user-reporting.md) trước khi báo tiến độ, hoàn tất, blocker hay hỏi quyết định. Đọc [chọn model và khôi phục](references/model-routing-and-recovery.md) trước khi mở/retry Lead hoặc worker. Đọc [nhận diện Lead và terminal](references/lead-identity-and-visibility.md) trước khi khởi tạo, đổi tên terminal hoặc nói ai sở hữu task nào.
 
 Đọc [cổng tìm skill](references/capability-discovery-and-skill-gate.md) khi task cần khả năng chuyên biệt, worker thiếu kỹ năng, hoặc người dùng yêu cầu tìm/học/dùng skill. Đọc [cổng nghiên cứu trước](references/research-first-gate.md) cho UI/UX, sáng tạo, nội dung, luồng người dùng, kiến trúc, thư viện mới, bảo mật, hiệu năng hay tích hợp lớn. Đọc [cổng chất lượng và xem trước](references/quality-and-preview-gates.md) trước khi giao việc, chốt `DONE`, hoặc làm thay đổi UI/UX/luồng đáng kể. Đọc [kiểm tra phân công](references/delegation-audit.md) khi gọi `$lead audit`, thấy Lead có vẻ đang làm thay worker, thiếu terminal worker, hoặc khôi phục quyền sở hữu đáng nghi.
+
+Đọc [vai trò Agency và Agent-Reach](references/agency-profiles-and-agent-reach.md) khi khởi tạo baseline role, chọn role cho worker, thiếu role phù hợp hoặc muốn dùng Agent-Reach để tìm nguồn công khai. Agency chỉ bổ sung chuyên môn cho worker; Agent-Reach chỉ là đường research public-only đã được duyệt, không thay thế Orca hay Lead.
 
 ## Khôi phục dự án mới và cũ
 
@@ -84,7 +87,7 @@ Tuân theo đúng model policy trong `TEAM_POLICY.md`. Ghi model yêu cầu, mod
 3. Chọn checklist phù hợp trong `QUALITY_GATES.md` và ghi bằng chứng cụ thể vào Task Contract. Sửa code hoặc worker tự nói “xong” không đủ để `DONE`.
 4. Phân loại Preview Gate là `not needed`, `internal` hoặc `user review required`. Với trang mới, redesign đáng kể, thay đổi điều hướng/luồng người dùng, phải chờ người dùng chốt trước khi worker thay đổi phần quyết định hướng, trừ khi người dùng nói làm trực tiếp.
 5. Phân loại Research Gate là `routine`, `research-first` hoặc `research-deep`. Các task cần evidence hiện hành phải có worker nghiên cứu riêng và brief trước phần triển khai phụ thuộc nó.
-6. Phân loại Capability Gate: dùng skill/reference sẵn có trước; nếu phải tìm ngoài thì giao skill-scout worker, ghi registry và chỉ cài/dùng theo quyền người dùng.
+6. Phân loại Capability Gate: dùng Agency role card, skill/reference sẵn có trước; nếu phải tìm ngoài thì giao capability-scout worker, ghi registry và chỉ cài/dùng theo quyền người dùng.
 7. Yêu cầu mới không tự hủy việc đang làm. Đánh dấu `READY`, `QUEUED`, `BLOCKED` hoặc `WAITING_USER` rồi báo vị trí hợp lý.
 8. Chỉ chạy task `READY` độc lập khi còn slot và ownership zone không trùng writer đang chạy.
 9. DTO chung, public contract, migration, config, solution/package manifest và path trùng nhau phải được tuần tự hóa hoặc tách thành contract-first.
@@ -114,7 +117,7 @@ Với mọi task nghiên cứu hoặc dự án có ý nghĩa, Lead **bắt buộ
 
 Nếu Orca không trả về Task/Dispatch và terminal handle thật, worker chưa được mở. Ghi task `QUEUED`/`BLOCKED`, nói lý do thực tế và không làm thay. Sau khi mở thành công, đổi tên terminal và ghi dashboard trước khi gọi task là active. Task nghiên cứu/triển khai không có terminal worker hiển thị phải được điều tra, không được tuyên bố đã giao việc.
 
-Worker thiếu capability gửi `CAPABILITY_REQUEST`; Lead tạo worker skill-scout có phạm vi rõ, đưa reference đã duyệt, thu hẹp task hoặc hỏi người dùng — Lead không tự tìm. Worker thiếu evidence research gửi `RESEARCH_REQUEST`; Lead mở worker nghiên cứu chỉ-đọc, không tự bổ sung nghiên cứu.
+Worker thiếu capability gửi `CAPABILITY_REQUEST`; Lead kiểm tra role/skill registry và tạo worker `CAPABILITY-SCOUT` có phạm vi rõ, đưa reference đã duyệt, thu hẹp task hoặc hỏi người dùng — Lead không tự tìm. Capability-scout ưu tiên Agency role đã có/baseline, sau đó mới tìm profile nguồn; Agency role chỉ là card ngắn cho worker, không tự tạo terminal hay cài agent. Worker thiếu evidence research gửi `RESEARCH_REQUEST`; Lead mở worker nghiên cứu chỉ-đọc, không tự bổ sung nghiên cứu. Agent-Reach chỉ do Research Worker dùng khi policy/Task Contract cho phép public-only và tool đã được duyệt/có sẵn.
 
 Không mở worker cho yêu cầu mơ hồ, điều tra không giới hạn, task chờ người dùng hoặc task cần Git mà chưa được duyệt. Không vượt max worker chỉ để làm rỗng queue.
 
