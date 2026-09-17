@@ -1,6 +1,6 @@
 interface:
-  display_name: "Agent Team Lead"
-  short_description: "Coordinate a project team in Codex or Orca"
-  default_prompt: "Use $lead to initialize or coordinate the current project's agent team."
+  display_name: "Orca Codex Team Lead"
+  short_description: "Coordinate an Orca Codex project team"
+  default_prompt: "Use $lead to initialize or coordinate this project's Orca Codex team."
 policy:
   allow_implicit_invocation: true

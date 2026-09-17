@@ -11,6 +11,8 @@ $teamPath = Join-Path $resolvedProjectPath '.orca-team'
 $policyPath = Join-Path $teamPath 'TEAM_POLICY.md'
 $rulesPath = Join-Path $teamPath 'TEAM_RULES.md'
 $statePath = Join-Path $teamPath 'TEAM_STATE.md'
+$leasePath = Join-Path $teamPath 'LEAD_LEASE.md'
+$dashboardPath = Join-Path $teamPath 'TEAM_DASHBOARD.md'
 
 if (-not (Test-Path -LiteralPath $policyPath)) {
     $policyContents = @'
@@ -24,7 +26,8 @@ git_policy: all Git operations require explicit user approval
 database_policy: shared database changes require explicit user approval
 service_policy: service restart or deployment requires explicit user approval
 cross_project_policy: Lead-to-Lead contract required before implementation
-terminal_policy: retained terminals may disappear after Orca restart; recover from live inventory
+terminal_policy: Orca runtime is required; retained terminals may disappear after Orca restart; recover from live inventory
+lead_identity_policy: one active Big Lead per project; second terminals are viewers until verified recovery or explicit user takeover
 
 ## Roles
 
@@ -60,6 +63,10 @@ Worker routes:
 - final review: qwen3.8-max-0902 with high effort, then deepseek-v4.1-flash, then glm-5.3-flash.
 
 Before launch, record requested model, runtime-confirmed effective model, effort, and fallback order. An unknown/disconnected worker is not a failed model. Inspect it before retrying. If a worker may have changed files, preserve its ownership reservation and recover the same task with one permitted fallback only after failure is proven. In Orca, the replacement starts a fresh Codex worker on the same Task using the failed Dispatch as retry evidence; do not reuse a failing terminal or run two writers. If every permitted model fails or is unavailable, wait for a user model decision. A failed Root Lead must be replaced by its supervising caller using the saved project state.
+
+## Big Lead identity and visibility
+
+Only one active Big Lead owns the project queue and may dispatch workers. The terminal that creates the active lease uses `00 | BIG | <project> | RUN`. A second terminal opening the same project is a viewer until the live Big Lead gives it a bounded role, or verified recovery/explicit user takeover transfers the lease. Use `.orca-team/TEAM_DASHBOARD.md` and role labels to show who owns each worker. A terminal title is for people to read; live Orca worker state remains the authority for liveness and recovery.
 '@
     [System.IO.File]::WriteAllText($policyPath, $policyContents, (New-Object System.Text.UTF8Encoding($false)))
 }
@@ -96,6 +103,8 @@ Project: pending discovery
 Lead mode: idle
 Orca Run: unbound
 Lead terminal: unbound
+Big Lead label: unassigned
+Lead lease: UNASSIGNED
 
 ## Current objective
 
@@ -113,13 +122,13 @@ None
 
 ## Team topology and capacity
 
-| Team / domain | Lead | Allocated capacity | Owned task IDs | State | Collapse condition |
-|---|---|---:|---|---|---|
+| Team / domain | Lead label | Parent | Allocated capacity | Owned task IDs | State | Collapse condition |
+|---|---|---|---:|---|---|---|
 
 ## Active assignments
 
-| Task | Attempt | Dispatch | Terminal | Requested / effective model / effort | Checkpoint | Last known result |
-|---|---:|---|---|---|---|---|
+| Task | Role label | Parent label | Attempt | Dispatch | Terminal | Requested / effective model / effort | Checkpoint | Last known result |
+|---|---|---|---:|---|---|---|---|---|
 
 ## Model routing and recovery
 
@@ -144,10 +153,46 @@ None
     [System.IO.File]::WriteAllText($statePath, $stateContents, (New-Object System.Text.UTF8Encoding($false)))
 }
 
+if (-not (Test-Path -LiteralPath $leasePath)) {
+    $leaseContents = @'
+# Big Lead Lease
+
+State: UNASSIGNED
+Big Lead label: unassigned
+Mode: unbound
+Orca Run: unbound
+Lead terminal: unbound
+Started: not yet hydrated
+Last confirmed: not yet hydrated
+
+Only the active Big Lead may schedule workers. A second terminal is a viewer until verified recovery or explicit user takeover transfers this lease.
+'@
+    [System.IO.File]::WriteAllText($leasePath, $leaseContents, (New-Object System.Text.UTF8Encoding($false)))
+}
+
+if (-not (Test-Path -LiteralPath $dashboardPath)) {
+    $dashboardContents = @'
+# Team Dashboard
+
+Last updated: not yet hydrated
+Project: pending discovery
+
+No Big Lead has claimed this project yet.
+
+## Quick reading
+
+| Label | Owner / task | State | Next checkpoint |
+|---|---|---|---|
+'@
+    [System.IO.File]::WriteAllText($dashboardPath, $dashboardContents, (New-Object System.Text.UTF8Encoding($false)))
+}
+
 [pscustomobject]@{
     project = $resolvedProjectPath
     teamDirectory = $teamPath
     policy = $policyPath
     rules = $rulesPath
     state = $statePath
+    lease = $leasePath
+    dashboard = $dashboardPath
 } | ConvertTo-Json -Depth 3

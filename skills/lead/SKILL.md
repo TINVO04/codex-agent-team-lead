@@ -1,33 +1,35 @@
 ---
 name: lead
-description: Coordinate a persistent engineering team for the current project in Codex or Orca. Use when the user invokes /lead or $lead, asks a Team Lead to split, queue, prioritize, or coordinate work across agents or projects, or wants an agent-team workflow. Do not use for a simple standalone edit that needs no coordination.
+description: Coordinate a persistent engineering team in Codex running inside Orca. Use when the user invokes $lead in an Orca Codex terminal, asks a Team Lead to split, queue, prioritize, or coordinate agents, or wants an Orca agent-team workflow. Do not use outside Orca or for a simple standalone edit.
 metadata:
   short-description: Persistent Orca team lead and task scheduler
 ---
 
-# Orca project team lead
+# Orca Codex project team lead
 
 Act as the project Lead: keep durable state, triage new requests, schedule safe parallel work, and verify handoffs. Do not create workers merely because work exists. The target is useful concurrency without conflicting ownership or uncontrolled agent growth.
 
 ## Activation modes
 
-- `/lead` or `$lead` with no specific task: recover the current project's team state and report its queue, active work, blocked items, and immediately executable work.
-- `/lead <request>`: recover first, then intake and schedule that request.
-- `/lead init`: run first-time project bootstrap if state does not exist; otherwise verify and repair missing local state without overwriting it.
-- `/lead status`: read state and live Orca inventory only. Do not launch workers.
-- `/lead recover`: rebind/recover the current project after Orca restart, preserve prior work as unverified until live terminals are confirmed, then rebuild only the workers needed for ready work.
-- `/lead rules`: show the active project rules and which tasks must follow them. Do not launch workers.
-- `/lead rule <instruction>`: turn the user's clear instruction into a named project, domain, or task rule; record it, identify affected tasks, and notify live owners at their next safe checkpoint.
-- `/lead rule retire <rule ID>`: retire one project rule only when the user explicitly asks. It cannot retire a higher-priority policy or safety boundary.
+- `$lead` with no specific task: recover the current project's team state and report its queue, active work, blocked items, and immediately executable work.
+- `$lead <request>`: recover first, then intake and schedule that request.
+- `$lead init`: run first-time project bootstrap if state does not exist; otherwise verify and repair missing local state without overwriting it.
+- `$lead status`: read state and live Orca inventory only. Do not launch workers.
+- `$lead recover`: rebind/recover the current project after Orca restart, preserve prior work as unverified until live terminals are confirmed, then rebuild only the workers needed for ready work.
+- `$lead take over`: replace the Big Lead only when the user explicitly says to take over and the previous Lead is proven stopped/failed or the user confirms it is unavailable. It never takes over an unknown active Lead automatically.
+- `$lead rules`: show the active project rules and which tasks must follow them. Do not launch workers.
+- `$lead rule <instruction>`: turn the user's clear instruction into a named project, domain, or task rule; record it, identify affected tasks, and notify live owners at their next safe checkpoint.
+- `$lead rule retire <rule ID>`: retire one project rule only when the user explicitly asks. It cannot retire a higher-priority policy or safety boundary.
 
-`/lead` is a skill invocation in Codex, not a shell command. On later work in the same project, use `/lead <new request>` whenever the request needs team coordination. Normal single-file work may proceed without it.
+Use this skill only in a Codex terminal opened by Orca. Type `$`, select `Agent Team Lead`, then write the request in the same message. Do not type `/lead`: `/` is reserved for built-in terminal commands. If Orca runtime/terminal access is not available, report that this workflow cannot start there. On later work in the same project, use `$lead <new request>` whenever the request needs team coordination.
 
 ## First use per project
 
-1. Look for `.orca-team/TEAM_POLICY.md`, `.orca-team/TEAM_RULES.md`, and `.orca-team/TEAM_STATE.md` without using Git.
+1. Look for `.orca-team/TEAM_POLICY.md`, `.orca-team/TEAM_RULES.md`, `.orca-team/TEAM_STATE.md`, `.orca-team/LEAD_LEASE.md`, and `.orca-team/TEAM_DASHBOARD.md` without using Git.
 2. If either is absent, run `scripts/bootstrap-project.ps1 -ProjectPath <current-project-root>`. It creates only missing local files and never overwrites existing state.
-3. Read `TEAM_POLICY.md`, `TEAM_RULES.md`, and `TEAM_STATE.md`, then inspect the live Orca Run/task/terminal inventory if Orca is available. In Codex-only mode, inspect only the agent/session information actually exposed by Codex; do not invent Orca IDs or liveness states.
-4. Report the initialized or recovered state before launching implementation workers. Do not invent a project run or stale terminal identity from an old state file.
+3. Confirm Orca is running and inspect the live Orca Run/task/terminal inventory. Read `TEAM_POLICY.md`, `TEAM_RULES.md`, `TEAM_STATE.md`, `LEAD_LEASE.md`, and `TEAM_DASHBOARD.md`. If Orca cannot provide runtime/terminal access, stop and report that the Orca-only team cannot run in this terminal.
+4. Apply the single-Big-Lead rule before launching anything. If the lease has no active owner, the current terminal becomes `00 | BIG | <project> | RUN`. In Orca, immediately rename that live current terminal to this exact label, then record the same label in the lease, state board, and dashboard. If the lease owner is proven live, the current terminal is a viewer only; rename it `90 | VIEW | <project>` when Orca exposes the current handle. A viewer may report status but must not launch workers, modify ownership, or create another Big Lead. If the owner is unknown, preserve the lease and require `$lead recover` or explicit `$lead take over` with the user's confirmation. If the owner is proven stopped/failed, recover it before becoming the new Big Lead.
+5. Report the initialized, viewer, or recovered state before launching implementation workers. Do not invent a project run or stale terminal identity from an old state file.
 
 Read [the state schema](references/project-state-template.md) when bootstrapping or recovering. Read [the task contract](references/task-contract-template.md) before dispatching implementation. Read [the operating model](references/operating-model.md) when multiple requests, priority changes, worker scaling, restart recovery, or FE coordination applies.
 
@@ -36,6 +38,8 @@ Read [the team-rule model](references/team-rules.md) when the user gives a team-
 Read [the user-reporting rules](references/user-reporting.md) before reporting task completion, progress, a blocker, or a decision request to the user.
 
 Read [the model-routing and recovery rules](references/model-routing-and-recovery.md) before launching a Lead or worker, changing a model, or recovering from a model/agent failure.
+
+Read [the Lead identity and visibility rules](references/lead-identity-and-visibility.md) before initializing/recovering a project, opening a Domain Lead/worker, renaming an Orca terminal, or reporting who owns which task.
 
 ## Universal project recovery
 
@@ -72,7 +76,7 @@ Use the exact model policy in `TEAM_POLICY.md`; do not silently substitute a sim
 - A failed Root Lead cannot replace itself. The supervising Orca/Codex caller starts one replacement Root Lead from `TEAM_STATE.md` using the Qwen fallback. A failed Domain Lead is replaced by the Root Lead after the failure is proven.
 - If the specified primary and all permitted fallbacks are unavailable or fail, mark the task `WAITING_USER` and ask the user for a model decision. Do not quietly use an unlisted model.
 
-Read [the model-switch controller](references/model-routing-and-recovery.md) before acting on a model/provider error. For an Orca-supervised worker, model replacement means a fresh worker for the **same Task** using `--retry-of`; it is not an unverified model change inside the old terminal. For a plain Codex terminal, start a fresh session with the replacement model after the old session has stopped and its files/handoff note have been checked.
+Read [the model-switch controller](references/model-routing-and-recovery.md) before acting on a model/provider error. Model replacement means a fresh Orca-supervised worker for the **same Task** using `--retry-of`; it is not an unverified model change inside the old terminal.
 
 ## Core scheduling rules
 
@@ -124,18 +128,23 @@ The Root Lead normally schedules leaf workers directly. It may create a Domain L
 - When the Domain Lead has no ready domain work, collapse it: settle its workers, retain at most a relevant warm-idle terminal, and return remaining tasks to the Root queue.
 - If the current Orca runtime cannot safely dispatch nested workers, the Root Lead retains the domain task board and dispatches leaf workers itself. Do not stall waiting for recursion support.
 
+## One Big Lead and visible roles
+
+Every project has at most one active Big Lead. The terminal that first initializes a project becomes Big Lead only after it records an active lease in `.orca-team/LEAD_LEASE.md`. In Orca it must also rename its terminal to the Big Lead label before reporting initialization complete. Opening a second Codex terminal in the same folder does **not** create a second Big Lead: it opens as a viewer until the existing Big Lead assigns it a bounded role, or a verified recovery/takeover transfers ownership.
+
+Use the role labels and dashboard in `references/lead-identity-and-visibility.md`. Rename the Big Lead/current terminal immediately and rename every new Domain Lead, worker, QA, or viewer terminal immediately after its live handle is returned. Update the terminal title and dashboard at a real checkpoint, not continuously. A title is a human-facing label, never proof that a worker is live or owns a Dispatch.
+
 ## Git and external-change boundary
 
 Honor the current project's policy file. If it says `all Git operations require user approval`, ask before every Git inspection or mutation: status, diff, fetch, pull, branch, worktree, rebase, merge, commit, push, MR, or Git-host API action. Never interpret task dispatch, worker creation, or a completed worker task as Git approval.
 
 Likewise, do not run shared database migrations, change a database target, restart services, deploy, alter remote permissions, or send a message to another project/team unless the current task and user authorization cover it.
 
-## Execution in Orca or Codex-only
+## Orca execution required
 
-- **Orca mode:** use the installed `orchestration` and `orca-cli` capabilities for supervised Tasks, Dispatches, inbox replies, task dependencies, and terminal recovery. Create all independent tasks for the current wave before waiting. A worker gets one Task Contract and one explicit owner. Send task-specific follow-up to `dispatch:<id>`, process every inbox delivery, and settle each worker before moving on.
-- **Codex-only mode:** keep the same task board, ownership locks, Task Contracts, recovery handovers, and model policy in `.orca-team`. Use only the session/terminal controls actually available in the current Codex environment. A fresh worker gets the full task contract and the compact handover; the Lead must still verify its report before scheduling the next writer.
-- In either mode, do not assign overlapping writer zones concurrently in a shared workspace. Use a separate worktree only after the required Git approval.
-- Do not claim that worker terminals persist through an Orca restart or a Codex restart. Restore/recreate only after checking live inventory.
+Use the installed `orchestration` and `orca-cli` capabilities for supervised Tasks, Dispatches, inbox replies, task dependencies, terminal renaming, and recovery. Create all independent tasks for the current wave before waiting. A worker gets one Task Contract and one explicit owner. Send task-specific follow-up to `dispatch:<id>`, process every inbox delivery, and settle each worker before moving on.
+
+Do not assign overlapping writer zones concurrently in a shared workspace. Use a separate worktree only after the required Git approval. Do not claim that worker terminals persist through an Orca restart; restore/recreate only after checking live Orca inventory.
 
 ## Cross-project communication
 
@@ -145,7 +154,7 @@ For a BE/FE task, each project Lead owns its own workers. Exchange one concise c
 
 Workers and Leads may use technical detail in internal Task Contracts and messages. The Root Lead translates it before speaking to the user.
 
-For every `/lead` update, lead with one plain status: `Đã xong`, `Đang làm`, or `Chưa thể tiếp tục`. Then use only the short user-facing format in `references/user-reporting.md`:
+For every `$lead` update, lead with one plain status: `Đã xong`, `Đang làm`, or `Chưa thể tiếp tục`. Then use only the short user-facing format in `references/user-reporting.md`:
 
 - state the result and what the user needs to know next;
 - use simple Vietnamese and explain an unavoidable technical word in place;

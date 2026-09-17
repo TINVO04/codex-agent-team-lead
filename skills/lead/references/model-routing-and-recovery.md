@@ -2,7 +2,7 @@
 
 This is the controller rule used by the Root Lead and Domain Leads. Its purpose is simple: when a worker really fails because of its model or provider, a Lead can continue the **same job** with the next allowed model without losing work or allowing two workers to edit the same area.
 
-The controller acts while a Root Lead or Domain Lead is actively coordinating work. It is not a background Windows service. If Orca/Codex was closed, the next `/lead recover` reads the saved state, checks live workers first, and only then continues a proven failed task.
+The controller acts while a Root Lead or Domain Lead is actively coordinating work. It is not a background Windows service. If Orca/Codex was closed, the next `$lead recover` reads the saved state, checks live workers first, and only then continues a proven failed task.
 
 ## Default routes
 
@@ -56,18 +56,6 @@ orca orchestration worker-start `
 ```
 
 Do not add `--terminal` to that command. Orca cannot apply `--model` or `--effort` while reusing a terminal, so a fresh worker is required for a real model change. There may be only one active writer for the task's ownership zone.
-
-## Plain Codex terminal flow
-
-When the team is using Codex without Orca supervision, the Lead uses the same rule but launches a fresh terminal/session after the failing worker has stopped. The new session receives the same Task Contract and Recovery Handover and starts with the permitted fallback:
-
-```powershell
-codex --model <next-allowed-model> `
-  -c 'model_reasoning_effort="<route-effort>"' `
-  "Read .orca-team state and this Recovery Handover before continuing Task <task-id>."
-```
-
-Do not assume a message sent to a running Codex session changes its model. Even if a local Codex command exposes a model option, the Lead records the change only when the resulting session proves the effective model. A fresh worker is the reliable recovery path.
 
 ## Limits and escalation
 

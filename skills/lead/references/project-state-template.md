@@ -10,6 +10,8 @@ Project: <name>
 Lead mode: <active | recovering | idle>
 Orca Run: <run ID or unbound>
 Lead terminal: <live handle or unbound>
+Big Lead label: <00 | BIG | project | RUN or unassigned>
+Lead lease: <ACTIVE | VIEWER_ONLY | RECOVERY_REQUIRED | TRANSFERRED>
 
 ## Current objective
 
@@ -32,16 +34,16 @@ Status: `INTAKE`, `READY`, `QUEUED`, `ACTIVE`, `VERIFYING`, `BLOCKED`, `WAITING_
 
 ## Team topology and capacity
 
-| Team / domain | Lead | Allocated capacity | Owned task IDs | State | Collapse condition |
-|---|---|---:|---|---|---|
-| Root | <handle or unbound> | <global max> | ... | active | never during current request |
+| Team / domain | Lead label | Parent | Allocated capacity | Owned task IDs | State | Collapse condition |
+|---|---|---|---:|---|---|---|
+| Root | 00 \| BIG \| project \| RUN | none | <global max> | ... | active | never during current request |
 
 Do not count capacity per row. The sum of all active workers must remain within the global `max_workers` policy.
 
 ## Active assignments
 
-| Task | Attempt | Dispatch | Terminal | Requested / effective model / effort | Checkpoint | Last known result |
-|---|---:|---|---|---|---|---|
+| Task | Role label | Parent label | Attempt | Dispatch | Terminal | Requested / effective model / effort | Checkpoint | Last known result |
+|---|---|---|---:|---|---|---|---|---|
 
 Only enter IDs returned by the current live Orca runtime. On restart, change an assignment to `RECOVERY_REQUIRED` until live inventory verifies it.
 
