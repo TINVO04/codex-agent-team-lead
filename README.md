@@ -1,168 +1,349 @@
-# Orca Codex Team Lead
+<div align="center">
 
-`$lead` là quy trình điều phối nhiều agent **chỉ dùng cho Codex chạy trong Orca**. Nó biến terminal Codex đầu tiên của dự án thành Big Lead, có thể tạo Lead phụ/worker, đổi tên từng terminal để dễ nhìn, giữ quyền sở hữu code rõ ràng và báo cáo ngắn gọn cho người dùng.
+# ⚡ Orca Codex Team Lead
 
-Repository này không hỗ trợ Codex chạy độc lập ngoài Orca. Orca là phần bắt buộc để theo dõi worker, đổi tên terminal, trao đổi giữa agent và khôi phục khi terminal/model lỗi.
+### Bộ quy trình điều phối agent cho Codex chạy bên trong Orca
 
-## Quy trình làm được gì
+Một Big Lead giữ hướng đi. Worker làm việc thật. Mỗi người một phần rõ ràng.
 
-- Có đúng một Big Lead cho mỗi dự án.
-- Có Lead phụ khi một mảng công việc đủ lớn, ví dụ `ADMIN`, `AUTH`, `JOBS`.
-- Có worker lập trình, QA và worker kiểm tra cuối.
-- Tự tạo worker cho việc rõ ràng, độc lập và không đụng vùng code worker khác đang sửa.
-- Big Lead/Lead phụ chỉ điều phối và kiểm tra; mọi việc nghiên cứu hoặc sửa file dự án phải thuộc một worker terminal nhìn thấy được.
-- Giữ danh sách việc, quyền sở hữu code, quy tắc và tình trạng team trong `.orca-team`.
-- Đổi model có kiểm soát khi worker/Lead thật sự lỗi.
-- Trao đổi hợp đồng API ngắn gọn giữa Lead Backend và Lead Frontend.
-- Tự tạo danh sách vai trò chuyên môn phù hợp với dự án từ Agency Agents, rồi chọn đúng vai trò cho từng worker khi có yêu cầu mới.
-- Khi thiếu vai trò mới, tạo worker chuyên tìm role/skill phù hợp thay vì để Lead tự ôm việc.
-- Dùng Agent-Reach có kiểm soát để Research Worker tìm nguồn công khai khi thật sự cần.
-- Bắt buộc nghiên cứu trước với việc UI/UX, sáng tạo, luồng người dùng, công nghệ mới hoặc phần rủi ro cao.
-- Có checklist riêng cho API, UI, database, tích hợp và review trước khi báo xong.
-- Có bước xem trước ngắn để người dùng chốt hướng trước khi làm màn hình/luồng lớn.
-- Có `$lead audit` để kiểm tra Lead/worker có đang vận hành đúng vai trò hay không.
-- Mọi agent nói trực tiếp với người dùng đều dùng tiếng Việt ngắn gọn, dễ hiểu.
-- Không tự chạy Git, migration database, restart, deploy hay thay đổi bên ngoài khi chưa được người dùng duyệt.
+<p>
+  <img src="https://img.shields.io/badge/Runtime-Orca-111827?style=for-the-badge" alt="Orca" />
+  <img src="https://img.shields.io/badge/Language-Ti%E1%BA%BFng%20Vi%E1%BB%87t-0f766e?style=for-the-badge" alt="Tiếng Việt" />
+  <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge" alt="MIT License" />
+</p>
 
-## Điều kiện dùng
+<p>
+  <strong>Chia việc đúng người · Làm song song có kiểm soát · Báo cáo dễ hiểu</strong>
+</p>
 
-1. Cài Orca và dùng terminal Codex bên trong Orca.
-2. Orca phải đang chạy và có thể mở terminal/worker.
-3. Chỉ cài một bản skill `lead` cho Orca để không xuất hiện hai dòng trùng tên trong danh sách skill.
+</div>
 
-## Cài đặt cho Orca
+> Đây là quy trình dành cho **Codex chạy trong Orca**. Orca phải đang chạy để tạo terminal, theo dõi worker, đổi tên terminal, gửi thông báo và khôi phục sau khi có lỗi.
 
-Clone repository này, sau đó copy thư mục `skills/lead` vào:
+## 🌟 Vì sao nên dùng
+
+Khi dự án có nhiều việc cùng lúc, vấn đề thường không phải thiếu agent mà là:
+
+- Không biết agent nào đang làm việc gì.
+- Hai agent sửa trùng một vùng code.
+- Lead tự làm hết nên không còn điều phối.
+- Terminal bị lỗi nhưng task vẫn bị xem là đang chạy.
+- Có kết quả nhưng không có bằng chứng để biết đã thật sự xong chưa.
+
+Quy trình này giải quyết bằng một nguyên tắc đơn giản:
+
+```text
+Big Lead giữ bản đồ và quyết định
+        ↓
+Lead phụ chỉ xuất hiện khi một mảng đủ lớn
+        ↓
+Worker nghiên cứu, code, test và tạo bằng chứng
+        ↓
+QA kiểm tra lại
+        ↓
+Big Lead báo kết quả ngắn gọn cho người dùng
+```
+
+## 🚀 Bắt đầu nhanh
+
+### 1. Cài quy trình vào Orca
+
+Copy thư mục `skills/lead` vào thư mục skill của Orca:
 
 ```text
 %USERPROFILE%\.agents\skills\lead
 ```
 
-Khởi động lại Orca hoặc mở một terminal Codex mới trong Orca. Trong ô chat Codex, gõ `$`, chọn `Orca Codex Team Lead`, rồi gửi:
+Sau đó khởi động lại Orca hoặc mở một terminal Codex mới.
+
+### 2. Khởi tạo trong dự án
+
+Trong terminal Codex của Orca, gõ `$`, chọn **Orca Codex Team Lead**, rồi gửi:
 
 ```text
 Khởi tạo team cho dự án này.
 ```
 
-Không gõ `/lead`, vì `/` là nhóm lệnh có sẵn của Codex Terminal. Có thể gõ `$lead Khởi tạo team cho dự án này.` nếu skill đã được chọn.
-
-## Dùng hằng ngày
+Hoặc gửi trực tiếp:
 
 ```text
-$lead Khởi tạo team cho dự án này.       # Dùng một lần đầu tiên trong mỗi dự án
-$lead <yêu cầu của bạn>                  # Giao yêu cầu cho Big Lead
-$lead status                             # Xem tình hình team
-$lead audit                              # Kiểm tra việc nào có worker thật và Lead có giữ đúng vai trò không
-$lead capability <nhu cầu>               # Tìm skill/cách làm phù hợp, chưa tự cài khi bạn chưa duyệt
-$lead roles                               # Xem các vai trò Agency đang phù hợp, đang dùng hoặc đang chờ kiểm tra
-$lead research <chủ đề>                  # Tạo bản nghiên cứu ngắn trước một quyết định quan trọng
-$lead preview <chủ đề>                   # Chuẩn bị bản xem trước để bạn chốt hướng UI/UX lớn
-$lead recover                            # Dùng sau khi Orca bị khởi động lại
-$lead take over                          # Chỉ khi Big Lead cũ đã lỗi/dừng hoặc bạn xác nhận nó không còn dùng được
-$lead rules                              # Xem quy tắc đang áp dụng
+$lead init
 ```
 
-## Nhìn team qua tên terminal
+Lần đầu khởi tạo sẽ tạo thư mục `.orca-team/` và kiểm tra một Big Lead duy nhất cho dự án.
 
-Khi khởi tạo xong, terminal em đang dùng được Orca đổi tên ngay thành Big Lead:
+> Không dùng `/lead`. Dấu `/` là lệnh có sẵn của Codex Terminal; `$lead` là skill điều phối của Orca.
+
+### 3. Giao việc
 
 ```text
-00 | BIG | MEU-HIRE-FE | RUN
+$lead Thêm API suspend/restore cho job và viết smoke test.
 ```
 
-Khi Big Lead tạo Lead phụ và worker, Orca cũng đổi tên các terminal mới ngay sau khi terminal đó được tạo:
+Big Lead sẽ ghi task, kiểm tra vùng code, chọn worker phù hợp và chỉ mở worker khi Orca trả về terminal thật.
 
-```text
-10 | LEAD-ADMIN | T-100 | RUN
-11 | WORKER-ADMIN-API | T-101.1 | RUN
-12 | WORKER-ADMIN-UI | T-101.2 | RUN
-19 | QA-ADMIN | T-101.QA | CHECK
-20 | LEAD-AUTH | T-200 | RUN
-21 | WORKER-AUTH-API | T-201.1 | RUN
+## 🧭 Nhìn toàn bộ quy trình
+
+```mermaid
+flowchart TD
+    U[Người dùng giao yêu cầu] --> B[00 | BIG | Big Lead]
+    B --> T{Task đã rõ và không trùng ownership?}
+    T -- Chưa --> Q[QUEUED / BLOCKED / hỏi người dùng]
+    T -- Rồi --> R{Đã có vai trò phù hợp?}
+    R -- Có --> W[Worker nhận Task Contract]
+    R -- Chưa --> C[CAPABILITY-SCOUT tìm role/skill]
+    C --> W
+    W --> E[Worker nghiên cứu / code / test]
+    E --> V[QA hoặc Final Review]
+    V --> B
+    B --> O[Báo cáo ngắn gọn cho người dùng]
 ```
 
-Nhìn số đầu là biết quan hệ: `11`, `12`, `19` là worker của `10 | LEAD-ADMIN`; `21` thuộc `20 | LEAD-AUTH`.
+## 👥 Ai làm việc gì?
 
-Nếu mở thêm terminal trong cùng dự án rồi gọi `$lead`, terminal đó không trở thành Big Lead thứ hai. Nó được đặt tên:
+| Vai trò | Trách nhiệm | Không làm |
+|---|---|---|
+| **Big Lead** | Nhận yêu cầu, chia việc, xếp ưu tiên, giữ state, kiểm tra bằng chứng, báo người dùng | Không tự code, debug, test hay nghiên cứu thay worker |
+| **Lead phụ** | Điều phối một mảng lớn như `AUTH`, `ADMIN`, `JOBS` | Không sở hữu toàn bộ dự án, policy hoặc Git |
+| **Worker** | Nghiên cứu, sửa code, viết test, cập nhật tài liệu và báo kết quả | Không tự đổi scope, tự dùng quyền ngoài task |
+| **QA / Final Review** | Kiểm tra acceptance, regression, contract và bằng chứng cuối | Không tự sửa phần của worker khác nếu chưa được giao |
+| **Capability Scout** | Tìm vai trò Agency/skill phù hợp khi team đang thiếu năng lực | Không tự cài tool hoặc biến role thành Lead mới |
+| **Research Worker** | Tìm và tổng hợp nguồn cần thiết cho quyết định | Không đưa dữ liệu riêng ra ngoài |
 
-```text
-90 | VIEW | MEU-HIRE-FE
-```
+### Quy tắc quan trọng
 
-Terminal xem có thể chạy `$lead status`, nhưng không được tự mở worker, giao việc hoặc đổi quyền sở hữu task. Chỉ Big Lead mới tạo Lead phụ/worker. Khi Big Lead đã thật sự lỗi hoặc dừng, terminal khác mới được takeover sau khi kiểm tra Orca hoặc có xác nhận của người dùng.
-
-Ngoài các tab terminal, Big Lead duy trì `.orca-team/TEAM_DASHBOARD.md` để nhìn sơ đồ toàn team và tình trạng từng nhánh công việc.
-
-Nếu bạn giao một việc có sửa code/file dự án mà không thấy worker terminal riêng, hãy dùng:
+**Lead điều phối, worker làm việc thật.** Nếu một task có nghiên cứu, code, test, debug hoặc sửa file mà không có worker terminal hiển thị, dùng:
 
 ```text
 $lead audit
 ```
 
-Lead phải báo rõ việc đó đang chờ gì; Lead không được tự làm thay worker để cho nhanh. Quét file, tìm web, đọc tài liệu sâu, debug, chạy test và tìm skill cũng là việc của worker. Chỉ các việc như hỏi trạng thái, thêm rule hoặc trả lời ngắn mới không cần worker.
+Lead phải để task chờ kiểm tra, không tự làm thay chỉ để báo nhanh hơn.
 
-## Vai trò Agency và tìm nguồn bên ngoài
+## 🖥️ Nhận diện terminal
 
-Ngay sau khi bạn khởi tạo team, Big Lead không tự làm code. Nếu Orca còn chỗ, Lead tạo một worker chỉ-đọc để xem dự án thuộc loại gì, rồi lập danh sách vai trò phù hợp trong:
+Tên terminal luôn bắt đầu bằng số để nhìn ra quan hệ:
+
+```text
+00 | BIG          | MEU-HIRE-FE     | RUN
+10 | LEAD-ADMIN   | T-100           | RUN
+11 | WORKER-API   | T-101.1         | RUN
+12 | WORKER-UI    | T-101.2         | RUN
+19 | QA-ADMIN     | T-101.QA        | CHECK
+90 | VIEW         | MEU-HIRE-FE     | VIEWER_ONLY
+```
+
+- `00`: Big Lead duy nhất của dự án.
+- `10–19`: một nhánh Lead phụ và các worker của nhánh đó.
+- `20–29`: nhánh tiếp theo.
+- `90`: terminal xem trạng thái, không được tự mở worker.
+
+Mở terminal thứ hai trong cùng dự án **không** tạo Big Lead thứ hai. Terminal đó là viewer cho đến khi recovery/takeover được xác minh.
+
+## 🧠 Agency Agents: chọn đúng chuyên môn
+
+Agency Agents được dùng như **thư viện vai trò chuyên môn**, không phải hệ thống điều phối thứ hai.
+
+Khi chạy `$lead init`, nếu còn slot, Big Lead giao một worker chỉ-đọc lập danh sách vai trò phù hợp với dự án trong:
 
 ```text
 .orca-team/AGENCY_PROFILE_REGISTRY.md
 ```
 
-Ví dụ dự án API có thể có các vai trò nền như thiết kế backend, kiểm tra API, tối ưu database và kiểm tra quyền. Dự án FE có thể có vai trò frontend, UI/UX, accessibility và test giao diện. Danh sách này chỉ để chọn người phù hợp khi có việc; nó **không** tự mở sẵn nhiều terminal.
+Ví dụ:
 
-Khi bạn giao yêu cầu mới, Big Lead làm theo thứ tự:
+| Loại dự án | Vai trò thường phù hợp |
+|---|---|
+| API / Backend | Backend Architect, API Tester, Database Optimizer, Identity & Access Engineer |
+| Frontend / Web | Frontend Developer, UI Designer, Accessibility Auditor, Test Automation Engineer |
+| Auth / dữ liệu nhạy cảm | Application Security Engineer, Privacy Engineer, Code Reviewer |
+| Công nghệ hoặc kiến trúc mới | Research Synthesist trước, rồi worker triển khai |
+
+Khi gặp yêu cầu mới:
 
 ```text
-Vai trò dự án đã duyệt
+Role đã duyệt trong dự án
         ↓ chưa có
-Worker tìm role phù hợp trong Agency Agents
+CAPABILITY-SCOUT tìm profile phù hợp trong Agency
         ↓ vẫn chưa đủ
-Research Worker tìm tài liệu/nguồn công khai
+Research Worker tìm tài liệu công khai
         ↓
-Worker triển khai nhận card vai trò ngắn và làm đúng phần việc
+Worker triển khai nhận card role ngắn
 ```
 
-Agency Agents chỉ là bộ hướng dẫn nghề nghiệp cho worker. Nó không tạo một Big Lead khác, không tự mở terminal, không tự đổi model và không tự có quyền Git, database, deploy hay dùng tài khoản.
+Role Agency không tự:
 
-Agent-Reach chỉ được Research Worker dùng để tìm/đọc nguồn **công khai** nếu công cụ đã có hoặc bạn đã duyệt cài. Mặc định nó không được dùng cookie, tài khoản đăng nhập, token, Chrome profile, proxy, dữ liệu dự án riêng hay bất kỳ thao tác đăng/gửi/tạo gì ở bên ngoài. Nếu cần cài thêm công cụ hoặc dùng đăng nhập, Lead sẽ hỏi bạn trước.
+- tạo Lead hoặc terminal;
+- đổi model;
+- cấp quyền Git, database, deploy hoặc service;
+- tự cài bundle agent;
+- thay đổi scope mà người dùng đã giao.
 
-## Khi nào Lead tìm hiểu trước
+## 🌐 Agent-Reach: tìm nguồn công khai có kiểm soát
 
-Với việc nhỏ, rõ và đã có cách làm trong dự án, worker làm trực tiếp. Với UI/UX, dashboard, mobile, nội dung, luồng người dùng, thư viện/công nghệ mới, kiến trúc, bảo mật, hiệu năng hoặc tích hợp lớn, Lead tạo bản nghiên cứu ngắn trước khi giao phần quyết định cho worker.
+Agent-Reach chỉ dành cho **Research Worker** khi tài liệu nội bộ, tài liệu chính thức và standard chưa đủ.
 
-Kết quả nghiên cứu được lưu trong `.orca-team/RESEARCH_NOTES/`, để những lần sau không phải tìm lại từ đầu. Khi cần role/skill mới, worker chỉ đề xuất; Lead kiểm tra nguồn, nội dung và rủi ro trước. Mặc định Lead phải hỏi bạn trước khi tải, cài hoặc chạy skill/công cụ mới.
+Được phép mặc định:
 
-## Khi nào bạn cần chốt trước
+- đọc website công khai, RSS, YouTube công khai, GitHub công khai;
+- tìm ví dụ và thảo luận công khai để hỗ trợ quyết định;
+- ghi nguồn, kết luận và giới hạn evidence vào `.orca-team/RESEARCH_NOTES/`.
 
-Với màn hình mới, đổi giao diện lớn, menu/điều hướng, hoặc thay đổi luồng người dùng quan trọng, Lead gửi bạn bản tóm tắt ngắn trước khi worker làm phần quyết định hướng. Bản tóm tắt chỉ gồm mục tiêu, đề xuất, ảnh hưởng trên mobile/các trạng thái và đúng một điều cần bạn chốt.
+Không được phép mặc định:
 
-Trước khi báo xong, Lead dùng `.orca-team/QUALITY_GATES.md` để kiểm tra đúng loại việc: API, UI/UX, dữ liệu, tích hợp hoặc review. Vì vậy “build chạy được” không tự động có nghĩa là task đã xong.
+- tự cài Agent-Reach hoặc dependency mới;
+- dùng cookie, token, tài khoản đăng nhập, Chrome profile hoặc proxy;
+- gửi source nội bộ, URL private, log chưa lọc, thông tin khách hàng hoặc dữ liệu production;
+- đăng bài, nhắn tin, like, tạo issue/PR hoặc thao tác ghi bên ngoài.
 
-## Chính sách model mặc định
+Nếu cần cài tool, dùng login/cookie hoặc gửi dữ liệu ra dịch vụ ngoài, task chuyển sang `WAITING_USER` để hỏi bạn trước.
 
-| Vai trò / loại việc | Model chính | Mức suy nghĩ | Model dự phòng |
-|---|---|---|---|
-| Big Lead / Lead phụ | `gpt-5.6-terra` | `xhigh` | `qwen3.8-max-0902` |
-| Worker việc khó | `qwen3.8-max-0902` | `high` | DeepSeek, sau đó GLM |
-| Worker việc bình thường | `deepseek-v4.1-flash` | `medium` | Qwen, sau đó GLM |
-| Worker việc nhỏ | `glm-5.3-flash` | `low` | DeepSeek, sau đó Qwen |
-| Kiểm tra cuối | `qwen3.8-max-0902` | `high` | DeepSeek, sau đó GLM |
+## 📋 Các lệnh thường dùng
 
-Trước khi giao việc thật, sửa `.orca-team/TEAM_POLICY.md` nếu Orca/Codex của bạn dùng tên model khác. Lead ghi lại model yêu cầu và model chạy thật.
+| Lệnh | Dùng khi |
+|---|---|
+| `$lead` | Khôi phục state và xem việc đang làm |
+| `$lead init` | Khởi tạo team lần đầu trong dự án |
+| `$lead status` | Chỉ xem trạng thái, không mở worker |
+| `$lead audit` | Kiểm tra Lead có ôm việc hoặc task có thiếu worker không |
+| `$lead roles` | Xem vai trò Agency đang có/chờ duyệt/đang dùng |
+| `$lead capability <nhu cầu>` | Tìm năng lực hoặc role còn thiếu |
+| `$lead research <chủ đề>` | Tạo nghiên cứu có phạm vi rõ |
+| `$lead preview <chủ đề>` | Xin người dùng chốt hướng UI/UX hoặc flow lớn |
+| Yêu cầu `$lead report today` | Tổng hợp hôm nay đã làm gì, đang vướng gì và bước tiếp theo |
+| `$lead recover` | Khôi phục sau khi Orca restart |
+| `$lead take over` | Thay Big Lead cũ khi đã xác minh lỗi/dừng hoặc có xác nhận của người dùng |
+| `$lead rules` | Xem rule đang áp dụng |
 
-Khi worker bị lỗi model, Big Lead/Lead phụ chỉ tạo worker thay thế sau khi Orca xác nhận worker cũ đã dừng/lỗi. Code đã làm được giữ lại, vùng code tiếp tục được khóa và worker mới làm tiếp cùng task bằng model dự phòng kế tiếp. Vì thế không có hai worker cùng sửa một vùng code.
+## 📝 Báo cáo cuối ngày
 
-## Cấu trúc repository
+Khi bạn hỏi “hôm nay team đã làm gì?”, **Big Lead** sẽ tổng hợp từ state và báo cáo của worker:
+
+1. Đã hoàn thành.
+2. Đang thực hiện.
+3. Bị chặn.
+4. Đã kiểm tra.
+5. Việc tiếp theo.
+
+Ví dụ:
+
+```text
+Hôm nay team đã:
+
+- Hoàn thành API suspend/restore job.
+- Thêm kiểm tra Idempotency-Key.
+- Chạy smoke test cho các trạng thái chính.
+- Đang chờ cấp permission mới từ backend.
+
+Việc tiếp theo: lấy JWT mới và chạy smoke test end-to-end.
+```
+
+Nếu cần tạo báo cáo thành file, Big Lead có thể giao `Technical Writer`, `Meeting Notes Specialist` hoặc `Executive Summary Generator`. Các role này chỉ viết từ bằng chứng đã có, không tự đoán kết quả.
+
+## 🔁 Khi có nhiều yêu cầu cùng lúc
+
+Yêu cầu mới không tự hủy việc đang làm:
+
+```text
+Yêu cầu 1 đang chạy
+        + Yêu cầu 2 đến
+        + Yêu cầu 3 đến
+                ↓
+Big Lead ghi cả 3 vào task board
+                ↓
+Task độc lập → READY / chạy song song
+Task cần việc khác → QUEUED hoặc BLOCKED
+Task cần bạn chọn → WAITING_USER
+```
+
+Mặc định một Big Lead có tối đa ba worker triển khai. Chỉ tạo Lead phụ khi có ít nhất hai nhánh độc lập, đủ việc dài hạn và Orca còn capacity. Khi hết việc, Lead phụ và worker được thu gọn.
+
+## 🧪 Cổng chất lượng
+
+Một worker nói “xong” chưa đủ để task được đóng. Big Lead phải kiểm tra checklist phù hợp:
+
+- **API/backend:** request, response, status/error, permission, state, idempotency và test.
+- **UI/UX:** desktop/mobile, loading, empty, error, accessibility và visual check.
+- **Database/state:** migration, null/legacy data, rollback và compatibility.
+- **Tích hợp BE/FE:** contract, field nullable, permission, error mapping và smoke test.
+- **Research/review:** nguồn, kết luận, đánh đổi, giới hạn và quyết định.
+
+Với màn hình mới, redesign lớn hoặc đổi flow, Big Lead gửi preview để bạn chốt hướng trước khi worker làm phần quyết định.
+
+## 🤖 Model và khôi phục lỗi
+
+| Vai trò / việc | Model chính | Dự phòng |
+|---|---|---|
+| Big Lead / Lead phụ | `gpt-5.6-terra` · `xhigh` | `qwen3.8-max-0902` |
+| Worker việc khó | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
+| Worker việc thường | `deepseek-v4.1-flash` · `medium` | Qwen → GLM |
+| Worker việc nhỏ | `glm-5.3-flash` · `low` | DeepSeek → Qwen |
+| Kiểm tra cuối | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
+
+Nếu worker lỗi model:
+
+1. Orca xác nhận worker cũ thật sự lỗi hoặc đã dừng.
+2. Giữ ownership vùng code cũ.
+3. Kiểm tra checkpoint và file đã thay đổi.
+4. Tạo worker retry cho **cùng task** bằng model dự phòng.
+5. Không để hai worker cùng sửa một vùng.
+
+Nếu cả model chính và dự phòng đều lỗi, task chuyển `WAITING_USER`.
+
+## 🗂️ Những gì được tạo trong mỗi dự án
+
+```text
+.orca-team/
+├── TEAM_POLICY.md                  # Ranh giới và chính sách team
+├── TEAM_RULES.md                   # Rule do người dùng/Root Lead đặt
+├── TEAM_STATE.md                   # Mục tiêu, task, owner, dependency
+├── LEAD_LEASE.md                   # Big Lead duy nhất
+├── TEAM_DASHBOARD.md               # Bảng nhìn nhanh toàn team
+├── AGENCY_PROFILE_REGISTRY.md      # Vai trò Agency theo dự án
+├── SKILL_REGISTRY.md               # Skill chờ duyệt/đã duyệt/đang dùng
+├── EXTERNAL_RESEARCH_POLICY.md     # Luật Agent-Reach và nguồn ngoài
+├── QUALITY_GATES.md                # Checklist trước khi báo xong
+└── RESEARCH_NOTES/                 # Brief nghiên cứu dùng lại được
+```
+
+State trong `.orca-team` là sổ điều phối, không thay thế inventory Orca live. Sau khi Orca restart, phải dùng `$lead recover` để kiểm tra terminal thật trước khi giao lại việc.
+
+## 🔐 Ranh giới an toàn
+
+- Không tự chạy Git nếu người dùng chưa duyệt theo policy dự án.
+- Không tự chạy migration database dùng chung.
+- Không tự đổi DB target, restart service, deploy hoặc đổi permission remote.
+- Không gửi credential, token, private URL, log nhạy cảm hay dữ liệu khách hàng qua tin nhắn team.
+- Không coi dashboard cũ là bằng chứng worker còn sống sau khi Orca restart.
+- Agent nói với người dùng phải nói tiếng Việt ngắn gọn, kết quả trước, không đẩy log nội bộ.
+
+## 🛠️ Cấu trúc repository
 
 ```text
 skills/lead/
-  SKILL.md                 Quy trình Big Lead, Lead phụ và worker trong Orca
-  agents/openai.yaml       Tên hiển thị trong Codex của Orca
-  references/              Quy tắc giao việc, Agency role, Agent-Reach, skill, nghiên cứu, chất lượng, audit, model và khôi phục
-  scripts/bootstrap-project.ps1
+├── SKILL.md
+├── agents/openai.yaml
+├── references/
+│   ├── agency-profiles-and-agent-reach.md
+│   ├── capability-discovery-and-skill-gate.md
+│   ├── research-first-gate.md
+│   ├── task-contract-template.md
+│   └── ...
+└── scripts/bootstrap-project.ps1
 ```
 
-## Giấy phép
+## 📚 Nguồn tham khảo
+
+- [Agency Agents](https://github.com/msitarzewski/agency-agents) — thư viện vai trò chuyên môn.
+- [Agent-Reach](https://github.com/Panniantong/Agent-Reach) — công cụ tìm nguồn công khai, chỉ dùng theo policy.
+- [Codex Skills](https://developers.openai.com/codex/skills/) — cấu trúc và cách Codex sử dụng skill.
+
+## 📄 Giấy phép
 
 MIT. Xem [LICENSE](LICENSE).
+
+<div align="center">
+
+### Làm đúng người · Đúng việc · Đúng bằng chứng
+
+</div>
