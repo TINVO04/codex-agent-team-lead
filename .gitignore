@@ -1,0 +1,7 @@
+# Local project state created when /lead runs
+.orca-team/
+
+# Editor and temporary files
+.DS_Store
+*.tmp
+*.bak
