@@ -1,75 +1,71 @@
-# Parallel scheduling and bounded hierarchy
+# Làm song song và phân cấp có giới hạn
 
-Use this model when incoming work competes for capacity or when a task may warrant a Domain Lead. The objective is useful parallelism, not the largest possible agent tree.
+Mục tiêu là song song có ích, không phải tạo cây agent lớn nhất.
 
-## Continuous scheduler
+## Điều phối liên tục
 
-At every Lead checkpoint:
+Ở mỗi checkpoint Lead:
 
-1. Add every incoming request to the task board and classify it as implementation, research, contract, test, review, or integration.
-2. Rank valid work by user priority, real dependency, risk, and arrival order. Group small tasks that share context.
-3. Apply the Parallel Gate and reserve the ownership zone for each dispatched writer.
-4. Dispatch the highest-priority non-conflicting `READY` work up to global capacity.
-5. On a worker event, verify its evidence, update the board, release or retain the settled terminal, and immediately schedule newly unblocked work. Do not wait for an artificial "wave" to finish.
+1. Thêm mọi yêu cầu vào board và phân loại implementation, research, contract, test, review hoặc integration.
+2. Xếp theo ưu tiên người dùng, dependency thật, rủi ro và thời điểm đến; gom việc nhỏ cùng context.
+3. Chạy Parallel Gate và reserve ownership zone trước khi mở writer.
+4. Giao task `READY` không conflict có ưu tiên cao nhất, trong capacity toàn cục.
+5. Khi worker có event, kiểm tra evidence, cập nhật board, release/retain terminal và xếp task vừa được mở khóa. Không chờ “wave” giả tạo.
 
-The current task board is the shared blackboard. Store only decisions that alter work: API/schema contracts, ownership reservations, blockers, test evidence, and escalation decisions.
+State board chỉ giữ quyết định làm thay đổi công việc: API/schema contract, ownership reservation, blocker, test evidence và escalation.
 
-## Dependency rules
+## Quy tắc phụ thuộc
 
-| Situation | Lead decision |
+| Tình huống | Quyết định Lead |
 |---|---|
-| A task needs another task's verified behavior or state transition | Record a hard dependency and serialize it. |
-| Two writers touch the same file/module, migration, DTO, public contract, config, or test fixture | Reserve one ownership zone; serialize or split contract work first. |
-| Frontend awaits a stable backend interface, or one component awaits a schema shape | Publish a contract with examples and let both sides use mocks/stubs or fixtures. |
-| A bug cause is unknown | Dispatch a read-only investigation first. Convert its evidence into a bounded implementation task. |
-| Many small fixes are in the same surface | Group them by context affinity under one owner. |
+| Task cần behavior/state đã kiểm tra của task khác | Ghi dependency cứng và tuần tự. |
+| Hai writer chạm cùng file/module, migration, DTO, public contract, config hoặc fixture | Reserve một ownership zone; tuần tự hoặc contract-first. |
+| FE chờ interface BE ổn định, component chờ schema | Công bố contract có ví dụ; hai bên dùng mock/stub/fixture. |
+| Chưa biết nguyên nhân lỗi | Giao worker điều tra chỉ-đọc trước, rồi tạo implementation task hẹp. |
+| Nhiều lỗi nhỏ cùng surface | Gom theo context cho một worker. |
 
-An API, schema, event, or fixture contract must state its owner, version/compatibility expectation, error/state mapping, and acceptance test. A contract breaks only a fake dependency; it never authorizes incompatible changes.
+Contract API/schema/event/fixture phải nêu owner, version/tương thích, error/state mapping và acceptance test. Contract chỉ gỡ dependency giả, không cấp quyền thay đổi không tương thích.
 
-## Bounded hierarchy
+## Phân cấp có giới hạn
 
-The default topology is flat:
+Mặc định phẳng:
 
 ```text
-Root Lead -> leaf workers
+Root Lead → worker
 ```
 
-Use a Domain Lead only for a genuinely large branch. It is a local scheduler, not another unrestricted Root Lead:
+Chỉ dùng Domain Lead cho nhánh thật sự lớn:
 
 ```text
 Root Lead
-|- Auth Domain Lead -> Auth leaf tasks
-`- Billing Domain Lead -> Billing leaf tasks
+├─ Domain Lead Auth → worker Auth
+└─ Domain Lead Billing → worker Billing
 ```
 
-Create it only when all are true:
+Tạo Domain Lead khi đồng thời có:
 
-- the branch has at least two independently executable or imminently executable tasks;
-- its files/contracts can be isolated from other branches;
-- a named local decision owner is useful;
-- global worker capacity remains after reserving a slot for coordination; and
-- no user authorization, shared migration, Git action, or external change remains unresolved.
+- ít nhất hai task độc lập hoặc sắp sẵn sàng trong nhánh;
+- file/contract tách được khỏi nhánh khác;
+- cần local decision owner rõ;
+- capacity toàn cục còn hữu ích sau khi dành slot điều phối;
+- không còn user approval, migration chung, Git hay thay đổi ngoài chưa giải quyết.
 
-Use `max_hierarchy_depth` as a hard ceiling. Depth counts Root Lead as zero. Under the default value of two, only `Root Lead -> Domain Lead -> leaf worker` is allowed. Do not create a tree merely because a request has many nouns.
+`max_hierarchy_depth` là giới hạn cứng. Root ở depth 0; mặc định 2 chỉ cho `Root Lead → Domain Lead → worker`. Không tạo cây chỉ vì yêu cầu có nhiều danh từ.
 
-## Scale up, retain, collapse
+## Mở rộng, giữ và thu gọn
 
-Scale up only when the number of non-conflicting `READY` tasks exceeds suitable idle capacity. A busy worker does not prove that a new worker is useful; a hard dependency or overlapping writer never becomes parallel merely by creating more workers.
+Chỉ scale khi số task `READY` không conflict nhiều hơn idle capacity phù hợp. Worker bận không tự là lý do mở thêm worker; dependency cứng/ownership overlap không thành song song chỉ vì mở thêm terminal.
 
-After a verified task, prefer reusing a settled terminal for an immediately related task while its project context is warm. Retention is a deliberate Orca lifecycle choice, not evidence that a terminal survives restart. Release the terminal when its domain has no likely ready work or capacity is needed elsewhere.
+Task hoàn tất đã verify có thể dùng lại terminal phù hợp nếu task liên quan sẵn sàng. Giải phóng terminal khi domain không có việc gần hoặc capacity cần cho nơi khác. Domain Lead không còn `READY`/`ACTIVE` thì thu gọn sau event cuối và trả queue về Root. Không xóa lịch sử task chỉ vì terminal được giải phóng.
 
-When a Domain Lead has no owned `READY`/`ACTIVE` work, collapse it after processing its final events. Reassign remaining queued tasks to the Root board. Never delete task history just because a worker or terminal was released.
+## Event bắt buộc
 
-## Required event messages
-
-A Lead or worker reports concise events rather than full transcripts:
-
-| Event | Minimum content |
+| Event | Nội dung tối thiểu |
 |---|---|
-| `DONE` | task ID, outcome, evidence, actual files/contract affected |
-| `BLOCKED` | task ID, exact blocker, dependency or authorization needed |
-| `NEED_DECISION` | options, owner, deadline/impact if known |
-| `CONTRACT_CHANGED` | contract ID, old/new behavior, compatibility impact, affected tasks |
-| `FAILED` | task ID, failed evidence, preserved state, recommended recovery |
+| `DONE` | task ID, kết quả, evidence, file/contract ảnh hưởng |
+| `BLOCKED` | task ID, blocker rõ, dependency/quyền cần |
+| `NEED_DECISION` | lựa chọn, owner, deadline/ảnh hưởng nếu biết |
+| `CONTRACT_CHANGED` | contract ID, behavior cũ/mới, tương thích, task ảnh hưởng |
+| `FAILED` | task ID, evidence lỗi, state còn lại, recovery đề xuất |
 
-The Root Lead processes these events before it acknowledges the Orca delivery or schedules additional work.
+Root Lead xử lý event trước khi xác nhận delivery Orca hoặc xếp thêm work.

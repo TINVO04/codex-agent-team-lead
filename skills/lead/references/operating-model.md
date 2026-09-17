@@ -1,95 +1,85 @@
-# Multi-request operating model
+# Mô hình vận hành khi có nhiều yêu cầu
 
-## Intake and queue
+## Nhận yêu cầu và xếp hàng
 
-Create a root task for every incoming request. Triage it before dispatch:
+Mọi yêu cầu mới thành root task trước khi giao:
 
-| Result | Meaning | Lead action |
+| Kết quả | Ý nghĩa | Lead làm gì |
 |---|---|---|
-| `READY` | Has scope, acceptance, no dependency, no ownership conflict | Dispatch if capacity exists; otherwise `QUEUED` |
-| `QUEUED` | Valid work but no suitable worker slot | Keep ordered by priority then arrival time |
-| `BLOCKED` | Real implementation dependency | Record upstream task IDs |
-| `WAITING_USER` | Needs a material choice, authorization, or external state | State exact question/blocker |
-| `INTAKE` | Scope still unclear | Investigate or request clarity without creating implementation workers |
+| `READY` | Scope/acceptance rõ, không dependency/ownership conflict | Giao khi còn slot, không thì `QUEUED` |
+| `QUEUED` | Task hợp lệ nhưng chưa có worker phù hợp | Xếp theo ưu tiên rồi thời điểm đến |
+| `BLOCKED` | Có dependency triển khai thật | Ghi task upstream |
+| `WAITING_USER` | Cần lựa chọn, quyền hoặc trạng thái ngoài | Hỏi đúng câu hỏi cần thiết |
+| `INTAKE` | Scope chưa đủ rõ | Làm rõ hoặc giao worker điều tra hẹp |
 
-A newer task does not overwrite or silently cancel a current task. Place it in the board immediately and tell the user where it landed.
+Yêu cầu mới không tự hủy task cũ. Ghi vào board và báo vị trí. Nguyên nhân lỗi chưa rõ thì giao worker điều tra chỉ-đọc có acceptance nêu nguyên nhân, path ảnh hưởng và task tiếp theo; không giao implementation mơ hồ.
 
-For a task with an unknown cause, create a bounded read-only `research` task rather than an implementation task. Its acceptance evidence must name the observed cause, affected paths, and a proposed follow-up task. For many small related tasks, group by context affinity before assigning an owner.
+Khi người dùng đưa rule toàn dự án, Root Lead ghi rule ngắn trong `TEAM_RULES.md`, ghi owner/task bị ảnh hưởng trong `TEAM_STATE.md`, thêm rule ID vào Task Contract. Domain Lead chỉ đề xuất, worker xác nhận rule mới tại checkpoint an toàn.
 
-When the user states a project-wide work rule, the Root Lead writes a concise active rule in `TEAM_RULES.md`, lists affected tasks/owners in `TEAM_STATE.md`, and includes the rule ID in later Task Contracts. A Domain Lead can propose a rule but may not create or retire one. Existing writers acknowledge a changed rule at a safe checkpoint before the Lead treats it as applied.
+## Ưu tiên
 
-## Priority
+- `P0`: production/bảo mật/mất dữ liệu; có thể ưu tiên hơn queue và yêu cầu writer đến checkpoint an toàn.
+- `P1`: feature/lỗi người dùng yêu cầu hoặc blocker chính.
+- `P2`: cải thiện/lỗi không chặn.
+- `P3`: nghiên cứu, dọn dẹp, hardening tùy chọn.
 
-- `P0`: production/security/data-loss blocker; may preempt queued work and asks running workers to reach a safe checkpoint.
-- `P1`: user-requested feature or blocking defect; normal top priority.
-- `P2`: follow-up improvement or non-blocking defect.
-- `P3`: research, cleanup, optional hardening.
+Cùng ưu tiên: task `READY` đến trước làm trước. P1 mới không tự ngắt writer P1 đang chạy.
 
-For equal priority, schedule the oldest `READY` task first. Do not preempt a writer based only on a newer P1 task.
+## Cổng phân công
 
-## Capacity and creation
+Root/Domain Lead là coordinator, không phải worker nghiên cứu/triển khai. Lead có **0 task research/delivery**. Mọi việc có ý nghĩa — tìm web/tài liệu, scan file, phân tích log, debug, tìm skill, code, test, config, tài liệu, asset hay output — phải thuộc một worker Orca hiển thị rõ, có Task Contract.
 
-`max_workers` is the maximum number of implementation agents at one time, not a target. Default is three when one Lead has a four-slot environment. Prefer terminal reuse after a settled task. Create a new worker only when the task is `READY`, has an exclusive ownership zone, and no retained terminal is suitable.
+Lead chỉ đọc yêu cầu người dùng và `.orca-team`, phân loại/xếp task, mở worker, ghi quyết định, kiểm tra evidence và báo người dùng. Lead không chạy scan rộng, web/document search, command dài, test, debug hay sửa file dự án trong terminal của mình.
 
-## Delegation Gate
+Status, clarification, rule hoặc câu trả lời một dòng không cần terminal. Nhiều thay đổi nhỏ liên quan có thể gom một worker. Không có slot/ownership an toàn/launch Orca thành công thì giữ `QUEUED`/`BLOCKED`; Lead không tự làm thay.
 
-The Root Lead and any Domain Lead are coordinators, not hidden implementation or research workers. They have zero delivery/research tasks. For every meaningful requested activity — web/document research, filesystem scan, log analysis, debugging, skill scouting, code, tests, configuration, documentation, assets, or generated deliverables — the Lead creates or reuses one visible Orca worker with an explicit Task Contract.
+Dispatch chỉ thật khi Orca trả Task/Dispatch và terminal handle live. Đổi tên terminal, ghi dashboard ngay. Task research/implementation không có worker hiển thị là thiếu phân công và phải điều tra trước khi báo tiến độ.
 
-A Lead may only read the user's request and `.orca-team` coordination records, classify/queue tasks, open workers, record decisions, verify worker evidence, and report. It must not run broad file scans, web/document searches, long commands, tests, debugging, or project-file edits in its own terminal.
+## Năng lực và vùng sở hữu
 
-Do not create a terminal for a pure status response, a clarification, a project rule, or a one-sentence answer. For several related tiny changes, dispatch one bounded worker rather than one terminal per edit. If no worker slot, safe ownership zone, or successful Orca launch exists, keep the task `QUEUED`/`BLOCKED`. The Lead must not do the task as a silent fallback.
+`max_workers` là giới hạn, không phải chỉ tiêu. Mặc định ba worker khi môi trường có một Lead và bốn slot. Ưu tiên dùng lại terminal đã settle nếu context phù hợp.
 
-A dispatch counts as real only after Orca returns a live Task/Dispatch and terminal handle. Rename that terminal and enter it in `TEAM_DASHBOARD.md` immediately. If an implementation or research task has no visible worker terminal, treat delegation as missing and investigate it before reporting progress.
+Hai writer không được có allowed path trùng nhau trong shared workspace. Nếu dùng Git worktree để cô lập, phải có Git approval. DTO, public contract, migration, config, package/solution manifest và fixture chung phải reserve ownership và tuần tự hóa/trích contract-first.
 
-Do not run two writers in the same workspace if their allowed paths overlap. If Git worktrees are chosen for isolation, obtain any project-required Git approval before creating them.
+Trước khi coi dependency là cứng, thử gỡ bằng versioned contract, mock, fixture, stub hoặc test. Ghi contract và reservation rõ.
 
-Before serialization, try to break a fake dependency with a versioned contract, mock, fixture, stub, or test case. Record that contract in the state board and reserve shared DTO/config/migration ownership even when workers use separate worktrees.
+## Vòng lặp Lead
 
-## Event loop
+Ở mỗi checkpoint:
 
-At each natural Lead checkpoint:
+1. Đưa user request mới vào task board.
+2. Đọc inbox Orca theo thứ tự và trả lời worker.
+3. Kiểm tra lỗi model/agent trước khi retry/release.
+4. Xử lý acknowledgement rule mới.
+5. Kiểm tra task đã settle và cập nhật state.
+6. Tính lại task `READY`, conflict, dependency, capacity.
+7. Giao task an toàn tiếp theo hoặc báo blocker.
 
-1. Process incoming user requests into task rows.
-2. Process all Orca messages in FIFO order and answer workers.
-3. Inspect model/agent errors before deciding whether a task can be retried or released.
-4. Process pending rule acknowledgements and update affected Task Contracts.
-5. Verify settled tasks, including active-rule evidence, and update state.
-6. Recompute `READY` tasks, ownership conflicts, dependencies, and capacity.
-7. Dispatch the next safe task; otherwise explain the blocker.
+Khi user gửi task mới lúc worker chạy, làm bước 1 và 4 ngay; không chờ wave xong. Task settle thì verify, xử lý event, release/retain terminal và xếp task mới ngay nhưng không vượt dependency/ownership.
 
-When the user sends new work while workers are active, run steps 1 and 4 immediately. Do not wait for the active wave to finish.
+## Mở rộng và thu gọn team
 
-When a task settles, the Lead verifies it, handles its event, chooses retain/reuse/release, and schedules the next safe `READY` task immediately. Continuous scheduling is preferred to waiting for a whole wave, but never bypasses a hard dependency or an ownership reservation.
+Mặc định là `Root Lead → worker`. Chỉ tạo Domain Lead cho nhánh cô lập có đủ việc độc lập và cần điều phối cục bộ; vẫn tính vào capacity toàn cục và không được vượt depth policy.
 
-## Model route and recovery
-
-Use the project model policy for every Lead/worker launch and write requested/effective model information in the task board. A model/agent error never proves work did not happen: first inspect whether the task is live, unknown, failed, or stopped, and whether it could have changed files. Only a proven failed/stopped task can start one replacement on its permitted fallback model. Keep its ownership reservation until then.
-
-For a Lead, request `gpt-5.6-terra` with `xhigh`. If the runtime rejects or proves failure of that Lead, use only `qwen3.8-max-0902` as its fallback. A Root Lead that is itself dead must be replaced by its supervising caller using saved `.orca-team` state; it cannot create its own replacement.
-
-## Dynamic team shape
-
-The default is Root Lead plus leaf workers. A Domain Lead is optional, bounded by `max_hierarchy_depth`, and uses part of the global worker capacity. Create one only for an isolated domain with enough independent local work to justify local scheduling. It may escalate a blocker or changed contract but cannot expand the team beyond policy.
-
-When a Domain Lead has no active or ready local work, collapse it, settle/release its workers, and return queued work to the Root board. Reuse a relevant idle terminal only after an accepted task settlement; terminal persistence is never assumed after restart.
+Domain Lead không được mở rộng team quá policy. Khi domain không còn task `READY`/`ACTIVE`, settle/release worker, thu gọn Lead và trả task queue về Root. Terminal không được giả định còn tồn tại sau Orca restart.
 
 ## Recovery
 
-After Orca restart, rebind the Lead to the project Run if it exists. Compare state with live terminal and worker inventory. Treat absent handles as missing, not stopped. Keep their task in `RECOVERY_REQUIRED`/`BLOCKED`, capture available report evidence, then create a fresh task/dispatch when rework is needed. Do not reuse stale task capabilities or terminal handles.
+Sau Orca restart, bind lại Run nếu có, đối chiếu state với inventory live. Handle không thấy là `RECOVERY_REQUIRED`, không tự coi đã dừng. Ghi evidence có sẵn rồi chỉ mở dispatch mới khi cần rework đã xác minh. Không dùng handle cũ như quyền thao tác.
 
-## BE/FE coordination
+## Phối hợp BE/FE
 
-Each Lead stores a contract record before code starts:
+Hai Lead ghi contract trước khi code:
 
 ```text
 Contract ID:
-Owner leads:
-Endpoint or event:
+Lead sở hữu:
+Endpoint hoặc sự kiện:
 Request / response:
 Permission:
 State transition / error mapping:
-Version / backward compatibility:
-Smoke-test owner and evidence:
+Version / tương thích ngược:
+Người chịu trách nhiệm smoke test và evidence:
 ```
 
-The contract may unblock independent BE and FE work. If it changes, record a new decision, notify both Leads, and identify affected tasks.
+Contract có thể cho BE/FE làm song song bằng mock/fixture, nhưng không cho phép thay đổi không tương thích. Contract đổi phải ghi quyết định mới và thông báo cả hai Lead.

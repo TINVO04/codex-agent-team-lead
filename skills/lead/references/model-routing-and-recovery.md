@@ -1,78 +1,62 @@
-# Model switching and recovery
+# Chọn model và khôi phục khi lỗi
 
-This is the controller rule used by the Root Lead and Domain Leads. Its purpose is simple: when a worker really fails because of its model or provider, a Lead can continue the **same job** with the next allowed model without losing work or allowing two workers to edit the same area.
+Đây là rule cho Root Lead/Domain Lead khi worker thật sự lỗi do model hoặc provider. Mục tiêu: tiếp tục **cùng task** bằng model được cho phép tiếp theo, không mất công việc và không có hai worker sửa cùng vùng.
 
-The controller acts while a Root Lead or Domain Lead is actively coordinating work. It is not a background Windows service. If Orca/Codex was closed, the next `$lead recover` reads the saved state, checks live workers first, and only then continues a proven failed task.
+Rule này chạy khi Lead đang điều phối, không phải Windows service nền. Nếu Orca/Codex đóng, `$lead recover` đọc state, kiểm tra worker live trước rồi chỉ tiếp tục task đã được chứng minh là lỗi/dừng.
 
-## Default routes
+## Lộ trình mặc định
 
-This table is the package default. The active project's `TEAM_POLICY.md` is authoritative and may replace it before tasks are launched. A project must list an exact primary, effort, and fallback order for every role it enables.
+`TEAM_POLICY.md` của dự án là nguồn cao nhất và có thể thay bảng này trước khi launch. Mỗi project phải ghi rõ model chính, effort và fallback cho role được bật.
 
-| Role or work type | First choice | Effort | Then use only these fallbacks |
+| Vai trò/loại việc | Model chính | Mức suy nghĩ | Chỉ được dự phòng theo thứ tự |
 |---|---|---|---|
-| Root Lead | `gpt-5.6-terra` | `xhigh` | `qwen3.8-max-0902` with `xhigh` |
-| Domain Lead | `gpt-5.6-terra` | `xhigh` | `qwen3.8-max-0902` with `xhigh` |
-| Difficult worker task | `qwen3.8-max-0902` | `high` | `deepseek-v4.1-flash` -> `glm-5.3-flash` |
-| Normal worker task | `deepseek-v4.1-flash` | `medium` | `qwen3.8-max-0902` -> `glm-5.3-flash` |
-| Quick worker task | `glm-5.3-flash` | `low` | `deepseek-v4.1-flash` -> `qwen3.8-max-0902` |
-| Final review | `qwen3.8-max-0902` | `high` | `deepseek-v4.1-flash` -> `glm-5.3-flash` |
+| Root Lead | `gpt-5.6-terra` | `xhigh` | `qwen3.8-max-0902` với `xhigh` |
+| Domain Lead | `gpt-5.6-terra` | `xhigh` | `qwen3.8-max-0902` với `xhigh` |
+| Worker khó | `qwen3.8-max-0902` | `high` | `deepseek-v4.1-flash` → `glm-5.3-flash` |
+| Worker thường | `deepseek-v4.1-flash` | `medium` | `qwen3.8-max-0902` → `glm-5.3-flash` |
+| Worker nhanh | `glm-5.3-flash` | `low` | `deepseek-v4.1-flash` → `qwen3.8-max-0902` |
+| Kiểm tra cuối | `qwen3.8-max-0902` | `high` | `deepseek-v4.1-flash` → `glm-5.3-flash` |
 
-Use the same effort for a worker fallback unless the runtime rejects that effort. A new machine must confirm that every named model is available before the first launch. If one is unavailable, record that evidence and move to the next entry in this table. Do not use a model outside this table.
+Fallback worker dùng cùng effort trừ khi runtime từ chối. Máy mới phải xác nhận tên model có tồn tại trước lần launch đầu. Thiếu model thì ghi evidence và đi fallback kế tiếp, không dùng model ngoài bảng.
 
-## What the Lead watches
+## Bằng chứng cần kiểm tra
 
-The Lead treats the following as evidence that requires investigation:
+Lead chỉ điều tra lỗi model khi có một trong các bằng chứng:
 
-1. Orca reports the current Dispatch as `failed` or `stopped`.
-2. A worker sends an explicit failed completion that includes a provider/model error.
-3. The launch receipt refuses the selected model or effort.
-4. Worker output contains a clear provider failure, model-not-found, authentication/provider outage, or an unrecoverable model runtime error.
+1. Orca báo Dispatch `failed` hoặc `stopped`.
+2. Worker gửi completion `FAILED` nêu rõ lỗi provider/model.
+3. Launch receipt từ chối model/effort đã chọn.
+4. Output có lỗi provider, không tìm thấy model, xác thực provider, provider outage hoặc runtime model không thể phục hồi.
 
-`unknown`, a stale terminal, a timeout, silence, and a disconnected server are **not** model-failure evidence. The Lead keeps waiting or inspects the worker first. A normal code failure, a failed test, or an incomplete answer is also not automatically a model failure; the Lead reviews it as an ordinary task problem before spending a fallback attempt.
+`unknown`, terminal cũ, timeout, im lặng hay server mất kết nối **không** tự là lỗi model. Kiểm tra worker trước. Code lỗi, test fail hay câu trả lời chưa đủ cũng không tự là lỗi model; xem như vấn đề task bình thường trước khi tiêu một lượt fallback.
 
-## Orca replacement flow
+## Cách thay worker trong Orca
 
-Use this flow for every supervised Codex worker. It is the required way to change a worker model in Orca.
+1. Đọc state/final output, xác nhận worker thật sự `failed`/`stopped`.
+2. Giữ ownership reservation của task. Kiểm tra file được phép và ghi phần đã đổi/đã xác minh.
+3. Thêm recovery handover ngắn vào Task Contract và `TEAM_STATE.md`: model đã thử, evidence, checkpoint file và model kế tiếp được phép.
+4. Mở một worker Codex mới cho **cùng task**; dùng Dispatch lỗi với `--retry-of`, giữ worktree và yêu cầu model/effort fallback tiếp theo.
+5. Đọc launch receipt. `launch.requested` chỉ là yêu cầu; chỉ ghi model/effort khi `launch.effective` xác nhận. Launch bị từ chối thì giữ task reserved và thử fallback hợp lệ kế tiếp.
+6. Worker mới đọc handover, kiểm tra file đang có và tiếp tục đúng bước kế tiếp; không làm lại phần đã xác minh trừ khi thay đổi yêu cầu.
 
-1. Read the worker state and its final output. Confirm it is actually `failed` or `stopped`; do not act merely because the pane looks inactive.
-2. Keep that task's ownership reservation. Check the permitted files and note what was already changed or verified.
-3. Add a compact recovery handover to the Task Contract and `TEAM_STATE.md`: attempted model, exact evidence, file checkpoint, and next allowed model.
-4. Start one fresh Codex worker for the **same Task**. Use the failed Dispatch as `--retry-of`, repeat the intended worktree, and request the next model and effort.
-5. Read the launch receipt. `launch.requested` is only a request; record the model and effort only if `launch.effective` confirms them. If the launch is refused before a worker is ready, keep the task reserved and try the next permitted fallback.
-6. The new worker reads the handover first, checks the existing files, and continues at the named next step. It must not repeat completed verification unless the change requires it.
-
-Example command shape; replace every placeholder with IDs returned by the live Orca Run:
+Ví dụ dạng lệnh, thay mọi placeholder bằng ID thật do Orca trả:
 
 ```powershell
 orca orchestration worker-start `
   --task <task-id> `
   --retry-of <failed-dispatch-id> `
-  --worktree <same-explicit-worktree> `
-  --agent codex `
-  --model <next-allowed-model> `
-  --effort <route-effort> `
-  --run <run-id> `
+  --worktree <đường-dẫn-worktree> `
+  --model <fallback-model> `
+  --effort <effort> `
   --json
 ```
 
-Do not add `--terminal` to that command. Orca cannot apply `--model` or `--effort` while reusing a terminal, so a fresh worker is required for a real model change. There may be only one active writer for the task's ownership zone.
+## Lead lỗi model
 
-## Limits and escalation
+Domain Lead lỗi: Root Lead xác minh rồi mở replacement với fallback của Lead, cùng phạm vi/domain và state đã ghi. Root Lead lỗi: nó không thể tự thay. Caller giám sát mở Root Lead mới bằng Qwen fallback, đọc `TEAM_STATE.md`, đối chiếu inventory live và tiếp quản chỉ sau khi lease được chuyển hợp lệ.
 
-Each route has one primary plus two fallbacks: at most three model attempts for the same task. Orca also protects a task with its own retry limit. If every permitted entry is unavailable or fails, mark the task `WAITING_USER` and report the three attempts in plain language. Do not open a fourth worker or substitute another model.
+Nếu model chính và toàn bộ fallback được policy cho phép đều không khả dụng/lỗi, task là `WAITING_USER`. Hỏi người dùng chọn model khác; không tự dùng model không có trong policy.
 
-A failed Domain Lead is replaced by the Root Lead using its Lead fallback and the saved state. A failed Root Lead cannot restart itself; the supervising caller starts its replacement from `.orca-team/TEAM_STATE.md`.
+## Báo người dùng
 
-## Minimum state record
-
-For every launch/replacement, write one short row:
-
-```text
-Task: T-012, attempt 2 of 3
-Requested: deepseek-v4.1-flash / high
-Effective: deepseek-v4.1-flash / high
-Evidence: previous worker stopped after provider timeout; files reviewed: JobsService.cs
-Next step: continue the uncompleted validation test
-```
-
-This lets any replacement Lead continue without guessing what happened.
+Không nêu tên provider/model trừ khi người dùng hỏi. Nói ví dụ: `Worker xử lý phần này bị lỗi hệ thống. Mình đã chuyển đúng phần việc đó sang worker mới và giữ lại phần đã làm.` Nếu hết fallback: `Phần này chưa thể tiếp tục vì các model đã được cho phép đều không chạy được. Bạn muốn chọn model khác hay chờ thử lại?`

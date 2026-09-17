@@ -1,32 +1,32 @@
-# One Big Lead, clear terminal names, and team visibility
+# Một Big Lead, tên terminal rõ và team dễ quan sát
 
-This rule answers three simple questions at any moment: who is the Big Lead, which Lead owns a worker, and whether a second terminal may schedule work.
+Tài liệu này trả lời ba câu hỏi: Big Lead là ai, Lead nào quản worker nào, và terminal thứ hai có được mở worker không.
 
-## One Big Lead only
+## Chỉ một Big Lead
 
-The first terminal that completes project initialization becomes the Big Lead only after it records an active lease. Its permanent label starts with `00`:
+Terminal khởi tạo dự án thành Big Lead chỉ sau khi ghi active lease. Nhãn luôn bắt đầu bằng `00`:
 
 ```text
 00 | BIG | <project> | RUN
 ```
 
-The Big Lead owns the project queue, task ownership, policy, and the right to create Domain Leads and workers. There can be only one active owner for those responsibilities.
+Big Lead sở hữu queue dự án, ownership task, policy và quyền mở Domain Lead/worker. Mỗi lúc chỉ có một owner cho các việc này.
 
-## Mandatory terminal naming in Orca
+## Bắt buộc đặt tên terminal trong Orca
 
-When the Big Lead successfully initializes in an Orca terminal, it must rename the terminal it is already using before it says initialization is complete:
+Big Lead đổi tên terminal của chính mình trước khi nói khởi tạo xong:
 
 ```powershell
 orca terminal rename --title "00 | BIG | <PROJECT> | RUN" --json
 ```
 
-When the current terminal cannot be inferred, use the real handle returned by Orca instead:
+Nếu Orca không tự xác định terminal hiện tại, dùng handle thật do Orca trả về:
 
 ```powershell
 orca terminal rename --terminal <runtime-handle> --title "00 | BIG | <PROJECT> | RUN" --json
 ```
 
-Every terminal created later follows the same rule as soon as Orca returns its handle:
+Sau khi Orca trả handle của terminal mới, đổi tên theo cùng quy tắc ngay:
 
 ```text
 00 | BIG | MEU-HIRE-FE | RUN
@@ -37,62 +37,62 @@ Every terminal created later follows the same rule as soon as Orca returns its h
 90 | VIEW | MEU-HIRE-FE
 ```
 
-The Big Lead issues `orca terminal rename` after worker/Lead start succeeds and before it records that role as active in the dashboard. If a rename fails, keep the task/worker running, record the failure, and keep the correct role visible in `TEAM_DASHBOARD.md`; never guess a terminal handle or rename an unrelated terminal.
+Big Lead chỉ gọi `orca terminal rename` sau khi Lead/worker mở thành công và trước khi ghi role active trong dashboard. Nếu đổi tên lỗi, vẫn giữ task/worker chạy, ghi lỗi và hiện role đúng trong `TEAM_DASHBOARD.md`; không đoán handle hoặc đổi nhầm terminal.
 
-When a person opens another Codex terminal in the same project and invokes `$lead` or `$lead init`:
+## Khi mở terminal Codex thứ hai trong cùng dự án
 
-1. Read `LEAD_LEASE.md`, `TEAM_STATE.md`, and `TEAM_DASHBOARD.md` first.
-2. In Orca, inspect the stored Lead terminal/Run with live inventory. A live owner remains Big Lead.
-3. If the current Big Lead is live, rename the new Orca terminal to `90 | VIEW | <project>` when a live handle is available. It may show `$lead status`, but must not start workers, change task ownership, or become a second Big Lead.
-4. A new Big Lead may replace the old one only after its failure is proven through Orca, or when the user explicitly confirms the old Lead is unavailable and asks for `$lead take over`. Record the transfer before launching any worker.
+Khi người dùng gọi `$lead` hoặc `$lead init` ở terminal khác:
 
-Two terminals initialized at exactly the same time are a race that a Markdown file alone cannot make perfectly atomic. If this happens, neither terminal may dispatch a worker until one observes its lease as the only active lease or the user chooses the Big Lead. The ownership locks still prevent writer work from being intentionally duplicated.
+1. Đọc `LEAD_LEASE.md`, `TEAM_STATE.md`, `TEAM_DASHBOARD.md` trước.
+2. Dùng inventory Orca live kiểm tra Run/terminal của Big Lead đã ghi. Owner còn sống vẫn là Big Lead.
+3. Nếu Big Lead đang sống, đổi terminal mới thành `90 | VIEW | <project>` khi có handle. Viewer chỉ dùng `$lead status`, không mở worker, không đổi owner, không thành Big Lead thứ hai.
+4. Chỉ thay Big Lead khi Orca chứng minh Big Lead cũ đã lỗi/dừng, hoặc người dùng xác nhận cũ không dùng được và gọi `$lead take over`. Ghi transfer trước khi mở worker.
 
-## Lease file
+Hai terminal init cùng lúc là race condition mà Markdown không thể khóa hoàn toàn. Khi đó cả hai không được mở worker đến khi một terminal thấy lease active duy nhất hoặc người dùng chọn Big Lead. Ownership lock vẫn ngăn writer bị cố ý nhân đôi.
 
-`LEAD_LEASE.md` is a compact ownership record, not a background process monitor:
+## File lease
+
+`LEAD_LEASE.md` là bản ghi ownership ngắn, không phải trình theo dõi process nền:
 
 ```markdown
-# Big Lead Lease
+# Lease Big Lead
 
-State: ACTIVE
-Big Lead label: 00 | BIG | <project> | RUN
-Mode: Orca
-Orca Run: <run ID or unbound>
-Lead terminal: <runtime handle or unbound>
-Started: <time>
-Last confirmed: <time and evidence>
+Trạng thái: ACTIVE
+Nhãn Big Lead: 00 | BIG | <project> | RUN
+Chế độ: Orca
+Orca Run: <run ID hoặc unbound>
+Terminal Lead: <runtime handle hoặc unbound>
+Bắt đầu: <thời gian>
+Xác nhận gần nhất: <thời gian và bằng chứng>
 
-Only this Big Lead may schedule workers. A viewer needs verified recovery or explicit user takeover before it becomes Big Lead.
+Chỉ Big Lead này được xếp lịch worker. Viewer cần recovery đã xác minh hoặc người dùng takeover rõ ràng để thành Big Lead.
 ```
 
-Allowed states are `UNASSIGNED`, `ACTIVE`, `VIEWER_ONLY`, `RECOVERY_REQUIRED`, and `TRANSFERRED`. Never overwrite an `ACTIVE` lease merely because a second terminal was opened.
+Các trạng thái hợp lệ: `UNASSIGNED`, `ACTIVE`, `VIEWER_ONLY`, `RECOVERY_REQUIRED`, `TRANSFERRED`. Không ghi đè `ACTIVE` chỉ vì có terminal thứ hai mở ra.
 
-## Naming pattern
+## Mẫu tên
 
-Names are management labels for people. They never identify a model and never replace the runtime's actual terminal/Dispatch identity.
+Tên là nhãn cho người đọc, không xác định model và không thay cho terminal/Dispatch thật của Orca.
 
-| Role | Terminal label | Meaning |
+| Vai trò | Nhãn terminal | Ý nghĩa |
 |---|---|---|
-| Big Lead | `00 | BIG | <project> | RUN` | Only project-wide coordinator |
-| Domain Lead | `10 | LEAD-ADMIN | T-100 | RUN` | Owns the Admin branch; use `20`, `30`, and so on for other domains |
-| Worker | `11 | WORKER-ADMIN-API | T-101.1 | RUN` | Worker under Lead Admin; number stays in that Lead's group |
-| QA | `19 | QA-ADMIN | T-101.QA | CHECK` | Test/review worker for that branch |
-| Viewer | `90 | VIEW | <project>` | Extra terminal that can inspect but cannot schedule |
+| Big Lead | `00 | BIG | <project> | RUN` | Điều phối duy nhất toàn dự án |
+| Domain Lead | `10 | LEAD-ADMIN | T-100 | RUN` | Quản nhánh Admin; nhánh khác dùng `20`, `30`... |
+| Worker | `11 | WORKER-ADMIN-API | T-101.1 | RUN` | Worker thuộc Lead Admin, giữ số trong nhóm đó |
+| QA | `19 | QA-ADMIN | T-101.QA | CHECK` | Kiểm tra/test cho nhánh |
+| Viewer | `90 | VIEW | <project>` | Chỉ xem, không được xếp lịch |
 
-Use a short, stable domain code such as `ADMIN`, `AUTH`, `JOBS`, `REPORTS`, `PAYMENT`, `BE`, or `FE`. A Domain Lead assigns its children within its number group. Do not reuse a live number for an unrelated active role.
-
-Allowed short state words are `RUN`, `WAIT`, `BLOCK`, `CHECK`, `DONE`, `MODEL_ERROR`, and `RECOVERING`.
+Dùng domain code ngắn, ổn định như `ADMIN`, `AUTH`, `JOBS`, `REPORTS`, `PAYMENT`, `BE`, `FE`. Không dùng lại số role đang live cho role khác. State word hợp lệ: `RUN`, `WAIT`, `BLOCK`, `CHECK`, `DONE`, `MODEL_ERROR`, `RECOVERING`.
 
 ## Dashboard
 
-Every project uses `.orca-team/TEAM_DASHBOARD.md` as the human-readable map beside Orca terminal tabs.
+Mỗi dự án dùng `.orca-team/TEAM_DASHBOARD.md` như bản đồ team bên cạnh tab terminal:
 
 ```markdown
-# Team Dashboard
+# Bảng theo dõi team
 
-Last updated: <time>
-Project: <project>
+Cập nhật: <thời gian>
+Dự án: <project>
 
 00 | BIG | <project> | RUN
 |
@@ -105,26 +105,16 @@ Project: <project>
    |- 21 | WORKER-AUTH-API | T-201.1 | RUN
    `- 22 | WORKER-AUTH-UI | T-201.2 | CHECK
 
-## Quick reading
+## Đọc nhanh
 
-| Label | Owner / task | State | Next checkpoint |
+| Nhãn | Owner / việc | Trạng thái | Điểm kiểm tra tiếp |
 |---|---|---|---|
-| 12 | Admin user interface | BLOCK | Waiting for API contract T-101 |
-| 22 | Auth user interface | CHECK | Run focused test |
+| 12 | Giao diện Admin | BLOCK | Chờ API contract T-101 |
+| 22 | Giao diện Auth | CHECK | Chạy test tập trung |
 ```
 
-Update it when a role starts, its state actually changes, a worker is replaced, or a role is collapsed. Do not claim an update based only on a silent terminal.
+Cập nhật khi role bắt đầu, state thực sự đổi, worker được thay hoặc role bị thu gọn. Terminal im lặng không đủ để khẳng định có thay đổi.
 
-## Orca terminal titles
+## Khi Domain Lead kết thúc
 
-After Orca returns the live handle for a Lead or worker, the Big Lead must set the matching label:
-
-```powershell
-orca terminal rename --terminal <runtime-handle> --title "11 | WORKER-ADMIN-API | T-101.1 | RUN" --json
-```
-
-Rename only after the worker exists and its runtime handle was returned by Orca. The terminal title is for visibility; use Orca worker state and the task board to decide liveness, recovery, or ownership.
-
-## When a Domain Lead ends
-
-When its branch has no ready or active work, the Big Lead settles its workers, marks the Domain Lead `DONE` in the dashboard, and returns any remaining queued work to the Root board. Its label remains in the dashboard briefly as history but its number cannot be assigned to a new live role until that old row is clearly closed.
+Khi nhánh không còn task `READY`/`ACTIVE`, Big Lead settle worker, đánh dấu Domain Lead `DONE` trên dashboard và trả queue còn lại về Root. Có thể giữ dòng lịch sử ngắn, nhưng không dùng lại số role cho tới khi dòng cũ đã đóng rõ ràng.

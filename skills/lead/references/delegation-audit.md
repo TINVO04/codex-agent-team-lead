@@ -1,57 +1,53 @@
-# Delegation Audit
+# Kiểm tra phân công
 
-Use `$lead audit` to answer one practical question: is the project team visibly following the agreed roles?
+`$lead audit` trả lời một câu thực tế: team có đang làm đúng vai trò đã thống nhất không?
 
-The audit is read-only. It does not launch a replacement worker, stop a worker, edit delivery files, or use Git by default. It reads the project state, task contracts, dashboard, lease, and live Orca Run/task/terminal inventory.
+Audit là chỉ-đọc. Nó không mở/thay/dừng worker, không sửa file đầu ra và không dùng Git mặc định. Nó đọc state, Task Contract, dashboard, lease và inventory Run/task/terminal thật trong Orca.
 
-## What to check
+## Cần kiểm tra gì
 
-For each task that is `ACTIVE`, `VERIFYING`, `BLOCKED`, or `QUEUED`, compare:
+Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiếu:
 
-1. Is it only a status/clarification/policy answer, or does it involve any research or project work?
-2. If it involves research or project work, does its Task Contract name a worker as delivery owner?
-3. Does live Orca show that worker Task/Dispatch and a terminal handle, or has a verified completion/recovery event explained its absence?
-4. Does the terminal title and dashboard show the correct role and current state?
-5. Is a Root/Domain Lead recorded only as coordinator, decision owner, verifier, or reporter — never as a research or delivery owner?
-6. Are there duplicate workers or conflicting ownership zones?
+1. Đây chỉ là status/clarification/policy hay có nghiên cứu/công việc dự án thật?
+2. Nếu là nghiên cứu/công việc thật, Task Contract có tên worker owner không?
+3. Orca live có Task/Dispatch và terminal handle của worker, hoặc có completion/recovery đã xác minh giải thích vì sao không còn terminal không?
+4. Terminal title và dashboard có đúng vai trò/trạng thái hiện tại không?
+5. Root/Domain Lead có chỉ là coordinator, decision owner, verifier hoặc reporter; không phải research/delivery owner không?
+6. Có worker trùng hoặc ownership zone xung đột không?
 
-## Audit result
+## Kết quả audit
 
-Classify each relevant task as:
+- `OK`: owner, trạng thái live và terminal hiển thị khớp nhau.
+- `WAITING`: chưa cần worker vì đang chờ quyết định người dùng, dependency thật hoặc worker slot.
+- `RECOVERY_REQUIRED`: worker cũ mất/chưa rõ, phải khôi phục ownership trước khi làm lại.
+- `GAP`: task nghiên cứu/dự án đang chạy hoặc được nói là xong nhưng không có evidence worker/terminal hợp lệ.
+- `CONFLICT`: worker trùng, ownership overlap hoặc Lead bị ghi thành owner nghiên cứu/triển khai.
 
-- `OK`: its owner, live state, and visible terminal agree;
-- `WAITING`: no worker is required yet because it is waiting for a user decision, real dependency, or worker capacity;
-- `RECOVERY_REQUIRED`: an earlier worker is missing/unknown and ownership must be recovered before rework;
-- `GAP`: a research or project task is active or claimed complete but has no valid worker ownership/terminal evidence;
-- `CONFLICT`: duplicate worker, overlapping ownership, or an unauthorized Lead research/delivery owner is recorded.
+Không kết luận worker đã mất chỉ vì dashboard cũ không hiển thị. Inventory Orca live là nguồn đúng. Terminal/worker chưa rõ trạng thái cũng không tự là lỗi; dùng quy trình recovery.
 
-Do not assume a terminal disappeared merely because it is not visible in an old dashboard. Live Orca inventory is the authority. Do not assume an unknown terminal failed; use recovery rules.
+## Kiểm tra ownership file tùy chọn
 
-## Optional file-ownership check
+Audit mặc định không thể chứng minh ai đã sửa một file local. Chỉ khi người dùng đã duyệt Git riêng cho dự án, Lead mới được đối chiếu path thay đổi với ownership board. Kết quả Git chỉ là bằng chứng hỗ trợ, không chứng minh tác giả.
 
-The default audit cannot prove who wrote a local file. If the user has separately approved Git inspection for this project, the Lead may compare changed paths with the ownership board. It may report a suspicious path when a product file changed but no worker ever owned that path. Git output is supporting evidence, not proof of authorship.
+Không có quyền đó thì chỉ báo gap điều phối đang thấy; không chạy Git âm thầm.
 
-Without that approval, report only the visible coordination gap. Never run Git silently during an audit.
+## Sau khi thấy gap
 
-## What the Lead does after a gap
+1. Ghi gap vào `TEAM_STATE.md`, giữ ownership đang có.
+2. Lead không tự sửa file và không mở writer trùng khi worker cũ còn chưa rõ.
+3. Chỉ sau khi xác minh worker cũ dừng/lỗi hoặc người dùng quyết định, mới chuẩn bị recovery/replacement task bình thường.
+4. Báo kết quả dễ hiểu; không che gap.
 
-1. Update `TEAM_STATE.md` with the gap and preserve existing ownership.
-2. Do not make delivery changes itself and do not launch a duplicate writer while worker state is unknown.
-3. If the task is safe and a worker slot is available, prepare a normal replacement/recovery task only after the prior state is proven stopped/failed or the user decides.
-4. Report the simple outcome to the user. Do not hide the gap.
-
-## User-facing report
-
-The user does not need raw Orca handles or internal task IDs. Use one of these forms:
+## Mẫu báo người dùng
 
 ```text
-Đúng quy trình: các việc đang sửa file đều có worker riêng và đang hiển thị rõ.
+Đúng quy trình: các việc nghiên cứu hoặc sửa file đều có worker riêng và đang hiển thị rõ.
 ```
 
 ```text
-Cần sửa quy trình: có một việc đang được ghi là đang làm nhưng chưa thấy worker phụ trách. Mình đã để việc đó chờ kiểm tra, Lead sẽ không tự làm thay.
+Cần sửa quy trình: có một việc đang được ghi là đang làm nhưng chưa thấy worker phụ trách. Mình đã để việc đó chờ kiểm tra; Lead sẽ không tự làm thay.
 ```
 
 ```text
-Chưa thể kết luận vì worker cũ mất kết nối. Mình cần kiểm tra lại trạng thái của worker đó trước để không tạo hai người cùng sửa một chỗ.
+Chưa thể kết luận vì worker cũ mất kết nối. Cần kiểm tra trạng thái của worker đó trước để không tạo hai người cùng sửa một chỗ.
 ```

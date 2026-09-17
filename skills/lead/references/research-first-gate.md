@@ -1,68 +1,64 @@
-# Research-first Gate
+# Cổng nghiên cứu trước
 
-Use this gate before implementation when evidence and examples materially improve the decision. It prevents two opposite failures: making important design/product decisions from guesswork, and browsing forever when the task is already clear.
+Dùng cổng này trước khi triển khai nếu bằng chứng/ví dụ hiện hành có thể làm quyết định tốt hơn. Nó tránh hai lỗi: đoán mò ở quyết định quan trọng, hoặc tìm kiếm mãi khi task đã rõ.
 
-This is different from the Skill Discovery Gate. Research-first means “learn enough to make a sound decision.” A skill is only considered if the team needs a reusable specialist workflow.
+Nghiên cứu trước khác với tìm skill: mục tiêu là học đủ để chọn hướng đúng. Chỉ đánh giá skill nếu team thực sự cần một quy trình chuyên biệt dùng lại được.
 
-## Classify every task once
+## Phân loại task một lần
 
-The Lead chooses one level at intake and writes it in the Task Contract.
+Lead ghi một cấp vào Task Contract:
 
-| Level | Use it when | Required outcome |
+| Cấp | Dùng khi | Kết quả cần có |
 |---|---|---|
-| `routine` | A bounded fix or implementation has a clear local pattern and little design/risk impact. | Work directly from project context. |
-| `research-first` | UI/UX, visual design, content/copy, a user flow, a new library/framework, architecture choice, performance, security, or integration needs current evidence. | A focused research brief before the affected implementation. |
-| `research-deep` | The decision has broad product, cost, safety, compliance, or irreversible impact. | Evidence plan, comparative brief, and Lead decision before implementation. |
+| `routine` | Sửa/triển khai hẹp, pattern local rõ, ít ảnh hưởng thiết kế/rủi ro. | Làm theo context dự án. |
+| `research-first` | UI/UX, hình ảnh, nội dung, luồng người dùng, thư viện/framework mới, kiến trúc, hiệu năng, bảo mật hoặc tích hợp cần evidence hiện hành. | Brief ngắn trước phần triển khai phụ thuộc nó. |
+| `research-deep` | Ảnh hưởng rộng đến sản phẩm, chi phí, an toàn, tuân thủ hoặc khó quay lại. | Kế hoạch evidence, brief so sánh và Lead chốt hướng. |
 
-Default to `research-first` for a new user-facing screen or journey, dashboard, responsive/mobile redesign, visual/brand work, content that affects conversion or trust, a new vendor/framework, authentication/authorization, payment, file storage, public API shape, significant performance work, or an unclear multi-option task.
+Mặc định `research-first` cho màn hình/luồng mới, dashboard, redesign mobile/responsive, brand/visual, nội dung ảnh hưởng tin cậy/chuyển đổi, vendor/framework mới, auth, payment, file storage, public API, tối ưu hiệu năng đáng kể hoặc task có nhiều hướng hợp lý.
 
-Do not label a routine typo, localized defect, known pattern, or a mechanically specified change as research-first just to add ceremony.
+Không gắn research-first cho typo, lỗi cục bộ, pattern đã biết hoặc thay đổi cơ học chỉ để thêm quy trình.
 
-## The research brief
+## Brief nghiên cứu
 
-A research task is read-only unless its Task Contract explicitly says otherwise. It writes one short `RN-###-short-topic.md` into `.orca-team/RESEARCH_NOTES/` using that folder's template.
+Task nghiên cứu là chỉ-đọc, trừ khi contract nói khác. Worker nghiên cứu ghi một file `RN-###-short-topic.md` trong `.orca-team/RESEARCH_NOTES/` theo mẫu sẵn có.
 
-The brief must answer:
+Brief phải trả lời:
 
-1. What exact project decision must be made?
-2. What do existing code, product requirements, and users already require?
-3. Which trustworthy sources were checked?
-4. What practical principles or constraints apply here?
-5. Which options were considered and what is the trade-off?
-6. What is the recommended project-specific direction?
-7. What must implementation and QA prove afterward?
+1. Dự án cần quyết định chính xác điều gì?
+2. Code, yêu cầu sản phẩm và người dùng hiện có đang đòi hỏi gì?
+3. Nguồn đáng tin nào đã được kiểm tra?
+4. Nguyên tắc/ràng buộc thực tế nào áp dụng?
+5. Đã cân nhắc lựa chọn nào và đánh đổi gì?
+6. Nên chọn hướng nào cho dự án và vì sao?
+7. Worker triển khai/QA phải chứng minh điều gì sau đó?
 
-It should be short enough for a worker to use. Links and a distilled conclusion are better than pasted pages of text.
+Brief phải ngắn để worker dùng được. Link và kết luận chắt lọc tốt hơn chép nguyên trang web.
 
-## Source order
+## Thứ tự nguồn
 
-Prefer this order. Do not treat a search ranking as proof.
+1. Rule, design system, yêu cầu, user research, code pattern và research note sẵn có của dự án.
+2. Tài liệu chính thức của sản phẩm/framework/platform.
+3. Tiêu chuẩn và hướng dẫn được công nhận, ví dụ accessibility/bảo mật.
+4. Một số ít sản phẩm/ví dụ công khai nổi tiếng để học nguyên tắc tương tác/thông tin.
+5. Nguồn chuyên gia uy tín khi các nguồn trên chưa giải quyết câu hỏi.
 
-1. Existing project rules, design system, user research, requirements, code patterns, and earlier research notes.
-2. Official product, framework, or platform documentation.
-3. Relevant standards and recognized guidance, such as accessibility or security standards.
-4. A small number of well-known public products/examples for interaction or information-design principles.
-5. Reputable expert sources only when the earlier sources do not settle the question.
+Nghiên cứu visual/design phải xem hierarchy, mật độ thông tin, trạng thái, responsive và accessibility; không chỉ nhìn màu/screenshot. Nghiên cứu kỹ thuật phải xem compatibility, maintenance, bảo mật, chi phí vận hành, lỗi và khả năng migration/rollback.
 
-For visual/design research, inspect layout hierarchy, information density, states, responsive behavior, and accessibility — not merely colors or screenshots. For technical research, inspect compatibility, maintenance, security, operational cost, failure behavior, and migration/rollback implications.
+## Ranh giới an toàn
 
-## Boundaries
+- Học nguyên tắc, không sao chép code, asset, chữ hay toàn bộ thiết kế bên thứ ba.
+- Không đưa source riêng, token, dữ liệu khách hàng, log chưa lọc hay chi tiết DB production vào web query/issue/service ngoài.
+- Upload, login, công cụ trả phí, plugin, crawler, script hay API ngoài vẫn theo rule user approval và Skill Discovery riêng.
+- Worker chỉ đọc brief và nguồn được contract cho phép. Cần tìm thêm thì gửi `RESEARCH_REQUEST` cho Lead.
 
-- Learn principles. Do not copy third-party code, visual assets, text, or a whole design verbatim.
-- Never put private source, tokens, customer data, unredacted logs, or production database details into a web query, public issue, or third-party service.
-- The source plan may name public links and official docs, but an external upload, login, paid tool, plugin install, crawler, script, or API use follows the separate user-approval and Skill Discovery rules.
-- A worker reads only the research brief and sources approved in its contract. If it needs broader research, it sends `RESEARCH_REQUEST` to the Lead.
+## Cách chạy với worker
 
-## How it works with workers
+Mọi task `research-first`/`research-deep` bắt buộc có worker nghiên cứu chỉ-đọc. Lead chỉ tạo task và kiểm tra brief, không scan file, tìm web hay đọc tài liệu sâu. Worker triển khai bắt đầu sau khi brief được chấp nhận nếu quyết định đó ảnh hưởng hướng làm. Có thể chạy scaffolding sớm nếu nó không khóa hướng đang tranh luận và không trùng writer.
 
-The Lead must run a read-only research worker for every `research-first` or `research-deep` task. The Lead itself only creates the task and reviews the resulting brief; it does not scan files, browse the web, or research documentation. The implementation worker starts after the brief is accepted if the design/decision depends on it. A scaffolding task can run earlier only when it cannot lock in the disputed decision or overlap a writer.
+Task vừa research vừa implementation nên tách `research -> implementation`, hoặc đặt checkpoint: worker phải nộp brief trước khi sửa file nhạy cảm với quyết định.
 
-If a task combines research and implementation, either split it into `research -> implementation` or give the worker an explicit checkpoint: it must submit the brief to the Lead before changing the decision-sensitive files.
+## Điểm dừng và chất lượng
 
-## Stop point and quality check
+Nghiên cứu đủ khi brief có đề xuất rõ, hợp ràng buộc dự án, có evidence tin cậy đúng cấp, giải thích đánh đổi thật và cho QA tiêu chí quan sát được.
 
-Research is sufficient when it gives a clear recommendation that fits the project constraints, cites enough trustworthy evidence for the level, explains a real trade-off, and gives QA something observable to verify.
-
-If two good options remain and the choice materially changes scope, design direction, cost, or external authority, the Lead asks the user one plain-language question rather than guessing.
-
-At completion, record reusable findings in `TEAM_STATE.md` and keep the brief. Mark a related skill candidate in `SKILL_REGISTRY.md` only if a skill was actually evaluated.
+Nếu còn hai hướng tốt mà quyết định thay đổi scope, thiết kế, chi phí hay quyền bên ngoài, Lead hỏi người dùng một câu dễ hiểu thay vì đoán. Kết quả dùng lại được được ghi `TEAM_STATE.md`; chỉ ghi skill registry khi thực sự đã đánh giá skill.

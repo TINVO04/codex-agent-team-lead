@@ -1,94 +1,94 @@
-# Project team state schema
+# Mẫu trạng thái team dự án
 
-`TEAM_STATE.md` is local durable coordination state under `.orca-team/`. It is not a source-of-truth for live Orca terminal identity; reconcile it with Orca after restart.
+`TEAM_STATE.md` là trạng thái điều phối bền vững trong `.orca-team/`. Nó không thay cho identity terminal thật; sau Orca restart phải đối chiếu với inventory live.
 
 ```markdown
-# Team State
+# Trạng thái team
 
-Last updated: <ISO 8601 local time>
-Project: <name>
-Lead mode: <active | recovering | idle>
-Orca Run: <run ID or unbound>
-Lead terminal: <live handle or unbound>
-Big Lead label: <00 | BIG | project | RUN or unassigned>
-Lead lease: <ACTIVE | VIEWER_ONLY | RECOVERY_REQUIRED | TRANSFERRED>
+Cập nhật gần nhất: <ISO 8601 giờ địa phương>
+Dự án: <tên>
+Chế độ Lead: <active | recovering | idle>
+Orca Run: <run ID hoặc unbound>
+Terminal Lead: <live handle hoặc unbound>
+Nhãn Big Lead: <00 | BIG | project | RUN hoặc unassigned>
+Lease Lead: <ACTIVE | VIEWER_ONLY | RECOVERY_REQUIRED | TRANSFERRED>
 
-## Current objective
+## Mục tiêu hiện tại
 
-<one current objective or none>
+<một mục tiêu hoặc không có>
 
-## Active team rules
+## Rule team đang hiệu lực
 
-| Rule ID | Short rule | Scope | Affected tasks / owners | Evidence required | Acknowledgement |
+| Rule ID | Rule ngắn | Phạm vi | Task/owner ảnh hưởng | Evidence cần có | Đã xác nhận |
 |---|---|---|---|---|---|
 
-The full wording and history belong in `TEAM_RULES.md`. Record every active-rule change here so the Root Lead can see who must acknowledge it.
+Toàn bộ nội dung/lịch sử rule nằm trong `TEAM_RULES.md`. Ghi mọi thay đổi rule tại đây để Root Lead biết ai cần xác nhận.
 
-## Task board
+## Bảng task
 
-| ID | Request | Priority | Status | Owner | Ownership zone | Depends on | Acceptance evidence | Notes |
+| ID | Yêu cầu | Ưu tiên | Trạng thái | Owner | Vùng sở hữu | Phụ thuộc | Evidence nhận task | Ghi chú |
 |---|---|---|---|---|---|---|---|---|
 | T-001 | ... | P1 | READY | API | src/... | — | dotnet test ... | ... |
 
-Status: `INTAKE`, `READY`, `QUEUED`, `ACTIVE`, `VERIFYING`, `BLOCKED`, `WAITING_USER`, `DONE`, `FAILED`, `CANCELLED`.
+Trạng thái: `INTAKE`, `READY`, `QUEUED`, `ACTIVE`, `VERIFYING`, `BLOCKED`, `WAITING_USER`, `DONE`, `FAILED`, `CANCELLED`.
 
-## Team topology and capacity
+## Cấu trúc team và năng lực
 
-| Team / domain | Lead label | Parent | Allocated capacity | Owned task IDs | State | Collapse condition |
+| Team/domain | Nhãn Lead | Parent | Capacity được cấp | Task sở hữu | Trạng thái | Điều kiện thu gọn |
 |---|---|---|---:|---|---|---|
-| Root | 00 \| BIG \| project \| RUN | none | <global max> | ... | active | never during current request |
+| Root | 00 | BIG | project | RUN | none | <global max> | ... | active | không thu gọn khi đang xử lý yêu cầu |
 
-Do not count capacity per row. The sum of all active workers must remain within the global `max_workers` policy.
+Không tính capacity riêng cho từng dòng. Tổng worker active phải không vượt `max_workers` toàn cục.
 
-## Active assignments
+## Phân công đang chạy
 
-| Task | Role label | Parent label | Attempt | Dispatch | Terminal | Requested / effective model / effort | Checkpoint | Last known result |
+| Task | Nhãn role | Nhãn parent | Lần thử | Dispatch | Terminal | Model/effort yêu cầu và thực tế | Checkpoint | Kết quả gần nhất |
 |---|---|---|---:|---|---|---|---|---|
 
-Only enter IDs returned by the current live Orca runtime. On restart, change an assignment to `RECOVERY_REQUIRED` until live inventory verifies it.
+Chỉ ghi ID Orca trả về trong runtime live. Sau restart, đổi assignment thành `RECOVERY_REQUIRED` đến khi inventory live xác minh. Lead không được là owner triển khai/nghiên cứu của task có ý nghĩa.
 
-## Model routing and recovery
+## Model và recovery
 
-| Role / task | Attempt | Requested model / effort | Effective model / effort | Fallback order | Failure evidence | Recovery decision |
+| Role/task | Lần thử | Model/effort yêu cầu | Model/effort thực tế | Thứ tự fallback | Evidence lỗi | Quyết định recovery |
 |---|---:|---|---|---|---|---|
 
-Do not retry a model failure from missing or unknown status. Keep the ownership reservation until the failed/stopped state, files, and replacement path are verified. A replacement uses the same task ID and is the only writer for that ownership zone.
+Không retry model từ state unknown. Giữ ownership đến khi worker failed/stopped, file checkpoint và replacement path đã xác minh. Replacement dùng cùng task ID và là writer duy nhất trong vùng đó.
 
-## Active ownership and Parallel Gate
+## Ownership và Parallel Gate
 
-| Task | Ownership zone / shared resource | Parallel Gate | Reserved until | Conflict / contract |
+| Task | Vùng ownership/tài nguyên chung | Parallel Gate | Giữ đến | Conflict/contract |
 |---|---|---|---|---|
 
-Record an ownership reservation before dispatching a writer. Use `pass`, `hard dependency`, `ownership conflict`, or `contract-first` as the gate result.
+Reserve ownership trước khi worker thay đổi. Giá trị Gate: `pass`, `hard dependency`, `ownership conflict`, `contract-first`.
 
-## Decisions and contracts
+## Quyết định và contract
 
-| ID | Decision / contract | Owner | Affected tasks | Date |
+| ID | Quyết định/contract | Owner | Task ảnh hưởng | Ngày |
 |---|---|---|---|---|
 
-## Capability and skill decisions
+## Quyết định capability và skill
 
-`SKILL_REGISTRY.md` holds the full record. Keep only active or task-blocking decisions here.
+Chi tiết ở `SKILL_REGISTRY.md`; chỉ giữ quyết định active hoặc chặn task ở đây.
 
-| Registry ID | Capability | Decision | Affected tasks | Owner | Next check |
+| Registry ID | Capability | Quyết định | Task ảnh hưởng | Owner | Kiểm tra tiếp |
 |---|---|---|---|---|---|
 
-## Research decisions
+## Quyết định nghiên cứu
 
-`RESEARCH_NOTES/` holds the full briefs. Keep only current, reusable, or task-blocking research here.
+Chi tiết ở `RESEARCH_NOTES/`; chỉ giữ brief đang dùng, dùng lại hoặc chặn task.
 
-| Research ID | Decision question | Level | Affected tasks | Evidence state | Owner |
+| Research ID | Câu hỏi quyết định | Cấp | Task ảnh hưởng | Trạng thái evidence | Owner |
 |---|---|---|---|---|---|
 
-## Preview decisions
+## Quyết định xem trước
 
-| Preview ID | Change / question | Mode | User decision | Affected tasks | Date |
+| Preview ID | Thay đổi/câu hỏi | Chế độ | Người dùng đã chốt | Task ảnh hưởng | Ngày |
 |---|---|---|---|---|---|
 
-## Blockers and user approvals
+## Blocker và approval người dùng
 
-| Task | Blocker or approval needed | Since | Next owner |
+| Task | Blocker hoặc quyền cần | Từ lúc | Owner tiếp theo |
 |---|---|---|---|
 ```
 
-Keep the task board short. Preserve completed task rows only while they explain a dependency, verification result, or later recovery decision.
+Giữ board ngắn. Giữ task đã xong chỉ khi nó còn giải thích dependency, evidence hoặc recovery sau này.

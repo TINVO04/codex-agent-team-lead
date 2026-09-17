@@ -1,59 +1,53 @@
-# Quality and Preview Gates
+# Cổng chất lượng và xem trước
 
-Use this reference when the Lead defines “done”, reviews a worker result, or decides whether a UI/UX/product direction needs a short user preview before the team builds it.
+Dùng tài liệu này khi Lead định nghĩa “xong”, kiểm tra kết quả worker, hoặc quyết định thay đổi UI/UX/luồng có cần người dùng xem trước không.
 
-## Quality Gate: “done” must be visible
+## Cổng chất lượng: “xong” phải thấy được
 
-Every Task Contract selects the relevant checklist in `.orca-team/QUALITY_GATES.md` and states the exact evidence needed. Select only what applies; a narrow documentation task should not carry a migration checklist.
+Mỗi Task Contract chọn checklist đúng trong `.orca-team/QUALITY_GATES.md` và ghi evidence cụ thể. Chỉ chọn phần liên quan; task tài liệu hẹp không cần checklist migration.
 
-At minimum, the Lead verifies:
+Lead tối thiểu phải kiểm tra:
 
-1. the task goal actually happened, not merely that files changed;
-2. the relevant tests or clearly recorded manual checks passed;
-3. public contracts and cross-project obligations were handled when they changed;
-4. the task did not break a stated rule, approval boundary, or other worker's ownership;
-5. claims marked `DONE` have evidence the Lead can inspect.
+1. Kết quả mục tiêu đã xảy ra, không chỉ là file đã đổi.
+2. Test hoặc manual check phù hợp đã chạy/ghi rõ.
+3. Public contract và nghĩa vụ BE–FE đã được xử lý nếu có thay đổi.
+4. Không phá rule, approval boundary hoặc ownership của worker khác.
+5. Claim `DONE` có evidence Lead xem được.
 
-A worker's statement, a successful compile alone, or a screenshot alone is not sufficient for every task. Combine the evidence that fits the change.
+Lời worker nói, build pass một mình hoặc một screenshot một mình không đủ cho mọi task. Kết hợp evidence phù hợp với thay đổi.
 
-## Preview Gate: decide before expensive subjective work
+## Cổng xem trước: chốt trước việc chủ quan lớn
 
-The Lead classifies a preview as one of:
+Lead phân loại:
 
-- `not needed`: localized maintenance or a fully specified, low-impact change;
-- `internal`: a small technical/design choice is documented for the team but does not need the user's preference;
-- `user review required`: a decision would materially affect how people see, navigate, understand, or use the product.
+- `not needed`: bảo trì cục bộ hoặc thay đổi nhỏ, đã có spec rõ.
+- `internal`: lựa chọn kỹ thuật/thiết kế nhỏ, team ghi lại nhưng không cần gu người dùng.
+- `user review required`: quyết định ảnh hưởng đáng kể đến cách người dùng nhìn, đi lại, hiểu hoặc dùng sản phẩm.
 
-Require a user preview by default for:
+Mặc định phải hỏi người dùng xem trước cho: trang mới/dashboard lớn, redesign đáng kể/hướng visual mới, thay đổi navigation/hierarchy, luồng mới/đổi nhiều như đăng ký, moderation, thanh toán, onboarding, hoặc lựa chọn nội dung/hành vi nhìn thấy có hai hướng hợp lý.
 
-- a new user-facing page or major dashboard;
-- a material visual redesign or new visual direction;
-- navigation/information hierarchy changes;
-- a new or materially changed user journey, such as registration, moderation, checkout, or onboarding;
-- a user-visible content or behavior choice with two reasonable but different directions.
+Chỉ bỏ qua khi người dùng nói làm trực tiếp, đã đưa final design/spec, hoặc thay đổi thật sự nhỏ. Ghi lý do bỏ qua trong Task Contract.
 
-Skip it only when the user explicitly asks for direct implementation, has already provided a final design/specification, or the change is genuinely minor. Record why it was skipped in the Task Contract.
+## Nội dung người dùng nhận
 
-## What the user receives
-
-Keep the preview short, plain, and decision-focused. It is not a long design document and it should not make the user read internal agent details.
+Ngắn, dễ hiểu và chỉ để chốt. Không gửi thiết kế dài hay chi tiết nội bộ.
 
 ```text
-Mục tiêu: <the user problem being improved>
-Đề xuất: <layout/flow in a few lines>
-Trên mobile và các trạng thái: <only important differences>
-Điểm cần chốt: <one direct choice, or a request to approve this direction>
+Mục tiêu: <vấn đề người dùng được cải thiện>
+Đề xuất: <bố cục/luồng trong vài dòng>
+Trên mobile và các trạng thái: <khác biệt quan trọng>
+Điểm cần chốt: <một lựa chọn trực tiếp hoặc “đồng ý hướng này”>
 ```
 
-If useful, include a small text wireframe, existing screenshot, or a mockup. Do not build a high-fidelity implementation just to ask which direction the user prefers.
+Nếu hữu ích, kèm wireframe chữ, screenshot hiện có hoặc mockup nhỏ. Không làm bản triển khai đầy đủ chỉ để hỏi người dùng thích hướng nào.
 
-After the user responds, save a `PV-###` record in `TEAM_STATE.md` and reference it in the Task Contract. The implementation worker may then work on the preview-sensitive files. If the user changes direction, update the record and re-scope work at a safe checkpoint.
+Sau khi người dùng trả lời, ghi `PV-###` trong `TEAM_STATE.md` và Task Contract. Worker mới được thay đổi phần nhạy cảm với hướng đã chốt. Người dùng đổi ý thì cập nhật record và chia lại task tại checkpoint an toàn.
 
-## Verification sequence
+## Trình tự kiểm tra
 
-1. Worker reports actual files, evidence, and any remaining uncertainty.
-2. Lead compares it with the accepted preview, research brief, task acceptance, and selected checklist.
-3. Lead runs/reviews the proportionate checks and resolves cross-project confirmation where required.
-4. Only then mark the task `DONE` and tell the user in plain language.
+1. Worker báo file thực tế, evidence và phần chưa chắc.
+2. Lead so với preview, research brief, acceptance và checklist đã chọn.
+3. Lead xem/chạy kiểm tra phù hợp và xác nhận phía dự án khác khi cần.
+4. Chỉ sau đó mới đánh dấu `DONE` và báo người dùng.
 
-If a check cannot run, do not hide it. State what could not be checked, why, what lower-risk evidence exists, and whether the task should be marked `BLOCKED`, `WAITING_USER`, or completed with an explicit follow-up.
+Check không chạy được thì không che giấu: nói rõ phần nào chưa kiểm tra, vì sao, evidence rủi ro thấp hơn là gì, và task cần `BLOCKED`, `WAITING_USER` hay follow-up rõ ràng.

@@ -1,84 +1,76 @@
-# Team rules
+# Quy tắc team
 
-`TEAM_RULES.md` is the project’s short rulebook. It lets the Root Lead record one clear instruction and require every affected Domain Lead and worker to apply it. It is not a transcript and it is not a way to bypass user approval.
+`TEAM_RULES.md` là sổ rule ngắn của dự án. Nó cho Root Lead ghi một chỉ dẫn rõ rồi yêu cầu mọi Domain Lead/worker bị ảnh hưởng áp dụng. Nó không phải transcript và không được dùng để vượt user approval.
 
-## What belongs here
+## Rule nào cần ghi
 
-Add a rule when it changes how more than one task or owner must work. Examples:
+Ghi rule nếu nó thay đổi cách làm của hơn một task/owner. Ví dụ:
 
-- Every API/DTO/permission change updates Swagger, includes tests, and creates a FE contract.
-- Changes to authentication require a backward-compatibility check.
-- This release must not alter the database schema.
+- Mọi thay đổi API/DTO/permission phải cập nhật Swagger, có test và có contract gửi FE.
+- Đổi auth phải kiểm tra tương thích ngược.
+- Release này không được đổi schema database.
 
-Keep a one-task constraint inside that task contract unless it is likely to affect other tasks.
+Ràng buộc chỉ dành cho một task thì để trong Task Contract, trừ khi có khả năng ảnh hưởng task khác.
 
-## Who may change a rule
+## Ai được đổi rule
 
-| Actor | May do |
+| Vai trò | Được làm |
 |---|---|
-| User | Add, change, or retire any project rule. User instruction is highest priority. |
-| Root Lead | Record a clear user instruction; add a temporary delivery rule that protects an accepted task; assign rule IDs and notify affected owners. |
-| Domain Lead | Propose a rule or report a conflict. It may not write/retire project rules or weaken policy. |
-| Worker | Follow listed rules and report a blocker or decision need. It may not change rules. |
+| Người dùng | Thêm, đổi, ngừng mọi rule; chỉ dẫn người dùng là cao nhất. |
+| Root Lead | Ghi chỉ dẫn rõ của người dùng; thêm rule vận hành tạm để bảo vệ task đã nhận; cấp rule ID và thông báo owner ảnh hưởng. |
+| Domain Lead | Đề xuất rule hoặc báo conflict; không được ghi/ngừng rule dự án hay làm yếu policy. |
+| Worker | Tuân thủ rule, báo blocker/cần quyết định; không đổi rule. |
 
-No rule can weaken `TEAM_POLICY.md`, permit unapproved Git/database/deployment/external work, reveal secrets, or change a user-approved scope. A task rule may be stricter than a project rule.
+Rule không được làm yếu `TEAM_POLICY.md`, cho phép Git/DB/deploy/thay đổi ngoài chưa duyệt, lộ secret hoặc đổi scope người dùng đã chốt. Rule task có thể chặt hơn rule dự án.
 
-## Rule order
+## Thứ tự ưu tiên
 
-When two instructions conflict, apply them in this order:
-
-1. The current user instruction and platform safety requirements.
+1. Chỉ dẫn hiện tại của người dùng và yêu cầu an toàn nền tảng.
 2. `TEAM_POLICY.md`.
-3. Active `TEAM_RULES.md` rules.
-4. Task-specific constraints.
+3. Rule active trong `TEAM_RULES.md`.
+4. Ràng buộc riêng của task.
 
-If the conflict is not resolvable by that order, stop the affected task as `WAITING_USER` or report `NEED_DECISION`.
+Không giải quyết được conflict theo thứ tự trên thì dừng task ảnh hưởng thành `WAITING_USER` hoặc báo `NEED_DECISION`.
 
-## Rule format
+## Mẫu rule
 
 ```markdown
-# Team Rules
+# Rule team
 
-Last updated: <ISO 8601 local time>
+Cập nhật gần nhất: <ISO 8601 giờ địa phương>
 
-## Active rules
+## Rule đang hiệu lực
 
-### R-001 — API change evidence
+### R-001 — Bằng chứng cho thay đổi API
 
-Source: user instruction on <date> | Root Lead decision on <date>
-Scope: project | domain:<name> | tasks:<IDs>
-Applies to: <owners/tasks>
-Rule: Every API, DTO, permission, or business-state change updates the contract/Swagger, has relevant test evidence, and records a FE contract when FE is affected.
-Checkpoints: before dispatch; before DONE
-Required evidence: <OpenAPI/test/contract record>
-If blocked: report BLOCKED or NEED_DECISION; do not mark DONE.
-Status: active
+Nguồn: chỉ dẫn người dùng ngày <ngày> | quyết định Root Lead ngày <ngày>
+Phạm vi: project | domain:<tên> | tasks:<ID>
+Áp dụng cho: <owner/task>
+Rule: Mọi thay đổi API, DTO, permission hoặc business-state phải cập nhật contract/Swagger, có test phù hợp và ghi FE contract khi FE bị ảnh hưởng.
+Điểm kiểm tra: trước khi giao; trước DONE
+Evidence bắt buộc: <OpenAPI/test/contract record>
+Nếu bị chặn: báo BLOCKED hoặc NEED_DECISION; không đánh dấu DONE.
+Trạng thái: active
 
-## Retired rules
+## Rule đã ngừng
 
-### R-000 — <title>
+### R-000 — <tiêu đề>
 
-Retired by: user on <date>
-Reason: <why>
+Ngừng bởi: người dùng ngày <ngày>
+Lý do: <vì sao>
 ```
 
-Use increasing IDs (`R-001`, `R-002`, …). Retiring a rule preserves its history; never delete it. A rule becomes active for a new task immediately after it is written. For a running task, it becomes mandatory only after its owner acknowledges the update at a safe checkpoint, unless the user explicitly directs an immediate stop.
+Dùng ID tăng dần `R-001`, `R-002`... Ngừng rule vẫn giữ lịch sử, không xóa. Rule có hiệu lực ngay với task mới. Task đang chạy chỉ bắt buộc sau khi owner xác nhận tại checkpoint an toàn, trừ khi người dùng yêu cầu dừng ngay.
 
-## Applying a rule
+## Áp dụng rule
 
-When the user says something like:
+Khi người dùng nói: `Từ giờ mọi API phải cập nhật Swagger, có test và báo FE`, Root Lead:
 
-```text
-$lead From now on, every API change must update Swagger, include tests, and tell FE what changed.
-```
+1. Viết rule ngắn có phạm vi/evidence.
+2. Ghi vào `TEAM_RULES.md` và phần rule trong `TEAM_STATE.md`.
+3. Xác định task active/queued bị ảnh hưởng.
+4. Thêm rule ID vào Task Contract bị ảnh hưởng.
+5. Gửi update ngắn cho owner đang chạy, ghi acknowledgement tại checkpoint an toàn.
+6. Kiểm tra evidence trước khi nhận `DONE`.
 
-The Root Lead should:
-
-1. Turn it into a concise rule with scope and evidence.
-2. Add it to `TEAM_RULES.md` and record it in the rules section of `TEAM_STATE.md`.
-3. Identify active and queued tasks affected by it.
-4. Add its ID to every affected Task Contract.
-5. Send a short rule-update message to each active owner; record acknowledgement at their next safe checkpoint.
-6. Verify the evidence before accepting `DONE`.
-
-Use a rule checkpoint as a required Lead check, not as a hidden shell hook. If a project later needs an actual test/lint command, put that exact command in the task acceptance evidence or project tooling after the required authorization.
+Rule checkpoint là điểm kiểm tra của Lead, không phải shell hook ẩn. Nếu cần test/lint command thật, ghi nó trong acceptance của task hoặc tooling dự án sau đúng approval.

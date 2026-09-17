@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$ProjectPath
@@ -17,251 +17,249 @@ $skillRegistryPath = Join-Path $teamPath 'SKILL_REGISTRY.md'
 $researchNotesPath = Join-Path $teamPath 'RESEARCH_NOTES'
 $researchReadmePath = Join-Path $researchNotesPath 'README.md'
 $qualityGatesPath = Join-Path $teamPath 'QUALITY_GATES.md'
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 if (-not (Test-Path -LiteralPath $policyPath)) {
     $policyContents = @'
-# Team Policy
+# Chính sách team
 
 max_workers: 3
 max_hierarchy_depth: 2
 default_priority: P1
-scaling_policy: parallel-first with ownership and dependency gates
-git_policy: all Git operations require explicit user approval
-database_policy: shared database changes require explicit user approval
-service_policy: service restart or deployment requires explicit user approval
-cross_project_policy: Lead-to-Lead contract required before implementation
-terminal_policy: Orca runtime is required; retained terminals may disappear after Orca restart; recover from live inventory
-lead_identity_policy: one active Big Lead per project; second terminals are viewers until verified recovery or explicit user takeover
-skill_discovery_policy: suggest-only; Lead reviews every candidate; no automatic global installation
-research_policy: research-first for design, UX, content, user flows, new architecture/libraries, security, performance, and significant integrations; use evidence, do not copy third-party work
-quality_policy: every task has observable acceptance evidence; use the matching project checklist before DONE
-preview_policy: ask for a short user decision before a new user-facing page, material UI/UX redesign, navigation change, or user-flow direction unless the user asks for direct implementation
-delegation_policy: Leads have zero delivery/research tasks; every meaningful web/document search, filesystem scan, analysis, code, test, configuration, documentation, asset, or output belongs to a visible Orca worker terminal, except pure status, clarification, policy, or one-sentence answer
-user_language_policy: Root Lead normally talks to the user; any agent directly addressed by the user uses short plain Vietnamese and explains unavoidable technical terms immediately
-audit_policy: $lead audit is read-only and checks that meaningful changes have visible worker ownership; Git inspection requires separate user approval
+scaling_policy: ưu tiên làm song song nhưng phải qua dependency và ownership gate
+git_policy: mọi thao tác Git cần người dùng duyệt rõ ràng
+database_policy: thay đổi database dùng chung cần người dùng duyệt rõ ràng
+service_policy: restart service hoặc deploy cần người dùng duyệt rõ ràng
+cross_project_policy: cần contract Lead-to-Lead trước khi triển khai
+terminal_policy: bắt buộc dùng Orca; terminal giữ lại có thể mất sau restart, phải recovery từ inventory live
+lead_identity_policy: mỗi dự án chỉ một Big Lead; terminal thứ hai là viewer đến khi recovery/takeover được xác minh
+skill_discovery_policy: suggest-only; Lead duyệt mọi candidate, không tự cài global
+research_policy: research-first cho thiết kế, UX, nội dung, user flow, kiến trúc/thư viện mới, bảo mật, hiệu năng và integration lớn
+quality_policy: mọi task phải có evidence quan sát được; dùng checklist phù hợp trước DONE
+preview_policy: hỏi người dùng chốt ngắn trước trang mới, redesign UI/UX đáng kể, đổi navigation hoặc user flow, trừ khi người dùng yêu cầu làm trực tiếp
+delegation_policy: Lead có 0 task nghiên cứu/triển khai; tìm web/tài liệu, scan file, phân tích, code, test, config, tài liệu, asset và output đều thuộc worker terminal Orca hiển thị rõ, trừ status, clarification, policy hoặc câu trả lời một dòng
+user_language_policy: mọi agent nói trực tiếp với người dùng dùng tiếng Việt ngắn, dễ hiểu và giải thích từ kỹ thuật bắt buộc ngay trong câu
+audit_policy: $lead audit chỉ-đọc, kiểm tra mọi nghiên cứu/thay đổi có worker thật; Git inspection vẫn cần người dùng duyệt riêng
 
-## Roles
+## Vai trò
 
-1. Lead: intake, scheduling, decision log, verification, integration planning.
-2. API / implementation: assigned module or service changes.
-3. QA / integration: test evidence and smoke-test contracts.
-4. Reviewer: independent read-only review unless a fix is explicitly assigned.
+1. Lead: nhận yêu cầu, xếp lịch, ghi quyết định, kiểm tra và lập kế hoạch tích hợp.
+2. Worker triển khai: nghiên cứu, thay đổi module hoặc service được giao.
+3. QA/tích hợp: bằng chứng test và contract kiểm tra luồng chính.
+4. Reviewer: review chỉ-đọc độc lập, trừ khi được giao sửa rõ ràng.
 
-## Queue rule
+## Hàng đợi và làm song song
 
-New work is recorded before dispatch. It does not cancel active work unless the Lead marks it P0 and redirects workers at a safe checkpoint.
+Mọi việc mới được ghi trước khi giao. Nó không tự hủy việc đang làm, trừ khi Lead đánh dấu P0 và chuyển worker tại checkpoint an toàn.
 
-## Parallel rule
+Trước khi giao writer, ghi Parallel Gate là pass, hard dependency, ownership conflict hoặc contract-first. Gom việc nhỏ theo module/context. Giới hạn worker là toàn cục, kể cả khi có Domain Lead.
 
-Before dispatching a writer, record whether the Parallel Gate passed, has a hard dependency, has an ownership conflict, or needs a contract first. Group small related work by module/context. The global worker limit applies across every optional Domain Lead.
+## Rule và quyền
 
-## Rule authority
+Chỉ dẫn người dùng và policy này không được làm yếu. Root Lead có thể ghi rule vào TEAM_RULES.md và phải nêu rule ID trong Task Contract. Domain Lead chỉ đề xuất. Rule không cấp quyền Git, database, service, deploy hoặc thay đổi ngoài.
 
-User instructions and this policy cannot be weakened. The Root Lead may record project rules in TEAM_RULES.md and must include applicable rule IDs in task contracts. Domain Leads may propose rules; workers follow them or report a blocker. Rules never grant Git, database, service, deployment, or external-change authority.
+## Báo người dùng
 
-## User report rule
+Nội bộ có thể dùng chi tiết kỹ thuật. Khi báo người dùng, nói Đã xong, Đang làm hoặc Chưa thể tiếp tục trước; chỉ nêu kết quả, kiểm tra, blocker hay lựa chọn cần thiết bằng tiếng Việt dễ hiểu. Không nêu task ID, agent, terminal, log dài hay nội bộ nếu người dùng không hỏi.
 
-Agents may use technical detail internally. When the Root Lead reports to the user, it starts with a simple completed, working, or blocked status in the user's language; explains only the result, verification, blocker, or direct decision needed in plain language; and omits task IDs, agent names, terminals, long logs, and internal planning unless the user asks.
+## Skill và nghiên cứu
 
-## Skill Discovery Gate
+Lead xem registry/context rồi giao skill-scout worker nếu cần. Worker không tự tải/cài/bật/chạy skill ngoài. Chế độ mặc định suggest-only: phải hỏi người dùng trước khi tải/cài/bật/chạy skill mới. Trusted-instruction-only chỉ là opt-in theo dự án, chỉ cho skill nguồn uy tín, đọc được toàn bộ, chỉ có hướng dẫn/reference, không script/hook/credential/upload/Git/DB/deploy.
 
-At task intake, the Lead checks already available skills and `.orca-team/SKILL_REGISTRY.md` before searching externally. Search is warranted only for a genuinely specialized capability that is material to the accepted task. Workers may request a capability but may not search, download, install, execute, or enable an external skill themselves.
+Lead ghi routine, research-first hoặc research-deep lúc nhận task. UI/UX, visual, copy/content, user flow, framework/library mới, kiến trúc, bảo mật, hiệu năng và integration lớn cần research-first. Worker nghiên cứu chỉ-đọc tạo brief ngắn trước phần triển khai phụ thuộc nó.
 
-The default mode is `suggest-only`: the Lead may research and record candidates, but must ask the user before downloading, installing, enabling, or running any newly discovered skill. A user may opt in per project to `trusted-instruction-only`; even then, a Lead may only prepare a project-local, instruction-only candidate from a reputable source after reading it completely. Scripts, hooks, credentials, external upload, deployment, database operations, Git operations, or unclear source always require separate user approval. Never auto-install skills globally for the user.
+## Chất lượng, preview và phân công
 
-Every candidate and decision is recorded in `SKILL_REGISTRY.md`. If a recurring project capability has no trustworthy candidate, create or improve a project-local internal reference/skill after the normal project approval boundaries; do not keep searching endlessly.
+Mỗi task chọn checklist trong QUALITY_GATES.md, ghi evidence trong Task Contract và chỉ DONE sau Lead kiểm tra. Trang mới, redesign lớn, navigation hoặc user flow quan trọng cần bản tóm tắt để người dùng chốt trước khi worker thay đổi phần quyết định hướng.
 
-## Research-first Gate
+Root/Domain Lead chỉ nhận yêu cầu, ưu tiên, mở worker, ghi quyết định, kiểm tra và báo cáo. Lead không tìm web, scan file, chạy command dài, debug, code, test, sửa config/tài liệu/asset hay tạo output dự án. Orca phải trả Task/Dispatch và terminal handle, terminal phải được đổi tên/ghi dashboard thì worker mới active. Launch lỗi thì task QUEUED/BLOCKED; Lead không làm thay.
 
-The Lead labels each task `routine`, `research-first`, or `research-deep` before implementation. `research-first` is required for UI/UX, visual design, copy/content, user flows, product experience, new libraries/frameworks, architecture choices, security, performance, and significant integrations. A short, bounded research brief must state the decision question, local context, trusted sources, findings, and project-specific decision before a writer begins the affected work. `research-deep` is reserved for a decision with broader cost, safety, or product impact and needs an explicit evidence plan.
+Lead audit chỉ đọc board, contract, dashboard và inventory Orca; không mở/dừng/retry worker, không sửa output và không dùng Git nếu chưa duyệt riêng.
 
-Use project conventions, official documentation, standards, and a small number of relevant public examples. Learn principles; do not copy third-party code, designs, assets, or text. Never send private code, credentials, customer data, or raw production logs to a search service. Store reusable brief summaries in `.orca-team/RESEARCH_NOTES/`; the brief is internal coordination, not permission for Git, database, deployment, or external changes.
+## Chính sách model
 
-## Quality and Preview Gates
+Root Lead và Domain Lead: gpt-5.6-terra với xhigh; fallback qwen3.8-max-0902 với xhigh.
 
-Every task chooses the relevant checklist from `QUALITY_GATES.md` and writes the required evidence into its Task Contract. Code changes and worker claims are not acceptance evidence by themselves. The Lead verifies the evidence before reporting a task done.
+Worker:
+- việc khó: qwen3.8-max-0902 với high, rồi deepseek-v4.1-flash, rồi glm-5.3-flash;
+- việc thường: deepseek-v4.1-flash với medium, rồi Qwen, rồi GLM;
+- việc nhanh: glm-5.3-flash với low, rồi DeepSeek, rồi Qwen;
+- kiểm tra cuối: Qwen với high, rồi DeepSeek, rồi GLM.
 
-Before a new user-facing page, material redesign, navigation change, or user-flow direction, the Lead gives the user a short preview: goal, proposed structure/behavior, alternatives if they matter, desktop/mobile/state impact, and the single decision needed. Implementation that would lock in that decision waits for the user's answer unless the user explicitly asks to implement directly. Minor visual adjustments and clear maintenance changes do not need a preview.
+Ghi model yêu cầu, runtime xác nhận, effort và fallback. Unknown/disconnected không phải lỗi model. Worker có thể đã sửa file thì giữ ownership, kiểm tra checkpoint rồi mới retry cùng task bằng fallback sau khi lỗi được chứng minh. Tất cả fallback lỗi/không có thì WAITING_USER. Root Lead lỗi phải do caller giám sát thay bằng state đã lưu.
 
-## Delegation and user language
+## Big Lead và khả năng quan sát
 
-Root and Domain Leads own intake, prioritization, worker scheduling, decisions, verification, and reporting. They have zero research or delivery tasks: they do not search the web, scan files, run long commands, debug, write code/tests/configuration/documentation/assets, or create other project deliverables in their Lead terminal. Each meaningful research or project task belongs to one concrete worker task. Related tiny changes may be grouped under one worker. Status, a clarification, a project rule, or a one-sentence answer does not need a worker.
-
-A worker is active only after Orca returns its live Task/Dispatch and terminal handle, its terminal has the correct role label, and the dashboard records it. If launch fails, the Lead leaves the work queued or blocked and tells the user; it never takes over research or implementation silently.
-
-Root Lead normally speaks to the user. If a user directly talks to any other Lead, QA, or worker, that agent uses short plain Vietnamese, starts with the practical result, explains a necessary technical word immediately, and avoids internal task IDs, agent names, models, terminals, commands, and logs unless the user asks.
-
-## Delegation audit
-
-`$lead audit` is a read-only check of the task board, dashboard, task contracts, and live Orca inventory. It confirms that every meaningful research or project change has a visible worker owner and that Leads remain coordinators. It does not launch, stop, or replace workers; it does not edit delivery files; and it does not use Git unless the user separately approves Git inspection. A gap is recorded and reported plainly instead of being silently fixed by a Lead doing the task itself.
-
-## Model policy
-
-Root Lead and Domain Lead: gpt-5.6-terra with xhigh effort. Lead fallback: qwen3.8-max-0902.
-
-Worker routes:
-- difficult work: qwen3.8-max-0902 with high effort, then deepseek-v4.1-flash, then glm-5.3-flash.
-- normal work: deepseek-v4.1-flash with medium effort, then qwen3.8-max-0902, then glm-5.3-flash.
-- quick work: glm-5.3-flash with low effort, then deepseek-v4.1-flash, then qwen3.8-max-0902.
-- final review: qwen3.8-max-0902 with high effort, then deepseek-v4.1-flash, then glm-5.3-flash.
-
-Before launch, record requested model, runtime-confirmed effective model, effort, and fallback order. An unknown/disconnected worker is not a failed model. Inspect it before retrying. If a worker may have changed files, preserve its ownership reservation and recover the same task with one permitted fallback only after failure is proven. In Orca, the replacement starts a fresh Codex worker on the same Task using the failed Dispatch as retry evidence; do not reuse a failing terminal or run two writers. If every permitted model fails or is unavailable, wait for a user model decision. A failed Root Lead must be replaced by its supervising caller using the saved project state.
-
-## Big Lead identity and visibility
-
-Only one active Big Lead owns the project queue and may dispatch workers. The terminal that creates the active lease uses `00 | BIG | <project> | RUN`. A second terminal opening the same project is a viewer until the live Big Lead gives it a bounded role, or verified recovery/explicit user takeover transfers the lease. Use `.orca-team/TEAM_DASHBOARD.md` and role labels to show who owns each worker. A terminal title is for people to read; live Orca worker state remains the authority for liveness and recovery.
+Chỉ một Big Lead active được điều phối. Terminal claim lease dùng 00 | BIG | <project> | RUN. Terminal thứ hai là viewer đến khi Big Lead giao role hẹp hoặc recovery/takeover xác minh. Dùng TEAM_DASHBOARD.md và nhãn role để thể hiện ownership; trạng thái Orca live mới là nguồn quyết định worker sống/lỗi.
 '@
-    [System.IO.File]::WriteAllText($policyPath, $policyContents, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($policyPath, $policyContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $rulesPath)) {
     $rulesContents = @'
-# Team Rules
+# Quy tắc team
 
-Last updated: not yet hydrated
+Cập nhật gần nhất: chưa khởi tạo
 
-## How rules work
+## Cách rule hoạt động
 
-The Root Lead records project/domain/task rules here when the user gives a clear instruction that affects more than one task or owner. User instructions and TEAM_POLICY.md always win. A rule cannot authorize Git, database, restart, deployment, remote permission, or other external work.
+Root Lead ghi rule dự án/domain/task khi người dùng đưa chỉ dẫn rõ ảnh hưởng hơn một task/owner. Chỉ dẫn người dùng và TEAM_POLICY.md luôn cao hơn. Rule không được cấp quyền Git, database, restart, deploy, remote permission hoặc thay đổi ngoài.
 
-Before a worker starts and before the Lead accepts DONE, the Task Contract lists the applicable rule IDs and required evidence. A running worker acknowledges a changed rule at its next safe checkpoint.
+Task Contract liệt kê rule ID/evidence trước khi worker bắt đầu và trước khi Lead nhận DONE. Worker đang chạy xác nhận rule đổi tại checkpoint an toàn tiếp theo.
 
-## Active rules
+## Rule đang hiệu lực
 
-No active rules yet.
+Chưa có rule active.
 
-## Retired rules
+## Rule đã ngừng
 
-No retired rules yet.
+Chưa có rule nào ngừng.
 '@
-    [System.IO.File]::WriteAllText($rulesPath, $rulesContents, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($rulesPath, $rulesContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $statePath)) {
     $stateContents = @'
-# Team State
+# Trạng thái team
 
-Last updated: not yet hydrated
-Project: pending discovery
-Lead mode: idle
+Cập nhật gần nhất: chưa khởi tạo
+Dự án: chờ khám phá
+Chế độ Lead: idle
 Orca Run: unbound
-Lead terminal: unbound
-Big Lead label: unassigned
-Lead lease: UNASSIGNED
+Terminal Lead: unbound
+Nhãn Big Lead: unassigned
+Lease Lead: UNASSIGNED
 
-## Current objective
+## Mục tiêu hiện tại
 
-None
+Chưa có.
 
-## Active team rules
+## Rule team đang hiệu lực
 
-| Rule ID | Short rule | Scope | Affected tasks / owners | Evidence required | Acknowledgement |
+| Rule ID | Rule ngắn | Phạm vi | Task/owner ảnh hưởng | Evidence cần | Đã xác nhận |
 |---|---|---|---|---|---|
 
-## Task board
+## Bảng task
 
-| ID | Request | Priority | Status | Owner | Ownership zone | Depends on | Acceptance evidence | Notes |
+| ID | Yêu cầu | Ưu tiên | Trạng thái | Owner | Vùng sở hữu | Phụ thuộc | Evidence nhận task | Ghi chú |
 |---|---|---|---|---|---|---|---|---|
 
-## Team topology and capacity
+Trạng thái: INTAKE, READY, QUEUED, BLOCKED, WAITING_USER, ACTIVE, VERIFYING, DONE, FAILED, CANCELLED.
 
-| Team / domain | Lead label | Parent | Allocated capacity | Owned task IDs | State | Collapse condition |
+## Cấu trúc team và năng lực
+
+| Team/domain | Nhãn Lead | Parent | Capacity | Task sở hữu | Trạng thái | Điều kiện thu gọn |
 |---|---|---|---:|---|---|---|
 
-## Active assignments
+## Phân công đang chạy
 
-| Task | Role label | Parent label | Attempt | Dispatch | Terminal | Requested / effective model / effort | Checkpoint | Last known result |
+| Task | Nhãn role | Nhãn parent | Lần thử | Dispatch | Terminal | Model/effort yêu cầu và thực tế | Checkpoint | Kết quả gần nhất |
 |---|---|---|---:|---|---|---|---|---|
 
-## Model routing and recovery
+Chỉ ghi ID từ Orca runtime live. Sau restart, ghi RECOVERY_REQUIRED đến khi inventory xác minh. Lead không được là owner nghiên cứu/triển khai.
 
-| Role / task | Attempt | Requested model / effort | Effective model / effort | Fallback order | Failure evidence | Recovery decision |
+## Model và recovery
+
+| Role/task | Lần thử | Model/effort yêu cầu | Model/effort thực tế | Fallback | Evidence lỗi | Quyết định recovery |
 |---|---:|---|---|---|---|---|
 
-## Active ownership and Parallel Gate
+## Ownership và Parallel Gate
 
-| Task | Ownership zone / shared resource | Parallel Gate | Reserved until | Conflict / contract |
+| Task | Vùng ownership/tài nguyên chung | Parallel Gate | Giữ đến | Conflict/contract |
 |---|---|---|---|---|
 
-## Decisions and contracts
+## Quyết định và contract
 
-| ID | Decision / contract | Owner | Affected tasks | Date |
+| ID | Quyết định/contract | Owner | Task ảnh hưởng | Ngày |
 |---|---|---|---|---|
 
-## Blockers and user approvals
+## Capability và skill
 
-| Task | Blocker or approval needed | Since | Next owner |
+| Registry ID | Capability | Quyết định | Task ảnh hưởng | Owner | Kiểm tra tiếp |
+|---|---|---|---|---|---|
+
+## Nghiên cứu
+
+| Research ID | Câu hỏi quyết định | Cấp | Task ảnh hưởng | Trạng thái evidence | Owner |
+|---|---|---|---|---|---|
+
+## Quyết định xem trước
+
+| Preview ID | Thay đổi/câu hỏi | Chế độ | Người dùng đã chốt | Task ảnh hưởng | Ngày |
+|---|---|---|---|---|---|
+
+## Blocker và approval người dùng
+
+| Task | Blocker hoặc quyền cần | Từ lúc | Owner tiếp theo |
 |---|---|---|---|
 '@
-    [System.IO.File]::WriteAllText($statePath, $stateContents, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($statePath, $stateContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $leasePath)) {
     $leaseContents = @'
-# Big Lead Lease
+# Lease Big Lead
 
-State: UNASSIGNED
-Big Lead label: unassigned
-Mode: unbound
+Trạng thái: UNASSIGNED
+Nhãn Big Lead: unassigned
+Chế độ: unbound
 Orca Run: unbound
-Lead terminal: unbound
-Started: not yet hydrated
-Last confirmed: not yet hydrated
+Terminal Lead: unbound
+Bắt đầu: chưa khởi tạo
+Xác nhận gần nhất: chưa khởi tạo
 
-Only the active Big Lead may schedule workers. A second terminal is a viewer until verified recovery or explicit user takeover transfers this lease.
+Chỉ Big Lead active được xếp lịch worker. Terminal thứ hai là viewer đến khi recovery đã xác minh hoặc người dùng yêu cầu takeover rõ ràng.
 '@
-    [System.IO.File]::WriteAllText($leasePath, $leaseContents, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($leasePath, $leaseContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $dashboardPath)) {
     $dashboardContents = @'
-# Team Dashboard
+# Bảng theo dõi team
 
-Last updated: not yet hydrated
-Project: pending discovery
+Cập nhật gần nhất: chưa khởi tạo
+Dự án: chờ khám phá
 
-No Big Lead has claimed this project yet.
+Chưa có Big Lead nào claim dự án.
 
-## Quick reading
+## Đọc nhanh
 
-| Label | Owner / task | State | Next checkpoint |
+| Nhãn | Owner / task | Trạng thái | Checkpoint tiếp |
 |---|---|---|---|
 '@
-    [System.IO.File]::WriteAllText($dashboardPath, $dashboardContents, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($dashboardPath, $dashboardContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $skillRegistryPath)) {
     $skillRegistryContents = @'
-# Skill Registry
+# Sổ đăng ký skill
 
-Last updated: not yet hydrated
-Mode: suggest-only
+Cập nhật gần nhất: chưa khởi tạo
+Chế độ: suggest-only
 
-The Lead checks this registry and already available Codex skills before looking outside. A worker may request a capability but may not download, install, enable, or run an external skill. In `suggest-only` mode, the Lead asks the user before any newly found skill is downloaded, enabled, or executed. `trusted-instruction-only` is an explicit per-project opt-in and still prohibits scripts, hooks, credentials, external upload, Git, database, deployment, and unknown sources without separate user approval.
+Lead/skill-scout kiểm tra sổ này và skill Codex sẵn có trước khi tìm ngoài. Worker chỉ yêu cầu capability, không tự tải/cài/bật/chạy skill ngoài. Trong suggest-only, phải hỏi người dùng trước khi tải/cài/bật/chạy skill mới. Trusted-instruction-only là opt-in theo dự án và vẫn cấm script/hook/credential/upload/Git/database/deploy/nguồn không rõ nếu chưa có approval riêng.
 
-## Records
+## Danh sách
 
-| ID | Capability / skill | Source and reputation checked | Needed by | Risk check | Permission needed | Status | Decision / evidence |
+| ID | Capability / skill | Nguồn và độ tin cậy đã kiểm tra | Cần cho | Rủi ro | Quyền cần | Trạng thái | Quyết định/evidence |
 |---|---|---|---|---|---|---|---|
 
-Status: `candidate`, `approved`, `active`, `rejected`, `retired`.
+Trạng thái: candidate, approved, active, rejected, retired.
 
-## Record details
+## Chi tiết khi cần
 
-Add a short block only when the table cannot explain the decision:
-
-```text
-### SK-001 — <skill or capability>
-Source: <publisher/repository/URL>
-Reason: <what task it helps>
-Checks: <publisher, adoption, repository review, full SKILL.md/references/scripts review>
-Contains: <instructions only | scripts | hooks | dependencies>
-Data and permissions: <none or exact external access/credential/change>
-Scope: <one task | this project>
-Decision: <why approved/rejected and who approved it>
-```
+~~~
+### SK-001 — <skill hoặc capability>
+Nguồn: <publisher/repository/URL>
+Lý do: <task nào được hỗ trợ>
+Đã kiểm tra: <publisher, mức dùng, repo, toàn bộ SKILL.md/reference/script>
+Có gì: <chỉ hướng dẫn | script | hook | dependency>
+Dữ liệu và quyền: <none hoặc quyền/thay đổi ngoài cụ thể>
+Phạm vi: <một task | dự án này>
+Quyết định: <vì sao duyệt/loại và ai duyệt>
+~~~
 '@
-    [System.IO.File]::WriteAllText($skillRegistryPath, $skillRegistryContents, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($skillRegistryPath, $skillRegistryContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $researchNotesPath)) {
@@ -270,105 +268,98 @@ if (-not (Test-Path -LiteralPath $researchNotesPath)) {
 
 if (-not (Test-Path -LiteralPath $researchReadmePath)) {
     $researchReadmeContents = @'
-# Research Notes
+# Ghi chú nghiên cứu
 
-This folder keeps short, reusable research briefs. A brief gives the next Lead or worker the evidence and decision they need; it is not a copied web article or a place for private data.
+Thư mục này giữ các brief ngắn, dùng lại được. Brief giúp Lead/worker sau hiểu evidence và quyết định; không phải bài web sao chép hay nơi chứa dữ liệu riêng.
 
-## When a brief is required
+## Khi nào cần brief
 
-The Lead creates or assigns a brief before implementation when a task is marked `research-first` or `research-deep`:
+Worker nghiên cứu tạo brief trước triển khai khi task là research-first hoặc research-deep: UI/UX, visual, responsive, accessibility, nội dung, user flow, product experience, framework/kiến trúc mới, bảo mật, hiệu năng, payment, identity, integration lớn hay vấn đề chưa rõ có nhiều hướng.
 
-- UI/UX, visual design, responsive behaviour, accessibility, content/copy, user flows, or product experience;
-- new framework/library or architecture choice;
-- security, performance, significant integration, payment, identity, or other high-impact decision;
-- an unclear task where current evidence would materially change the direction.
+Lỗi nhỏ, pattern đã rõ và implementation hẹp không cần brief chỉ để đủ quy trình.
 
-Routine bug fixes and clearly bounded implementation do not need a brief merely to satisfy process.
+## Mẫu brief
 
-## Brief template
+Dùng file RN-###-short-topic.md:
 
-Use a small file named `RN-###-short-topic.md`:
+~~~
+# RN-### — <chủ đề>
 
-```markdown
-# RN-### — <topic>
+Câu hỏi: <quyết định cần evidence>
+Phạm vi: <task/module và phần ngoài scope>
+Context local: <path/ràng buộc liên quan>
+Nguồn đã xem: <tài liệu chính thức, standard, public example ít nhưng phù hợp>
+Phát hiện: <fact/nguyên tắc ngắn, không sao chép>
+Lựa chọn đã cân nhắc: <lựa chọn và đánh đổi>
+Quyết định cho dự án: <hướng chọn và lý do>
+Ảnh hưởng acceptance: <implementation/QA cần chứng minh>
+Quyết định skill: <none | skill/path sẵn có | SK-### candidate>
+Ranh giới dữ liệu/IP: <không chia sẻ dữ liệu riêng; học nguyên tắc, không copy code/asset/chữ>
+Ngày / owner: <ngày và worker nghiên cứu>
+~~~
 
-Question: <decision this research must support>
-Scope: <task/module; what is outside scope>
-Local context: <relevant project paths and constraints>
-Sources checked: <official docs, standards, and a small number of public examples>
-Findings: <short facts/principles, not copied material>
-Options considered: <option and trade-off>
-Decision for this project: <chosen approach and why>
-Acceptance impact: <what the implementation/QA must verify>
-Skill decision: <none | existing skill/path | SK-### candidate>
-Data/IP boundary: <no private data shared; principles only, no copied code/assets/text>
-Date / owner: <date and Lead or research task owner>
-```
+## Cấp nghiên cứu
 
-## Levels
+- routine: không cần brief, trừ khi có câu hỏi thật.
+- research-first: brief tập trung để chọn hướng an toàn.
+- research-deep: kế hoạch evidence và brief so sánh trước quyết định rủi ro/cost cao.
 
-- `routine`: no brief unless a real question appears.
-- `research-first`: a focused brief, usually enough to choose a direction safely.
-- `research-deep`: a written evidence plan and comparative brief before a high-cost or high-risk decision.
-
-Do not browse endlessly. Stop when the brief answers the decision question with enough current, trustworthy evidence. If evidence is inadequate or needs an external paid/login source, report the gap to the Lead and let the user decide.
+Không tìm vô hạn. Dừng khi brief trả lời đủ bằng evidence đáng tin. Thiếu evidence hoặc cần nguồn login/trả phí thì báo Lead để hỏi người dùng.
 '@
-    [System.IO.File]::WriteAllText($researchReadmePath, $researchReadmeContents, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($researchReadmePath, $researchReadmeContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $qualityGatesPath)) {
     $qualityGatesContents = @'
-# Quality Gates
+# Cổng chất lượng
 
-The Lead chooses only the checklists that match a task. Put concrete evidence in the Task Contract; do not require irrelevant checks just to complete a template.
+Lead chỉ chọn checklist đúng task và ghi evidence cụ thể vào Task Contract; không bắt task hẹp làm checklist không liên quan.
 
-## API / backend change
+## Thay đổi API / backend
 
-- Request, response, status/error behavior, validation, authorization, and idempotency/state rules are clear where relevant.
-- Public API contract/docs/examples are updated when the endpoint or DTO is public.
-- Focused automated tests pass, or the brief says why a test cannot run and gives a safe manual check.
-- Existing clients stay compatible, or the BE/FE contract records the coordinated breaking change.
+- Request, response, status/error, validation, authorization, idempotency/state rõ khi áp dụng.
+- Endpoint/DTO công khai cập nhật contract/docs/examples.
+- Test tập trung pass, hoặc ghi rõ vì sao không chạy được và manual check an toàn.
+- Client cũ tương thích, hoặc BE/FE contract ghi breaking change đã phối hợp.
 
-## UI / UX change
+## Thay đổi UI / UX
 
-- Matches the accepted preview/research decision and existing project design conventions.
-- Works at the agreed desktop and mobile sizes.
-- Covers loading, empty, error, disabled, and long-content states that are relevant.
-- Keyboard, readable labels, focus, contrast, and semantic structure are checked where applicable.
-- Screenshot/visual check and focused test or manual steps are recorded.
+- Khớp preview/research đã chốt và quy ước design của dự án.
+- Hoạt động ở kích thước desktop/mobile đã thống nhất.
+- Có loading, empty, error, disabled, long-content state phù hợp.
+- Kiểm tra keyboard, label dễ đọc, focus, contrast và semantic structure khi áp dụng.
+- Có visual check/screenshot và test/manual step tập trung.
 
-## Data / migration / state change
+## Thay đổi dữ liệu / migration / state
 
-- State transitions, validation, null/legacy data, and failure/rollback behavior are defined.
-- Migration/seed/backfill scope and compatibility are reviewed if applicable.
-- No shared database change runs without the separate user approval required by TEAM_POLICY.
+- State transition, validation, null/legacy data và failure/rollback rõ.
+- Xem migration/seed/backfill và compatibility nếu áp dụng.
+- Không chạy thay đổi database chung khi chưa có approval riêng theo TEAM_POLICY.
 
-## Integration / cross-project change
+## Tích hợp / thay đổi giữa dự án
 
-- Lead-to-Lead contract records fields, permissions, errors, states, nullable behavior, and acceptance smoke test.
-- One side does not claim the integration complete until the other side confirms the contract or agreed mock/fixture behavior.
-- Secrets, tokens, private URLs, and raw customer/production data are excluded from messages and test evidence.
+- Lead-to-Lead contract ghi field, permission, error, state, nullable behavior và smoke test.
+- Không bên nào nhận integration xong trước khi bên kia xác nhận contract/mock/fixture đã thống nhất.
+- Không có secret, token, private URL hay dữ liệu production/khách hàng thô trong tin nhắn/evidence.
 
-## Research / review task
+## Task nghiên cứu / review
 
-- The brief/review names the question, sources or inspected paths, evidence, conclusion, and action/decision.
-- It clearly separates facts, assumptions, and recommendations.
-- It changes no files outside its allowed read-only/output scope.
+- Brief/review nêu câu hỏi, nguồn/path đã xem, evidence, kết luận và action/quyết định.
+- Tách rõ fact, giả định và khuyến nghị.
+- Không thay file ngoài phạm vi chỉ-đọc/output được giao.
 
-## Preview format
+## Mẫu xem trước
 
-For a user-review-required change, the Lead asks in simple language:
+~~~
+Mục tiêu: <điều cải thiện cho người dùng>
+Đề xuất: <bố cục/luồng/hành vi ngắn>
+Trên mobile và các trạng thái: <điểm quan trọng>
+Điểm cần chốt: <một lựa chọn trực tiếp hoặc đồng ý hướng này>
+~~~
 
-```text
-Mục tiêu: <what improves for the user>
-Đề xuất: <short layout/flow/behavior>
-Trên mobile và các trạng thái: <important change>
-Lựa chọn cần bạn chốt: <one direct choice, or “đồng ý hướng này”>
-```
-
-Record the answer as `PV-###` in TEAM_STATE.md and the Task Contract. A preview confirms direction; it does not authorize unrelated Git, database, deployment, or external changes.
+Ghi câu trả lời thành PV-### trong TEAM_STATE.md và Task Contract. Preview chỉ chốt hướng, không cấp quyền Git/database/deploy/thay đổi ngoài.
 '@
-    [System.IO.File]::WriteAllText($qualityGatesPath, $qualityGatesContents, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($qualityGatesPath, $qualityGatesContents, $utf8NoBom)
 }
 
 [pscustomobject]@{

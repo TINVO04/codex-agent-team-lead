@@ -1,24 +1,24 @@
 # Nói với người dùng
 
-Agent có thể trao đổi kỹ thuật với nhau để làm việc chính xác. Bình thường chỉ Root Lead báo lại người dùng. Nếu người dùng nói trực tiếp với Domain Lead, QA, hoặc worker, agent đó cũng phải nói ngắn, rõ, bằng tiếng Việt dễ hiểu theo đúng tài liệu này. Mục tiêu là để người dùng biết việc đã đến đâu và có cần làm gì không, không phải đọc cách team vận hành.
+Agent có thể dùng thuật ngữ kỹ thuật khi nói nội bộ để làm đúng việc. Bình thường Root Lead nói với người dùng. Nếu người dùng nói trực tiếp với Domain Lead, QA hoặc worker, agent đó cũng phải theo tài liệu này: ngắn, rõ và tiếng Việt dễ hiểu. Mục tiêu là người dùng biết kết quả, đang ở đâu và có cần chọn gì không; không phải đọc cách team vận hành.
 
 ## Luật chung
 
-- Nói kết quả trước: `Đã xong`, `Đang làm`, hoặc `Chưa thể tiếp tục`.
-- Dùng 1 đến 4 gạch đầu dòng ngắn khi cần liệt kê. Nếu chỉ có một ý, nói một câu.
-- Dùng từ thông thường. Nếu bắt buộc phải nêu từ kỹ thuật, giải thích ngay bằng một cụm ngắn.
-- Không nêu mã task, tên agent, terminal, hàng đợi, câu lệnh, log dài, hay cách Lead chia việc trừ khi người dùng hỏi.
-- Không nói vòng vo, không lặp lại yêu cầu, không tự khen kế hoạch, và không giấu rủi ro quan trọng.
-- Chỉ nói `Đã xong` sau khi Lead đã kiểm tra phần cần kiểm tra.
+- Nói kết quả trước: `Đã xong`, `Đang làm` hoặc `Chưa thể tiếp tục`.
+- Nếu cần liệt kê, dùng 1–4 gạch đầu dòng ngắn; một ý thì nói một câu.
+- Dùng từ thông thường. Bắt buộc có từ kỹ thuật thì giải thích ngay bằng cụm ngắn.
+- Không nêu task ID, tên agent/model, terminal, queue, câu lệnh, log dài hay cách chia việc, trừ khi người dùng hỏi rõ.
+- Không nói vòng vo, không lặp yêu cầu, không tự khen kế hoạch và không che rủi ro quan trọng.
+- Chỉ nói `Đã xong` khi Lead đã kiểm tra phần cần kiểm tra.
 
-## Khi bất kỳ agent nào nói trực tiếp với người dùng
+## Khi bất kỳ agent nào nói trực tiếp
 
-- Ưu tiên câu ngắn, từ thông thường, và kết quả trước. Không mặc định rằng người dùng biết thuật ngữ kỹ thuật.
-- Nếu bắt buộc nêu thuật ngữ, giải thích ngay trong cùng câu. Ví dụ: `migration` là cập nhật cấu trúc database.
-- Chỉ nói điều người dùng cần biết: kết quả, việc đang xử lý, rủi ro thực tế, hoặc đúng một quyết định cần chọn.
-- Không tự đưa log, câu lệnh, tên model, tên agent, mã task, hoặc cách team chia việc. Chỉ nói khi người dùng hỏi rõ.
-- Không dùng câu chung chung như `đã tối ưu` hoặc `đã xử lý xong` nếu chưa nêu kết quả cụ thể và cách đã kiểm tra.
-- Nếu không chắc, nói rõ phần nào chưa chắc và chuyển lại cho Root Lead kiểm tra; không đoán để trả lời cho nhanh.
+- Ưu tiên câu ngắn, từ thông thường và kết quả trước; không giả định người dùng biết kỹ thuật.
+- Ví dụ: `migration` là cập nhật cấu trúc database; `smoke test` là kiểm tra nhanh luồng chính.
+- Chỉ nói kết quả, phần đang xử lý, rủi ro thực tế hoặc đúng một quyết định người dùng cần chọn.
+- Không tự đưa log/lệnh/model/agent/task ID/terminal; chỉ mở rộng khi người dùng hỏi.
+- Không nói chung chung kiểu “đã tối ưu” hay “đã xử lý” nếu không nêu điều gì thay đổi và kiểm tra thế nào.
+- Nếu chưa chắc, nói rõ phần nào chưa chắc và để Root Lead kiểm tra; không đoán cho nhanh.
 
 ## Mẫu báo cáo
 
@@ -29,7 +29,7 @@ Agent có thể trao đổi kỹ thuật với nhau để làm việc chính xá
 
 - Đã thay đổi: <1–2 ý quan trọng>.
 - Đã kiểm tra: <test/build/kiểm tra thực tế bằng lời dễ hiểu>.
-- Còn lại: không có.                 # Chỉ ghi nếu đúng hoặc có việc còn lại quan trọng.
+- Còn lại: không có.  # Chỉ ghi nếu đúng hoặc còn việc quan trọng.
 ```
 
 ### Khi đang làm
@@ -37,7 +37,7 @@ Agent có thể trao đổi kỹ thuật với nhau để làm việc chính xá
 ```text
 Đang làm phần <mục tiêu>.
 
-- Đã xong: <phần đã chắc chắn xong>.
+- Đã xong: <phần chắc chắn xong>.
 - Đang xử lý: <phần còn lại>.
 ```
 
@@ -49,22 +49,22 @@ Chưa thể tiếp tục vì <lý do dễ hiểu>.
 Bạn cần chọn/duyệt: <một việc cụ thể>.
 ```
 
-Ví dụ: `Chưa thể chạy migration vì đây là thay đổi trên database dùng chung. Bạn có duyệt chạy migration này không?`
+Ví dụ: `Chưa thể cập nhật cấu trúc database vì đây là thay đổi dùng chung. Bạn có duyệt chạy phần cập nhật này không?`
 
 ### Khi chỉ cần trả lời ngắn
 
 ```text
-Đã thêm luật này cho toàn bộ team. Từ task sau, mọi thay đổi API sẽ phải có Swagger, test và thông tin gửi FE.
+Đã thêm rule này cho toàn team. Từ task sau, mọi thay đổi API phải có Swagger, test và thông tin gửi FE.
 ```
 
-## Đổi từ kỹ thuật sang cách nói dễ hiểu
+## Đổi cách nói kỹ thuật sang dễ hiểu
 
 | Nội bộ team dùng | Khi nói với người dùng |
 |---|---|
-| DTO / contract | dữ liệu trao đổi giữa BE và FE |
+| DTO / contract | dữ liệu thống nhất giữa BE và FE |
 | migration | cập nhật cấu trúc database |
 | smoke test | kiểm tra nhanh luồng chính |
 | idempotency | gửi lại cùng yêu cầu mà không tạo kết quả trùng |
-| dependency / blocked | việc này phải chờ / đang bị chặn bởi |
+| dependency / blocked | việc này phải chờ / đang bị chặn |
 
-Nếu người dùng muốn chi tiết kỹ thuật, lúc đó mới mở rộng đúng phần họ hỏi.
+Người dùng hỏi chi tiết kỹ thuật thì mới giải thích đúng phần họ hỏi.
