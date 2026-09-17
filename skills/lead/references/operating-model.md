@@ -33,11 +33,13 @@ For equal priority, schedule the oldest `READY` task first. Do not preempt a wri
 
 ## Delegation Gate
 
-The Root Lead and any Domain Lead are coordinators, not hidden implementation workers. For a meaningful requested change to source, tests, configuration, documentation, assets, or generated deliverables, the Lead creates or reuses one visible Orca worker with an explicit Task Contract. A Lead may do only intake, planning, contracts, research notes, read-only inspection, verification, `.orca-team` state updates, and user reporting.
+The Root Lead and any Domain Lead are coordinators, not hidden implementation or research workers. They have zero delivery/research tasks. For every meaningful requested activity — web/document research, filesystem scan, log analysis, debugging, skill scouting, code, tests, configuration, documentation, assets, or generated deliverables — the Lead creates or reuses one visible Orca worker with an explicit Task Contract.
 
-Do not create a terminal for a pure status response, a clarification, a project rule, or a one-sentence answer. For several related tiny changes, dispatch one bounded worker rather than one terminal per edit. If no worker slot, safe ownership zone, or successful Orca launch exists, keep the task `QUEUED`/`BLOCKED`. The Lead must not implement it as a silent fallback.
+A Lead may only read the user's request and `.orca-team` coordination records, classify/queue tasks, open workers, record decisions, verify worker evidence, and report. It must not run broad file scans, web/document searches, long commands, tests, debugging, or project-file edits in its own terminal.
 
-A dispatch counts as real only after Orca returns a live Task/Dispatch and terminal handle. Rename that terminal and enter it in `TEAM_DASHBOARD.md` immediately. If an implementation task has no visible worker terminal, treat delegation as missing and investigate it before reporting progress.
+Do not create a terminal for a pure status response, a clarification, a project rule, or a one-sentence answer. For several related tiny changes, dispatch one bounded worker rather than one terminal per edit. If no worker slot, safe ownership zone, or successful Orca launch exists, keep the task `QUEUED`/`BLOCKED`. The Lead must not do the task as a silent fallback.
+
+A dispatch counts as real only after Orca returns a live Task/Dispatch and terminal handle. Rename that terminal and enter it in `TEAM_DASHBOARD.md` immediately. If an implementation or research task has no visible worker terminal, treat delegation as missing and investigate it before reporting progress.
 
 Do not run two writers in the same workspace if their allowed paths overlap. If Git worktrees are chosen for isolation, obtain any project-required Git approval before creating them.
 

@@ -6,7 +6,7 @@ The purpose is to let the team learn what it needs without letting every worker 
 
 ## The short rule
 
-Workers request a capability. The Lead searches and decides. The user approves any risky or newly installed tool.
+Workers request a capability. The Lead assigns a bounded skill-scout worker, then decides from its evidence. The user approves any risky or newly installed tool.
 
 Normal coding, reading local code, ordinary tests, and vendor documentation do not need a skill search. Do not turn every small task into a search task.
 
@@ -20,7 +20,7 @@ For each specialized task, the Lead records one of these outcomes in its Task Co
 4. `candidate under review` — a new candidate may help; do not give it to a worker yet.
 5. `user approval needed` — the candidate would be downloaded, installed, enabled, or needs permissions that the user has not granted.
 
-The Lead must check the skills already available to Codex and `.orca-team/SKILL_REGISTRY.md` first. Only then search trustworthy external sources. Use the installed `find-skills` capability and `npx skills find <specific query>` when appropriate; check official vendor sources and primary documentation before relying on general web results.
+The Lead checks the project registry and task context, then assigns a skill-scout worker if discovery is needed. The worker searches trustworthy external sources using the installed `find-skills` capability and `npx skills find <specific query>` when appropriate; it checks official vendor sources and primary documentation before relying on general web results. The Lead makes the final approval decision from the worker's recorded evidence; it does not perform the search in its own terminal.
 
 ## What a worker sends
 
@@ -39,7 +39,7 @@ The worker continues safe independent work if possible. It pauses only the porti
 
 ## How the Lead evaluates a candidate
 
-Before recommending or allowing use, the Lead records a `SK-###` entry in `SKILL_REGISTRY.md` and checks:
+Before recommending or allowing use, the skill-scout worker records evidence for a `SK-###` entry in `SKILL_REGISTRY.md`; the Lead reviews and decides from that evidence:
 
 | Check | What is required |
 |---|---|

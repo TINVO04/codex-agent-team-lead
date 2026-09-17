@@ -8,11 +8,11 @@ The audit is read-only. It does not launch a replacement worker, stop a worker, 
 
 For each task that is `ACTIVE`, `VERIFYING`, `BLOCKED`, or `QUEUED`, compare:
 
-1. Does it change a project deliverable, or is it only a status/clarification/policy answer?
-2. If it changes a deliverable, does its Task Contract name a worker as delivery owner?
+1. Is it only a status/clarification/policy answer, or does it involve any research or project work?
+2. If it involves research or project work, does its Task Contract name a worker as delivery owner?
 3. Does live Orca show that worker Task/Dispatch and a terminal handle, or has a verified completion/recovery event explained its absence?
 4. Does the terminal title and dashboard show the correct role and current state?
-5. Is a Root/Domain Lead recorded only as coordinator, contract/research owner, verifier, or reporter — never as delivery owner for project files?
+5. Is a Root/Domain Lead recorded only as coordinator, decision owner, verifier, or reporter — never as a research or delivery owner?
 6. Are there duplicate workers or conflicting ownership zones?
 
 ## Audit result
@@ -22,8 +22,8 @@ Classify each relevant task as:
 - `OK`: its owner, live state, and visible terminal agree;
 - `WAITING`: no worker is required yet because it is waiting for a user decision, real dependency, or worker capacity;
 - `RECOVERY_REQUIRED`: an earlier worker is missing/unknown and ownership must be recovered before rework;
-- `GAP`: a task that changes project files is active or claimed complete but has no valid worker ownership/terminal evidence;
-- `CONFLICT`: duplicate writer, overlapping ownership, or an unauthorized Lead delivery owner is recorded.
+- `GAP`: a research or project task is active or claimed complete but has no valid worker ownership/terminal evidence;
+- `CONFLICT`: duplicate worker, overlapping ownership, or an unauthorized Lead research/delivery owner is recorded.
 
 Do not assume a terminal disappeared merely because it is not visible in an old dashboard. Live Orca inventory is the authority. Do not assume an unknown terminal failed; use recovery rules.
 

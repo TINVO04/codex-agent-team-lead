@@ -36,7 +36,7 @@ skill_discovery_policy: suggest-only; Lead reviews every candidate; no automatic
 research_policy: research-first for design, UX, content, user flows, new architecture/libraries, security, performance, and significant integrations; use evidence, do not copy third-party work
 quality_policy: every task has observable acceptance evidence; use the matching project checklist before DONE
 preview_policy: ask for a short user decision before a new user-facing page, material UI/UX redesign, navigation change, or user-flow direction unless the user asks for direct implementation
-delegation_policy: Leads coordinate and verify; every meaningful project file/output change belongs to a visible Orca worker terminal, except pure status, clarification, policy, or one-sentence answer
+delegation_policy: Leads have zero delivery/research tasks; every meaningful web/document search, filesystem scan, analysis, code, test, configuration, documentation, asset, or output belongs to a visible Orca worker terminal, except pure status, clarification, policy, or one-sentence answer
 user_language_policy: Root Lead normally talks to the user; any agent directly addressed by the user uses short plain Vietnamese and explains unavoidable technical terms immediately
 audit_policy: $lead audit is read-only and checks that meaningful changes have visible worker ownership; Git inspection requires separate user approval
 
@@ -85,15 +85,15 @@ Before a new user-facing page, material redesign, navigation change, or user-flo
 
 ## Delegation and user language
 
-Root and Domain Leads own intake, prioritization, worker scheduling, read-only inspection, contracts/research notes, verification, and reporting. They do not quietly implement code, tests, configuration, documentation, assets, or other project deliverables in their Lead terminal. Each meaningful project change belongs to one concrete worker task. Related tiny changes may be grouped under one worker. Status, a clarification, a project rule, or a one-sentence answer does not need a worker.
+Root and Domain Leads own intake, prioritization, worker scheduling, decisions, verification, and reporting. They have zero research or delivery tasks: they do not search the web, scan files, run long commands, debug, write code/tests/configuration/documentation/assets, or create other project deliverables in their Lead terminal. Each meaningful research or project task belongs to one concrete worker task. Related tiny changes may be grouped under one worker. Status, a clarification, a project rule, or a one-sentence answer does not need a worker.
 
-A worker is active only after Orca returns its live Task/Dispatch and terminal handle, its terminal has the correct role label, and the dashboard records it. If launch fails, the Lead leaves the work queued or blocked and tells the user; it never takes over implementation silently.
+A worker is active only after Orca returns its live Task/Dispatch and terminal handle, its terminal has the correct role label, and the dashboard records it. If launch fails, the Lead leaves the work queued or blocked and tells the user; it never takes over research or implementation silently.
 
 Root Lead normally speaks to the user. If a user directly talks to any other Lead, QA, or worker, that agent uses short plain Vietnamese, starts with the practical result, explains a necessary technical word immediately, and avoids internal task IDs, agent names, models, terminals, commands, and logs unless the user asks.
 
 ## Delegation audit
 
-`$lead audit` is a read-only check of the task board, dashboard, task contracts, and live Orca inventory. It confirms that every meaningful project change has a visible worker owner and that Leads remain coordinators. It does not launch, stop, or replace workers; it does not edit delivery files; and it does not use Git unless the user separately approves Git inspection. A gap is recorded and reported plainly instead of being silently fixed by a Lead doing the task itself.
+`$lead audit` is a read-only check of the task board, dashboard, task contracts, and live Orca inventory. It confirms that every meaningful research or project change has a visible worker owner and that Leads remain coordinators. It does not launch, stop, or replace workers; it does not edit delivery files; and it does not use Git unless the user separately approves Git inspection. A gap is recorded and reported plainly instead of being silently fixed by a Lead doing the task itself.
 
 ## Model policy
 

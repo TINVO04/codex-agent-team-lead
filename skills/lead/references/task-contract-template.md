@@ -13,8 +13,8 @@ Coordination owner: <Root Lead | Domain Lead name>
 Applicable team rules: <none | R-001, R-002>
 
 Delegation and user contact:
-- Delivery owner: <worker role label; required for any project file/output change>
-- Lead boundary: <coordination/read-only verification/.orca-team records only>
+- Delivery owner: <worker role label; required for any research or project file/output change>
+- Lead boundary: <user request + .orca-team coordination state, scheduling, verification, and reporting only>
 - User contact: <Root Lead only | explicitly authorized role; plain-language rules apply>
 - Live launch evidence: <Orca Task/Dispatch and terminal handle; pending until returned>
 

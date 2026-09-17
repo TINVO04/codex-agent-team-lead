@@ -10,7 +10,7 @@ Repository này không hỗ trợ Codex chạy độc lập ngoài Orca. Orca l�
 - Có Lead phụ khi một mảng công việc đủ lớn, ví dụ `ADMIN`, `AUTH`, `JOBS`.
 - Có worker lập trình, QA và worker kiểm tra cuối.
 - Tự tạo worker cho việc rõ ràng, độc lập và không đụng vùng code worker khác đang sửa.
-- Lead chỉ điều phối và kiểm tra; mọi việc có sửa file dự án phải thuộc một worker terminal nhìn thấy được.
+- Big Lead/Lead phụ chỉ điều phối và kiểm tra; mọi việc nghiên cứu hoặc sửa file dự án phải thuộc một worker terminal nhìn thấy được.
 - Giữ danh sách việc, quyền sở hữu code, quy tắc và tình trạng team trong `.orca-team`.
 - Đổi model có kiểm soát khi worker/Lead thật sự lỗi.
 - Trao đổi hợp đồng API ngắn gọn giữa Lead Backend và Lead Frontend.
@@ -96,7 +96,7 @@ Nếu bạn giao một việc có sửa code/file dự án mà không thấy wor
 $lead audit
 ```
 
-Lead phải báo rõ việc đó đang chờ gì; Lead không được tự làm thay worker để cho nhanh. Chỉ các việc như hỏi trạng thái, thêm rule hoặc trả lời ngắn mới không cần worker.
+Lead phải báo rõ việc đó đang chờ gì; Lead không được tự làm thay worker để cho nhanh. Quét file, tìm web, đọc tài liệu sâu, debug, chạy test và tìm skill cũng là việc của worker. Chỉ các việc như hỏi trạng thái, thêm rule hoặc trả lời ngắn mới không cần worker.
 
 ## Khi nào Lead tìm hiểu trước
 

@@ -55,7 +55,7 @@ For visual/design research, inspect layout hierarchy, information density, state
 
 ## How it works with workers
 
-When capacity allows, the Lead may run a read-only research worker in parallel with a local-context scan. The implementation worker starts after the brief is accepted if the design/decision depends on it. A scaffolding task can run earlier only when it cannot lock in the disputed decision or overlap a writer.
+The Lead must run a read-only research worker for every `research-first` or `research-deep` task. The Lead itself only creates the task and reviews the resulting brief; it does not scan files, browse the web, or research documentation. The implementation worker starts after the brief is accepted if the design/decision depends on it. A scaffolding task can run earlier only when it cannot lock in the disputed decision or overlap a writer.
 
 If a task combines research and implementation, either split it into `research -> implementation` or give the worker an explicit checkpoint: it must submit the brief to the Lead before changing the decision-sensitive files.
 
