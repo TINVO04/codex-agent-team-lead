@@ -39,7 +39,7 @@ Lead phụ chỉ xuất hiện khi một mảng đủ lớn
         ↓
 Worker nghiên cứu, code, test và tạo bằng chứng
         ↓
-QA kiểm tra lại
+Kiểm tra lần đầu rồi mới kết luận xong
         ↓
 Big Lead báo kết quả ngắn gọn cho người dùng
 ```
@@ -82,6 +82,14 @@ $lead Thêm API suspend/restore cho job và viết smoke test.
 
 Big Lead sẽ ghi task, kiểm tra vùng code, chọn worker phù hợp và chỉ mở worker khi Orca trả về terminal thật.
 
+Lần khởi tạo cũng tạo sẵn ba file dễ chỉnh trong `.orca-team/`:
+
+- `MODEL_POLICY.md`: chọn model và model dự phòng cho riêng dự án.
+- `PROJECT_HOOKS.md`: checklist theo từng thời điểm để team không quên bước quan trọng.
+- `TEAM_POLICY.md` / `TEAM_RULES.md`: ranh giới an toàn và rule chung của dự án.
+
+Model mới không được dùng ngay chỉ vì đã ghi vào file. Orca phải kiểm tra trước, rồi Big Lead mới phân công.
+
 ## 🧭 Nhìn toàn bộ quy trình
 
 ```mermaid
@@ -94,7 +102,8 @@ flowchart TD
     R -- "Chưa" --> C["CAPABILITY-SCOUT tìm role/skill"]
     C --> W
     W --> E["Worker nghiên cứu / code / test"]
-    E --> V["QA hoặc Final Review"]
+    E --> F["READY_FOR_VERIFICATION"]
+    F --> V["QA hoặc Final Review"]
     V --> B
     B --> O["Báo cáo ngắn gọn cho người dùng"]
 ```
@@ -210,6 +219,13 @@ Nếu cần cài tool, dùng login/cookie hoặc gửi dữ liệu ra dịch v�
 | `$lead capability <nhu cầu>` | Tìm năng lực hoặc role còn thiếu |
 | `$lead research <chủ đề>` | Tạo nghiên cứu có phạm vi rõ |
 | `$lead preview <chủ đề>` | Xin người dùng chốt hướng UI/UX hoặc flow lớn |
+| `$lead models` | Xem model nào đã sẵn sàng dùng, model nào cần kiểm tra |
+| `$lead models validate` | Kiểm tra model trong cấu hình trước khi phân việc |
+| `$lead models set ...` | Ghi lựa chọn model mới của bạn cho dự án, rồi chờ Orca kiểm tra |
+| `$lead policy` | Xem ranh giới an toàn đang áp dụng |
+| `$lead hooks` | Xem checklist theo từng thời điểm đang áp dụng |
+| `$lead hook add ...` | Thêm checklist mới theo yêu cầu rõ ràng của bạn |
+| `$lead config check` | Kiểm tra nhanh cấu hình team, model và hook |
 | Yêu cầu `$lead report today` | Tổng hợp hôm nay đã làm gì, đang vướng gì và bước tiếp theo |
 | `$lead recover` | Khôi phục sau khi Orca restart |
 | `$lead take over` | Thay Big Lead cũ khi đã xác minh lỗi/dừng hoặc có xác nhận của người dùng |
@@ -258,9 +274,23 @@ Task cần bạn chọn → WAITING_USER
 
 Mặc định một Big Lead có tối đa ba worker triển khai. Chỉ tạo Lead phụ khi có ít nhất hai nhánh độc lập, đủ việc dài hạn và Orca còn capacity. Khi hết việc, Lead phụ và worker được thu gọn.
 
-## 🧪 Cổng chất lượng
+## 🧪 Cổng chất lượng: lần làm đầu chưa phải kết quả cuối
 
-Một worker nói “xong” chưa đủ để task được đóng. Big Lead phải kiểm tra checklist phù hợp:
+Một worker nói “xong” chưa đủ để task được đóng. Sau lần làm đầu, task đi qua hai bước rõ ràng:
+
+```text
+Worker làm xong phần việc
+        ↓
+READY_FOR_VERIFICATION — nộp bằng chứng đã kiểm tra và phần chưa kiểm tra
+        ↓
+VERIFYING — Big Lead hoặc QA đối chiếu bằng chứng
+        ↓
+DONE — chỉ khi mức kiểm tra phù hợp đã đạt
+```
+
+Việc nhỏ không bị bắt kiểm tra vòng vo: worker evidence và Big Lead đối chiếu là đủ. Việc có rủi ro cao như quyền truy cập, thanh toán, cập nhật database, API công khai hoặc kết nối BE–FE cần QA riêng hoặc kiểm tra nhanh tách riêng.
+
+Big Lead phải kiểm tra checklist phù hợp:
 
 - **API/backend:** request, response, status/error, permission, state, idempotency và test.
 - **UI/UX:** desktop/mobile, loading, empty, error, accessibility và visual check.
@@ -270,7 +300,11 @@ Một worker nói “xong” chưa đủ để task được đóng. Big Lead ph
 
 Với màn hình mới, redesign lớn hoặc đổi flow, Big Lead gửi preview để bạn chốt hướng trước khi worker làm phần quyết định.
 
-## 🤖 Model và khôi phục lỗi
+## 🤖 Model theo từng dự án
+
+Bạn không bị khóa vào một bộ model. Sau `$lead init`, chỉ cần mở `.orca-team/MODEL_POLICY.md` để chọn model, mức suy nghĩ và thứ tự dự phòng theo ý dự án.
+
+Mẫu ban đầu vẫn có sẵn để dùng nhanh:
 
 | Vai trò / việc | Model chính | Dự phòng |
 |---|---|---|
@@ -280,15 +314,20 @@ Với màn hình mới, redesign lớn hoặc đổi flow, Big Lead gửi previe
 | Worker việc nhỏ | `glm-5.3-flash` · `low` | DeepSeek → Qwen |
 | Kiểm tra cuối | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
 
-Nếu worker lỗi model:
+Điểm quan trọng: Big Lead chỉ giao việc bằng model có trạng thái `verified` trong `MODEL_STATUS.md`. Khi bạn đổi policy, dùng `$lead models validate`; mỗi model chỉ kiểm tra một lần cho mỗi lần chỉnh policy, không làm tốn slot lặp lại.
 
-1. Orca xác nhận worker cũ thật sự lỗi hoặc đã dừng.
-2. Giữ ownership vùng code cũ.
-3. Kiểm tra checkpoint và file đã thay đổi.
-4. Tạo worker retry cho **cùng task** bằng model dự phòng.
-5. Không để hai worker cùng sửa một vùng.
+Nếu worker lỗi model, Big Lead giữ nguyên vùng code và checkpoint, rồi chỉ retry **cùng task** bằng model dự phòng vừa nằm trong policy vừa đã được kiểm tra. Nếu hết model được phép, task dừng ở `WAITING_USER` để bạn chọn; không tự nhảy sang model lạ.
 
-Nếu cả model chính và dự phòng đều lỗi, task chuyển `WAITING_USER`.
+## 🪝 Rule và hook dễ chỉnh
+
+Bạn chỉnh giới hạn an toàn trong `TEAM_POLICY.md`, rule chung trong `TEAM_RULES.md`, còn `PROJECT_HOOKS.md` là checklist nhắc team làm đúng thời điểm:
+
+- `before_worker_launch`: có contract, vùng code riêng, model đã kiểm tra và còn chỗ trống.
+- `before_external_action`: có quyền riêng trước Git, database, deploy hoặc thay đổi bên ngoài.
+- `before_done`: đi qua First-Pass Gate và đủ bằng chứng.
+- `on_model_failure`: giữ checkpoint, rồi mới dùng model dự phòng được phép.
+
+Hook không phải chương trình tự chạy. Nó không được phép âm thầm chạy lệnh, chạm Git/database/deploy, đăng nhập, lấy token, tạo hàng loạt worker hoặc đổi quyền của bạn.
 
 ## 🗂️ Những gì được tạo trong mỗi dự án
 
@@ -296,13 +335,16 @@ Nếu cả model chính và dự phòng đều lỗi, task chuyển `WAITING_USE
 .orca-team/
 ├── TEAM_POLICY.md                  # Ranh giới và chính sách team
 ├── TEAM_RULES.md                   # Rule do người dùng/Root Lead đặt
+├── PROJECT_HOOKS.md                # Checklist theo từng thời điểm, không tự chạy lệnh
+├── MODEL_POLICY.md                 # Model/effort/fallback do dự án chọn
+├── MODEL_STATUS.md                 # Kết quả Orca kiểm tra model thật
 ├── TEAM_STATE.md                   # Mục tiêu, task, owner, dependency
 ├── LEAD_LEASE.md                   # Big Lead duy nhất
 ├── TEAM_DASHBOARD.md               # Bảng nhìn nhanh toàn team
 ├── AGENCY_PROFILE_REGISTRY.md      # Vai trò Agency theo dự án
 ├── SKILL_REGISTRY.md               # Skill chờ duyệt/đã duyệt/đang dùng
 ├── EXTERNAL_RESEARCH_POLICY.md     # Luật Agent-Reach và nguồn ngoài
-├── QUALITY_GATES.md                # Checklist trước khi báo xong
+├── QUALITY_GATES.md                # Checklist và First-Pass Gate trước khi báo xong
 └── RESEARCH_NOTES/                 # Brief nghiên cứu dùng lại được
 ```
 
@@ -315,6 +357,9 @@ State trong `.orca-team` là sổ điều phối, không thay thế inventory Or
 - Không tự đổi DB target, restart service, deploy hoặc đổi permission remote.
 - Không gửi credential, token, private URL, log nhạy cảm hay dữ liệu khách hàng qua tin nhắn team.
 - Không coi dashboard cũ là bằng chứng worker còn sống sau khi Orca restart.
+- Không tự coi lần làm đầu là đúng; chỉ báo `Đã xong` sau khi đã kiểm tra đúng mức.
+- Không dùng model mới chỉ vì được ghi trong cấu hình; Orca phải xác nhận trước.
+- Hook chỉ là checklist, không phải đường để tự chạy lệnh hay vượt quyền của bạn.
 - Agent nói với người dùng phải nói tiếng Việt ngắn gọn, kết quả trước, không đẩy log nội bộ.
 
 ## 🛠️ Cấu trúc repository
@@ -326,10 +371,15 @@ skills/lead/
 ├── references/
 │   ├── agency-profiles-and-agent-reach.md
 │   ├── capability-discovery-and-skill-gate.md
+│   ├── model-policy-and-validation.md
+│   ├── project-rules-and-hooks.md
+│   ├── first-pass-verification.md
 │   ├── research-first-gate.md
 │   ├── task-contract-template.md
 │   └── ...
-└── scripts/bootstrap-project.ps1
+└── scripts/
+    ├── bootstrap-project.ps1
+    └── test-team-config.ps1
 ```
 
 ## 📚 Nguồn tham khảo

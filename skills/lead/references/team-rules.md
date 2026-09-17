@@ -1,6 +1,6 @@
 # Quy tắc team
 
-`TEAM_RULES.md` là sổ rule ngắn của dự án. Nó cho Root Lead ghi một chỉ dẫn rõ rồi yêu cầu mọi Domain Lead/worker bị ảnh hưởng áp dụng. Nó không phải transcript và không được dùng để vượt user approval.
+`TEAM_RULES.md` là sổ rule ngắn của dự án. Nó cho Root Lead ghi một chỉ dẫn rõ rồi yêu cầu mọi Domain Lead/worker bị ảnh hưởng áp dụng. Nó không phải transcript và không được dùng để vượt user approval. Đọc [rule và hook dự án](project-rules-and-hooks.md) nếu chỉ dẫn cần chạy tại một thời điểm cụ thể như trước khi mở worker hoặc trước DONE.
 
 ## Rule nào cần ghi
 
@@ -21,13 +21,13 @@ Ràng buộc chỉ dành cho một task thì để trong Task Contract, trừ kh
 | Domain Lead | Đề xuất rule hoặc báo conflict; không được ghi/ngừng rule dự án hay làm yếu policy. |
 | Worker | Tuân thủ rule, báo blocker/cần quyết định; không đổi rule. |
 
-Rule không được làm yếu `TEAM_POLICY.md`, cho phép Git/DB/deploy/thay đổi ngoài chưa duyệt, lộ secret hoặc đổi scope người dùng đã chốt. Rule task có thể chặt hơn rule dự án.
+Rule không được làm yếu `TEAM_POLICY.md`, cho phép Git/DB/deploy/thay đổi ngoài chưa duyệt, lộ secret hoặc đổi scope người dùng đã chốt. Rule task có thể chặt hơn rule dự án. Hook chỉ là checklist dạng chữ; không được biến thành script tự chạy hoặc cấp thêm quyền.
 
 ## Thứ tự ưu tiên
 
 1. Chỉ dẫn hiện tại của người dùng và yêu cầu an toàn nền tảng.
 2. `TEAM_POLICY.md`.
-3. Rule active trong `TEAM_RULES.md`.
+3. Rule active trong `TEAM_RULES.md` và checklist active trong `PROJECT_HOOKS.md`.
 4. Ràng buộc riêng của task.
 
 Không giải quyết được conflict theo thứ tự trên thì dừng task ảnh hưởng thành `WAITING_USER` hoặc báo `NEED_DECISION`.
@@ -73,4 +73,4 @@ Khi người dùng nói: `Từ giờ mọi API phải cập nhật Swagger, có 
 5. Gửi update ngắn cho owner đang chạy, ghi acknowledgement tại checkpoint an toàn.
 6. Kiểm tra evidence trước khi nhận `DONE`.
 
-Rule checkpoint là điểm kiểm tra của Lead, không phải shell hook ẩn. Nếu cần test/lint command thật, ghi nó trong acceptance của task hoặc tooling dự án sau đúng approval.
+Rule checkpoint là điểm kiểm tra của Lead, không phải shell hook ẩn. Nếu cần test/lint command thật, ghi nó trong acceptance của task hoặc tooling dự án sau đúng approval. Hook chỉ được yêu cầu kiểm tra state/evidence, dừng trạng thái hay thông báo checkpoint; không tự chạy lệnh hoặc tự tạo worker.

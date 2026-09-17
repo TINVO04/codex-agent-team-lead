@@ -14,7 +14,7 @@ Mọi yêu cầu mới thành root task trước khi giao:
 
 Yêu cầu mới không tự hủy task cũ. Ghi vào board và báo vị trí. Nguyên nhân lỗi chưa rõ thì giao worker điều tra chỉ-đọc có acceptance nêu nguyên nhân, path ảnh hưởng và task tiếp theo; không giao implementation mơ hồ.
 
-Khi người dùng đưa rule toàn dự án, Root Lead ghi rule ngắn trong `TEAM_RULES.md`, ghi owner/task bị ảnh hưởng trong `TEAM_STATE.md`, thêm rule ID vào Task Contract. Domain Lead chỉ đề xuất, worker xác nhận rule mới tại checkpoint an toàn.
+Khi người dùng đưa rule toàn dự án, Root Lead ghi rule ngắn trong `TEAM_RULES.md`, ghi owner/task bị ảnh hưởng trong `TEAM_STATE.md`, thêm rule ID vào Task Contract. Nếu rule là checklist theo một thời điểm, ghi vào `PROJECT_HOOKS.md`; hook không được tự chạy lệnh hay tạo thay đổi ngoài. Domain Lead chỉ đề xuất, worker xác nhận rule/hook mới tại checkpoint an toàn.
 
 ## Ưu tiên
 
@@ -49,11 +49,12 @@ Trước khi coi dependency là cứng, thử gỡ bằng versioned contract, mo
 
 1. Đưa user request mới vào task board.
 2. Đọc inbox Orca theo thứ tự và trả lời worker.
-3. Kiểm tra lỗi model/agent trước khi retry/release.
-4. Xử lý acknowledgement rule mới.
-5. Kiểm tra task đã settle và cập nhật state.
-6. Tính lại task `READY`, conflict, dependency, capacity.
-7. Giao task an toàn tiếp theo hoặc báo blocker.
+3. Kiểm tra lỗi model/agent trước khi retry/release; chỉ dùng fallback đã `verified` theo MODEL_POLICY.
+4. Xử lý acknowledgement rule/hook mới.
+5. Kiểm tra task `READY_FOR_VERIFICATION`/`VERIFYING`, evidence và First-Pass Gate.
+6. Kiểm tra task đã settle và cập nhật state.
+7. Tính lại task `READY`, conflict, dependency, capacity.
+8. Giao task an toàn tiếp theo hoặc báo blocker.
 
 Khi user gửi task mới lúc worker chạy, làm bước 1 và 4 ngay; không chờ wave xong. Task settle thì verify, xử lý event, release/retain terminal và xếp task mới ngay nhưng không vượt dependency/ownership.
 

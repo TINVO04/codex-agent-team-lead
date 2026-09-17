@@ -16,6 +16,8 @@ Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiế
 6. Có worker trùng hoặc ownership zone xung đột không?
 7. Task có dùng Agency role không? Nếu có, `AR-###` có tồn tại, đã thu hẹp đúng task và không tự cấp thêm quyền không?
 8. Task có dùng Agent-Reach không? Nếu có, nó có thuộc Research Worker, ghi `public-only` và không có dấu hiệu login/cookie/token/thao tác ghi ngoài phạm vi không?
+9. Model đã phân công có `verified` trong MODEL_STATUS.md của policy revision hiện tại không?
+10. Task worker nói đã xong có đi qua `READY_FOR_VERIFICATION` và `VERIFYING` với evidence đúng mức rủi ro không?
 
 ## Kết quả audit
 
@@ -24,6 +26,7 @@ Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiế
 - `RECOVERY_REQUIRED`: worker cũ mất/chưa rõ, phải khôi phục ownership trước khi làm lại.
 - `GAP`: task nghiên cứu/dự án đang chạy hoặc được nói là xong nhưng không có evidence worker/terminal hợp lệ.
 - `CONFLICT`: worker trùng, ownership overlap hoặc Lead bị ghi thành owner nghiên cứu/triển khai.
+- `CONFIG_GAP`: model chưa kiểm tra, hook/rule mâu thuẫn rõ hoặc task bỏ qua First-Pass Gate.
 
 Không kết luận worker đã mất chỉ vì dashboard cũ không hiển thị. Inventory Orca live là nguồn đúng. Terminal/worker chưa rõ trạng thái cũng không tự là lỗi; dùng quy trình recovery.
 

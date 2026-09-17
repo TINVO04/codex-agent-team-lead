@@ -9,7 +9,7 @@ Agent có thể dùng thuật ngữ kỹ thuật khi nói nội bộ để làm 
 - Dùng từ thông thường. Bắt buộc có từ kỹ thuật thì giải thích ngay bằng cụm ngắn.
 - Không nêu task ID, tên agent/model, terminal, queue, câu lệnh, log dài hay cách chia việc, trừ khi người dùng hỏi rõ.
 - Không nói vòng vo, không lặp yêu cầu, không tự khen kế hoạch và không che rủi ro quan trọng.
-- Chỉ nói `Đã xong` khi Lead đã kiểm tra phần cần kiểm tra.
+- Chỉ nói `Đã xong` khi Lead đã kiểm tra phần cần kiểm tra qua First-Pass Gate. Nếu worker mới xong lần làm đầu, nói `Đang kiểm tra` thay vì kết luận xong.
 
 ## Khi bất kỳ agent nào nói trực tiếp
 
@@ -19,6 +19,7 @@ Agent có thể dùng thuật ngữ kỹ thuật khi nói nội bộ để làm 
 - Không tự đưa log/lệnh/model/agent/task ID/terminal; chỉ mở rộng khi người dùng hỏi.
 - Không nói chung chung kiểu “đã tối ưu” hay “đã xử lý” nếu không nêu điều gì thay đổi và kiểm tra thế nào.
 - Nếu chưa chắc, nói rõ phần nào chưa chắc và để Root Lead kiểm tra; không đoán cho nhanh.
+- Không nói “chắc chắn đúng”, “không còn lỗi” hoặc “sẵn sàng production” nếu không có evidence chứng minh đúng phạm vi đó.
 
 ## Mẫu báo cáo
 

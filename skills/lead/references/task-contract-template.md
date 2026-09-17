@@ -22,6 +22,8 @@ Kế hoạch model:
 - Route task: <difficult | normal | quick | final review>
 - Model chính: <model ID chính xác và effort nếu có>
 - Thứ tự dự phòng: <chỉ model ID được phép>
+- Policy revision / model status: <MP-### | model chính hoặc fallback phải verified>
+- Tự đổi sang dự phòng: <có | không; theo MODEL_POLICY.md>
 - Lần thử: <1/3, 2/3 hoặc 3/3>
 - Launch thực tế: <chỉ điền sau khi runtime xác nhận model và effort>
 
@@ -52,6 +54,9 @@ Nghiên cứu:
 Chất lượng và xem trước:
 - Checklist: <API | UI/UX | data/change | integration | research/review; các mục cần có>
 - Evidence bắt buộc: <test, screenshot, manual step, contract check hoặc none>
+- First-Pass Gate: <worker evidence review | independent QA | smoke riêng | user review>
+- Evidence tối thiểu trước DONE: <cụ thể>
+- Phần có thể chưa kiểm tra: <phạm vi + lý do, hoặc none>
 - Preview Gate: <not needed | internal | user review required>
 - Preview record: <PV-### hoặc none>
 - Phạm vi phải chờ preview: <path/quyết định hoặc none>
@@ -86,12 +91,13 @@ Báo cáo:
 - File thực tế đã thay đổi.
 - Lệnh đã chạy và kết quả.
 - Giả định, blocker hoặc contract follow-up cần có.
-- Một event: `DONE`, `BLOCKED`, `NEED_DECISION`, `CONTRACT_CHANGED` hoặc `FAILED`.
+- Sau lần làm đầu, event là `READY_FOR_VERIFICATION`, không phải `DONE`.
+- Event cuối phù hợp: `READY_FOR_VERIFICATION`, `BLOCKED`, `NEED_DECISION`, `CONTRACT_CHANGED` hoặc `FAILED`. Chỉ Big Lead ghi `DONE` sau VERIFYING.
 - Nếu model/agent lỗi: evidence, file có thể đã đổi không và recovery an toàn cần gì.
 - Thiếu capability: gửi `CAPABILITY_REQUEST`; không tự tìm/cài/chạy skill.
 - Thiếu role: gửi `CAPABILITY_REQUEST`; không tự tải Agency bundle, cài custom agent hoặc dùng raw profile chưa có AR-###.
 - Thiếu evidence nghiên cứu: gửi `RESEARCH_REQUEST`; không browse rộng hay dùng material bên thứ ba ngoài source plan.
-- Trước `DONE`: chạy/báo checklist chất lượng. File đổi, build pass đơn lẻ hoặc worker claim chưa kiểm tra không đủ evidence.
+- Trước `READY_FOR_VERIFICATION`: chạy/báo checklist chất lượng, nêu evidence và phần chưa kiểm tra. File đổi, build pass đơn lẻ hoặc worker claim chưa kiểm tra không đủ evidence.
 
 Handover recovery (chỉ điền khi retry):
 - Dispatch/session trước: <ID thật hoặc none>

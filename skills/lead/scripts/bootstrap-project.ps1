@@ -19,6 +19,9 @@ $externalResearchPolicyPath = Join-Path $teamPath 'EXTERNAL_RESEARCH_POLICY.md'
 $researchNotesPath = Join-Path $teamPath 'RESEARCH_NOTES'
 $researchReadmePath = Join-Path $researchNotesPath 'README.md'
 $qualityGatesPath = Join-Path $teamPath 'QUALITY_GATES.md'
+$modelPolicyPath = Join-Path $teamPath 'MODEL_POLICY.md'
+$modelStatusPath = Join-Path $teamPath 'MODEL_STATUS.md'
+$projectHooksPath = Join-Path $teamPath 'PROJECT_HOOKS.md'
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 if (-not (Test-Path -LiteralPath $policyPath)) {
@@ -40,10 +43,13 @@ agency_profile_policy: baseline theo dự án; Agency role chỉ là card hướ
 external_research_policy: ưu tiên source local/tài liệu chính thức; Agent-Reach chỉ do Research Worker dùng ở chế độ public-only khi đã được duyệt/có sẵn, không login/cookie/token/dữ liệu riêng
 research_policy: research-first cho thiết kế, UX, nội dung, user flow, kiến trúc/thư viện mới, bảo mật, hiệu năng và integration lớn
 quality_policy: mọi task phải có evidence quan sát được; dùng checklist phù hợp trước DONE
+first_pass_policy: lần triển khai đầu chỉ READY_FOR_VERIFICATION; phải qua VERIFYING với evidence phù hợp trước DONE
 preview_policy: hỏi người dùng chốt ngắn trước trang mới, redesign UI/UX đáng kể, đổi navigation hoặc user flow, trừ khi người dùng yêu cầu làm trực tiếp
 delegation_policy: Lead có 0 task nghiên cứu/triển khai; tìm web/tài liệu, scan file, phân tích, code, test, config, tài liệu, asset và output đều thuộc worker terminal Orca hiển thị rõ, trừ status, clarification, policy hoặc câu trả lời một dòng
 user_language_policy: mọi agent nói trực tiếp với người dùng dùng tiếng Việt ngắn, dễ hiểu và giải thích từ kỹ thuật bắt buộc ngay trong câu
 audit_policy: $lead audit chỉ-đọc, kiểm tra mọi nghiên cứu/thay đổi có worker thật; Git inspection vẫn cần người dùng duyệt riêng
+model_policy: người dùng có thể chỉnh MODEL_POLICY.md; chỉ model verified trong MODEL_STATUS.md mới được phân công; không tự dùng model ngoài policy
+hook_policy: PROJECT_HOOKS.md chỉ là checklist dạng chữ; cấm script tự chạy, thay đổi ngoài, quyền mới, vòng hook hoặc mở worker không kiểm soát
 
 ## Vai trò
 
@@ -86,6 +92,8 @@ Lead audit chỉ đọc board, contract, dashboard và inventory Orca; không m�
 
 ## Chính sách model
 
+MODEL_POLICY.md là nơi người dùng chỉnh model, effort, thứ tự dự phòng và việc có được tự chuyển sang dự phòng hay không. MODEL_STATUS.md là kết quả Orca đã kiểm tra. Bảng dưới chỉ là mẫu khởi tạo; chỉ model `verified` trong MODEL_STATUS.md mới được launch. Model không rõ trạng thái, không có trong policy hoặc đã disabled không được tự dùng.
+
 Root Lead và Domain Lead: gpt-5.6-terra với xhigh; fallback qwen3.8-max-0902 với xhigh.
 
 Worker:
@@ -94,13 +102,96 @@ Worker:
 - việc nhanh: glm-5.3-flash với low, rồi DeepSeek, rồi Qwen;
 - kiểm tra cuối: Qwen với high, rồi DeepSeek, rồi GLM.
 
-Ghi model yêu cầu, runtime xác nhận, effort và fallback. Unknown/disconnected không phải lỗi model. Worker có thể đã sửa file thì giữ ownership, kiểm tra checkpoint rồi mới retry cùng task bằng fallback sau khi lỗi được chứng minh. Tất cả fallback lỗi/không có thì WAITING_USER. Root Lead lỗi phải do caller giám sát thay bằng state đã lưu.
+Ghi model yêu cầu, runtime xác nhận, effort và fallback. Unknown/disconnected không phải lỗi model. Worker có thể đã sửa file thì giữ ownership, kiểm tra checkpoint rồi mới retry cùng task bằng fallback `verified` sau khi lỗi được chứng minh. Tất cả fallback lỗi/không có thì WAITING_USER. Root Lead lỗi phải do caller giám sát thay bằng state đã lưu.
+
+## Hook và First-Pass Gate
+
+TEAM_RULES.md giữ rule; PROJECT_HOOKS.md giữ checklist theo event. Hook được phép kiểm tra state/contract/evidence, yêu cầu acknowledgement hoặc giữ trạng thái task. Hook không được tự chạy script/shell/Git/DB/deploy, login, external write, đổi quyền/model/ownership/scope hay tạo worker vượt capacity.
+
+Mọi task sau lần triển khai đầu chuyển `READY_FOR_VERIFICATION`, rồi `VERIFYING`. Worker nộp evidence đã kiểm tra và phần chưa kiểm tra. Lead chỉ ghi `DONE` sau khi evidence khớp acceptance và mức kiểm tra theo rủi ro. Auth, permission, payment, database/migration/state, API public/contract và tích hợp BE-FE cần QA độc lập hoặc smoke evidence tách riêng.
 
 ## Big Lead và khả năng quan sát
 
 Chỉ một Big Lead active được điều phối. Terminal claim lease dùng 00 | BIG | <project> | RUN. Terminal thứ hai là viewer đến khi Big Lead giao role hẹp hoặc recovery/takeover xác minh. Dùng TEAM_DASHBOARD.md và nhãn role để thể hiện ownership; trạng thái Orca live mới là nguồn quyết định worker sống/lỗi.
 '@
     [System.IO.File]::WriteAllText($policyPath, $policyContents, $utf8NoBom)
+}
+
+if (-not (Test-Path -LiteralPath $modelPolicyPath)) {
+    $modelPolicyContents = @'
+# Cấu hình model
+
+Cập nhật gần nhất: chưa khởi tạo
+Revision: MP-001
+Tự đổi sang dự phòng: có
+
+Bảng này do người dùng chỉnh. Big Lead chỉ được phân công model có trạng thái `verified` trong MODEL_STATUS.md. Đổi model hoặc effort phải tăng Revision rồi chạy `$lead models validate`; không tự dùng model mới trước khi Orca kiểm tra.
+
+| Route | Dùng cho | Model chính | Effort | Dự phòng theo thứ tự | Ghi chú |
+|---|---|---|---|---|---|
+| big-lead | Big Lead mở mới | gpt-5.6-terra | xhigh | qwen3.8-max-0902 | |
+| domain-lead | Lead phụ | gpt-5.6-terra | xhigh | qwen3.8-max-0902 | |
+| difficult-worker | Việc khó | qwen3.8-max-0902 | high | deepseek-v4.1-flash → glm-5.3-flash | |
+| normal-worker | Việc thường | deepseek-v4.1-flash | medium | qwen3.8-max-0902 → glm-5.3-flash | |
+| quick-worker | Việc nhỏ | glm-5.3-flash | low | deepseek-v4.1-flash → qwen3.8-max-0902 | |
+| final-review | Kiểm tra cuối | qwen3.8-max-0902 | high | deepseek-v4.1-flash → glm-5.3-flash | |
+'@
+    [System.IO.File]::WriteAllText($modelPolicyPath, $modelPolicyContents, $utf8NoBom)
+}
+
+if (-not (Test-Path -LiteralPath $modelStatusPath)) {
+    $modelStatusContents = @'
+# Trạng thái model đã kiểm tra
+
+Policy revision đã kiểm tra: chưa có
+Kiểm tra gần nhất: chưa khởi tạo
+
+Chỉ model `verified` trong bảng này mới được Big Lead dùng để mở Lead/worker. `unknown` nghĩa là chưa đủ bằng chứng, không phải lỗi. Mỗi model chỉ kiểm tra một lần cho mỗi revision policy.
+
+| Model | Effort | Trạng thái | Evidence Orca | Kiểm tra lúc | Dùng cho route |
+|---|---|---|---|---|---|
+
+Trạng thái: verified, unavailable, temporary_error, unknown, disabled.
+'@
+    [System.IO.File]::WriteAllText($modelStatusPath, $modelStatusContents, $utf8NoBom)
+}
+
+if (-not (Test-Path -LiteralPath $projectHooksPath)) {
+    $projectHooksContents = @'
+# Hook dự án
+
+Cập nhật gần nhất: chưa khởi tạo
+Revision: H-001
+
+Hook là checklist dạng chữ, không phải script tự chạy. Hook không được chạy shell/script/Git/DB/deploy, login, request ghi bên ngoài, đọc secret, đổi model/ownership/scope hoặc mở worker vượt capacity.
+
+## Hook đang hiệu lực
+
+### H-001 — Kiểm tra trước khi mở worker
+Event: before_worker_launch
+Khi: task chuẩn bị từ READY sang ACTIVE
+Bắt buộc:
+- Có Task Contract, ownership và Parallel Gate rõ.
+- Route model có ít nhất một model verified trong MODEL_STATUS.md.
+- Còn capacity và không có writer trùng vùng.
+Nếu không đạt: giữ QUEUED, BLOCKED hoặc WAITING_USER và ghi lý do.
+Trạng thái: active
+
+### H-002 — Lần làm đầu phải được kiểm tra
+Event: before_done
+Khi: worker báo đã hoàn thành phần việc
+Bắt buộc:
+- Task đi qua READY_FOR_VERIFICATION rồi VERIFYING.
+- Có evidence đã kiểm tra và nêu rõ phần chưa kiểm tra.
+- Task rủi ro cao có QA độc lập hoặc smoke evidence tách riêng.
+Nếu không đạt: trả ACTIVE hoặc BLOCKED; không ghi DONE.
+Trạng thái: active
+
+## Hook đã ngừng
+
+Chưa có.
+'@
+    [System.IO.File]::WriteAllText($projectHooksPath, $projectHooksContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $rulesPath)) {
@@ -111,7 +202,7 @@ Cập nhật gần nhất: chưa khởi tạo
 
 ## Cách rule hoạt động
 
-Root Lead ghi rule dự án/domain/task khi người dùng đưa chỉ dẫn rõ ảnh hưởng hơn một task/owner. Chỉ dẫn người dùng và TEAM_POLICY.md luôn cao hơn. Rule không được cấp quyền Git, database, restart, deploy, remote permission hoặc thay đổi ngoài.
+Root Lead ghi rule dự án/domain/task khi người dùng đưa chỉ dẫn rõ ảnh hưởng hơn một task/owner. Chỉ dẫn người dùng và TEAM_POLICY.md luôn cao hơn. Rule không được cấp quyền Git, database, restart, deploy, remote permission hoặc thay đổi ngoài. PROJECT_HOOKS.md là checklist theo event, cũng không được là script tự chạy.
 
 Task Contract liệt kê rule ID/evidence trước khi worker bắt đầu và trước khi Lead nhận DONE. Worker đang chạy xác nhận rule đổi tại checkpoint an toàn tiếp theo.
 
@@ -152,7 +243,7 @@ Chưa có.
 | ID | Yêu cầu | Ưu tiên | Trạng thái | Owner | Vùng sở hữu | Phụ thuộc | Evidence nhận task | Ghi chú |
 |---|---|---|---|---|---|---|---|---|
 
-Trạng thái: INTAKE, READY, QUEUED, BLOCKED, WAITING_USER, ACTIVE, VERIFYING, DONE, FAILED, CANCELLED.
+Trạng thái: INTAKE, READY, QUEUED, BLOCKED, WAITING_USER, ACTIVE, READY_FOR_VERIFICATION, VERIFYING, DONE, FAILED, CANCELLED.
 
 ## Cấu trúc team và năng lực
 
@@ -166,10 +257,22 @@ Trạng thái: INTAKE, READY, QUEUED, BLOCKED, WAITING_USER, ACTIVE, VERIFYING, 
 
 Chỉ ghi ID từ Orca runtime live. Sau restart, ghi RECOVERY_REQUIRED đến khi inventory xác minh. Lead không được là owner nghiên cứu/triển khai.
 
+## Cấu hình model và hook
+
+| Policy revision | Status kiểm tra | Hook revision | Config check gần nhất | Ghi chú |
+|---|---|---|---|---|
+
+Chi tiết model: MODEL_POLICY.md và MODEL_STATUS.md. Chi tiết hook: PROJECT_HOOKS.md.
+
 ## Model và recovery
 
 | Role/task | Lần thử | Model/effort yêu cầu | Model/effort thực tế | Fallback | Evidence lỗi | Quyết định recovery |
 |---|---:|---|---|---|---|---|
+
+## First-Pass Gate
+
+| Task | Route kiểm tra | Evidence đã nộp | Phần chưa kiểm tra | Trạng thái xác minh | Quyết định Lead |
+|---|---|---|---|---|---|
 
 ## Ownership và Parallel Gate
 
@@ -408,6 +511,16 @@ if (-not (Test-Path -LiteralPath $qualityGatesPath)) {
 
 Lead chỉ chọn checklist đúng task và ghi evidence cụ thể vào Task Contract; không bắt task hẹp làm checklist không liên quan.
 
+## First-Pass Gate
+
+Lần triển khai đầu có thể đúng nhưng không tự là DONE. Worker báo `READY_FOR_VERIFICATION`, nêu evidence đã kiểm tra và phần chưa kiểm tra. Lead chuyển task sang `VERIFYING`, đối chiếu acceptance/rule/checklist rồi mới ghi DONE.
+
+- Task hẹp, rủi ro thấp: worker evidence + Lead review evidence.
+- Task trung bình: có test hoặc manual smoke tập trung.
+- Auth/permission, payment, database/migration/state, API public/contract và tích hợp BE-FE: có QA độc lập hoặc smoke evidence tách riêng.
+
+Không nói chắc chắn không còn lỗi hoặc sẵn sàng production khi evidence không chứng minh được phạm vi đó.
+
 ## Thay đổi API / backend
 
 - Request, response, status/error, validation, authorization, idempotency/state rõ khi áp dụng.
@@ -468,4 +581,7 @@ Ghi câu trả lời thành PV-### trong TEAM_STATE.md và Task Contract. Previe
     externalResearchPolicy = $externalResearchPolicyPath
     researchNotes = $researchNotesPath
     qualityGates = $qualityGatesPath
+    modelPolicy = $modelPolicyPath
+    modelStatus = $modelStatusPath
+    projectHooks = $projectHooksPath
 } | ConvertTo-Json -Depth 3

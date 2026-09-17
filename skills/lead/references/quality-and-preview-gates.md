@@ -1,12 +1,12 @@
 # Cổng chất lượng và xem trước
 
-Dùng tài liệu này khi Lead định nghĩa “xong”, kiểm tra kết quả worker, hoặc quyết định thay đổi UI/UX/luồng có cần người dùng xem trước không.
+Dùng tài liệu này khi Lead định nghĩa “xong”, kiểm tra kết quả worker, hoặc quyết định thay đổi UI/UX/luồng có cần người dùng xem trước không. Đọc [First-Pass Gate](first-pass-verification.md) trước khi chuyển một task sang `DONE`.
 
 ## Cổng chất lượng: “xong” phải thấy được
 
 Mỗi Task Contract chọn checklist đúng trong `.orca-team/QUALITY_GATES.md` và ghi evidence cụ thể. Chỉ chọn phần liên quan; task tài liệu hẹp không cần checklist migration.
 
-Lead tối thiểu phải kiểm tra:
+Lần làm đầu không tự là `DONE`: worker báo `READY_FOR_VERIFICATION`, Task chuyển `VERIFYING`, sau đó Lead mới có thể đóng task. Lead tối thiểu phải kiểm tra:
 
 1. Kết quả mục tiêu đã xảy ra, không chỉ là file đã đổi.
 2. Test hoặc manual check phù hợp đã chạy/ghi rõ.
@@ -14,7 +14,7 @@ Lead tối thiểu phải kiểm tra:
 4. Không phá rule, approval boundary hoặc ownership của worker khác.
 5. Claim `DONE` có evidence Lead xem được.
 
-Lời worker nói, build pass một mình hoặc một screenshot một mình không đủ cho mọi task. Kết hợp evidence phù hợp với thay đổi.
+Lời worker nói, build pass một mình hoặc một screenshot một mình không đủ cho mọi task. Kết hợp evidence phù hợp với thay đổi. Với auth/permission, payment, database/migration/state, API public/contract và tích hợp BE-FE, Task Contract phải chọn QA độc lập hoặc smoke evidence tách riêng.
 
 ## Cổng xem trước: chốt trước việc chủ quan lớn
 
@@ -45,9 +45,9 @@ Sau khi người dùng trả lời, ghi `PV-###` trong `TEAM_STATE.md` và Task 
 
 ## Trình tự kiểm tra
 
-1. Worker báo file thực tế, evidence và phần chưa chắc.
-2. Lead so với preview, research brief, acceptance và checklist đã chọn.
-3. Lead xem/chạy kiểm tra phù hợp và xác nhận phía dự án khác khi cần.
-4. Chỉ sau đó mới đánh dấu `DONE` và báo người dùng.
+1. Worker báo `READY_FOR_VERIFICATION`, file thực tế, evidence và phần chưa kiểm tra.
+2. Lead chuyển task sang `VERIFYING`, so với preview, research brief, acceptance và checklist đã chọn.
+3. Lead xem evidence hoặc giao QA/smoke tách riêng đúng route kiểm tra.
+4. Chỉ sau đó Big Lead mới đánh dấu `DONE` và báo người dùng.
 
 Check không chạy được thì không che giấu: nói rõ phần nào chưa kiểm tra, vì sao, evidence rủi ro thấp hơn là gì, và task cần `BLOCKED`, `WAITING_USER` hay follow-up rõ ràng.

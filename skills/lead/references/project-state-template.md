@@ -30,7 +30,7 @@ Toàn bộ nội dung/lịch sử rule nằm trong `TEAM_RULES.md`. Ghi mọi th
 |---|---|---|---|---|---|---|---|---|
 | T-001 | ... | P1 | READY | API | src/... | — | dotnet test ... | ... |
 
-Trạng thái: `INTAKE`, `READY`, `QUEUED`, `ACTIVE`, `VERIFYING`, `BLOCKED`, `WAITING_USER`, `DONE`, `FAILED`, `CANCELLED`.
+Trạng thái: `INTAKE`, `READY`, `QUEUED`, `ACTIVE`, `READY_FOR_VERIFICATION`, `VERIFYING`, `BLOCKED`, `WAITING_USER`, `DONE`, `FAILED`, `CANCELLED`.
 
 ## Cấu trúc team và năng lực
 
@@ -47,12 +47,26 @@ Không tính capacity riêng cho từng dòng. Tổng worker active phải khôn
 
 Chỉ ghi ID Orca trả về trong runtime live. Sau restart, đổi assignment thành `RECOVERY_REQUIRED` đến khi inventory live xác minh. Lead không được là owner triển khai/nghiên cứu của task có ý nghĩa.
 
+## Cấu hình model và hook
+
+| Policy revision | Model status đã kiểm tra | Hook revision | Config check gần nhất | Ghi chú |
+|---|---|---|---|---|
+
+Chi tiết model ở `MODEL_POLICY.md` và `MODEL_STATUS.md`; checklist event ở `PROJECT_HOOKS.md`. Model chưa `verified` không được launch. Hook chỉ là checklist, không phải script tự chạy.
+
 ## Model và recovery
 
 | Role/task | Lần thử | Model/effort yêu cầu | Model/effort thực tế | Thứ tự fallback | Evidence lỗi | Quyết định recovery |
 |---|---:|---|---|---|---|---|
 
 Không retry model từ state unknown. Giữ ownership đến khi worker failed/stopped, file checkpoint và replacement path đã xác minh. Replacement dùng cùng task ID và là writer duy nhất trong vùng đó.
+
+## First-Pass Gate
+
+| Task | Route kiểm tra | Evidence đã nộp | Phần chưa kiểm tra | Trạng thái xác minh | Quyết định Lead |
+|---|---|---|---|---|---|
+
+Worker chuyển task sang `READY_FOR_VERIFICATION`; Big Lead chỉ ghi `DONE` sau `VERIFYING` và evidence phù hợp. Chi tiết ở `first-pass-verification.md`.
 
 ## Ownership và Parallel Gate
 
