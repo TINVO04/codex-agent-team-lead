@@ -58,6 +58,20 @@ Trước khi coi dependency là cứng, thử gỡ bằng versioned contract, mo
 
 Khi user gửi task mới lúc worker chạy, làm bước 1 và 4 ngay; không chờ wave xong. Task settle thì verify, xử lý event, release/retain terminal và xếp task mới ngay nhưng không vượt dependency/ownership.
 
+## Workload thích ứng và mở rộng có kiểm soát
+
+Lead không mặc định chia nhiều worker. Task liền mạch ưu tiên một worker làm trọn gói; task vừa chỉ thêm reviewer khi rủi ro cần; task lớn chỉ fan-out khi các nhánh độc lập và có integration owner từ đầu. Số worker là giới hạn, không phải mục tiêu. Đọc [workload thích ứng và hợp nhất](adaptive-workload-and-integration.md) trước khi fan-out, mở rộng giữa chừng, xử lý semantic conflict hoặc lặp sửa test.
+
+Sau khi nhiều worker hoàn thành, integration owner phải kiểm tra trạng thái hợp nhất bằng build/test hoặc smoke check toàn cục phù hợp. Git merge không conflict không phải bằng chứng hệ thống đúng. Nếu cổng hợp nhất hỏng, chỉ mở một resolver worker nhận đầy đủ log, checkpoint, file đã đổi và acceptance; không ném cùng lỗi đồng thời cho các writer cũ.
+
+## Checkpoint khi task phình to
+
+Không thêm writer vào cùng ownership zone khi worker hiện tại còn sửa dở. Worker phải dừng ở checkpoint an toàn và ghi handover gồm quyết định, file đã đổi, test, phần còn lại, dependency, rủi ro và bước kế tiếp. Lead chỉ chia nhánh sau khi xác nhận các nhánh độc lập; worker mới phải đọc handover và state thật trước khi làm. Nếu không tạo được nhánh độc lập, giữ một worker chính làm tiếp.
+
+## Giới hạn vòng sửa
+
+Lỗi provider/model và lỗi code/test là hai loại khác nhau. Lỗi model tuân theo retry cùng model tối đa ba lần trong policy. Lỗi test hoặc contract có tối đa ba lần sửa có bằng chứng cho một owner; sau đó đóng băng checkpoint và mở nhiều nhất một resolver worker có ngân sách riêng, hoặc chuyển `BLOCKED`/`WAITING_USER`. Không tự động revert toàn bộ diff hay xóa phần đã làm đúng; rollback chỉ được thực hiện với checkpoint, ownership rõ và quyền phù hợp.
+
 ## Mở rộng và thu gọn team
 
 Mặc định là `Root Lead → worker`. Chỉ tạo Domain Lead cho nhánh cô lập có đủ việc độc lập và cần điều phối cục bộ; vẫn tính vào capacity toàn cục và không được vượt depth policy.
@@ -68,9 +82,9 @@ Domain Lead không được mở rộng team quá policy. Khi domain không còn
 
 Sau Orca restart, bind lại Run nếu có, đối chiếu state với inventory live. Handle không thấy là `RECOVERY_REQUIRED`, không tự coi đã dừng. Ghi evidence có sẵn rồi chỉ mở dispatch mới khi cần rework đã xác minh. Không dùng handle cũ như quyền thao tác.
 
-## Phối hợp BE/FE
+## Phối hợp bên ngoài tùy nhu cầu
 
-Hai Lead ghi contract trước khi code:
+Khi task có dependency với nhóm, dự án hoặc hệ thống bên ngoài, các Lead ghi contract trước khi code:
 
 ```text
 Contract ID:
@@ -83,4 +97,4 @@ Version / tương thích ngược:
 Người chịu trách nhiệm smoke test và evidence:
 ```
 
-Contract có thể cho BE/FE làm song song bằng mock/fixture, nhưng không cho phép thay đổi không tương thích. Contract đổi phải ghi quyết định mới và thông báo cả hai Lead.
+Contract có thể cho các bên làm song song bằng mock/fixture, nhưng không cho phép thay đổi không tương thích. Nếu không có dependency thật thì bỏ qua phần phối hợp này. Contract đổi phải ghi quyết định mới và thông báo các owner bị ảnh hưởng.

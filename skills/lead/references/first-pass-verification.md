@@ -40,9 +40,13 @@ Không được dùng những câu như “chắc chắn đúng”, “không c�
 | Trung bình | Test hoặc manual smoke tập trung, cộng review evidence |
 | Rủi ro cao | QA độc lập hoặc smoke evidence tách riêng trước DONE |
 
-Task rủi ro cao gồm: auth/permission, payment, database/migration/state, API public/contract, tích hợp BE–FE, dữ liệu nhạy cảm hoặc thay đổi có thể ảnh hưởng nhiều người dùng.
+Task rủi ro cao gồm: auth/permission, payment, database/migration/state, API public/contract, dependency giữa nhiều nhóm/hệ thống, dữ liệu nhạy cảm hoặc thay đổi có thể ảnh hưởng nhiều người dùng.
 
 Một worker được phép tự chạy kiểm tra trong vùng mình sở hữu khi Task Contract cho phép. `Independent QA` không bắt buộc cho mọi sửa nhỏ; khi cần, QA không sửa cùng lúc vào vùng writer của worker.
+
+## Semantic Integration Gate
+
+Khi task có từ hai worker triển khai trở lên, phải có một integration owner kiểm tra kết quả sau fan-out. Merge không conflict dòng không đủ; integration owner phải đọc contract/chỗ gọi liên quan và chạy build/test hoặc smoke check toàn cục phù hợp. Nếu kiểm tra hỏng, chỉ giao log và checkpoint cho một resolver worker; không mở nhiều worker sửa cùng một lỗi. Task chỉ được `DONE` sau khi cổng hợp nhất đạt hoặc đã chuyển `BLOCKED`/`WAITING_USER` với phần chưa kiểm tra được ghi rõ.
 
 ## Vai trò
 

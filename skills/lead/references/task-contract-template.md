@@ -12,6 +12,12 @@ Loại task: <implementation | research | contract | test | review | integration
 Owner điều phối: <Root Lead | Domain Lead>
 Rule team áp dụng: <none | R-001, R-002>
 
+Chiến lược workload:
+- Chế độ: <single-owner | reviewed-single-owner | parallel-wave | integration | research-first>
+- Lý do: <vì sao một worker đủ hoặc vì sao các nhánh độc lập đáng để fan-out>
+- Owner hợp nhất: <worker ID/role hoặc none; bắt buộc nếu có từ hai writer>
+- Dependency bên ngoài: <none | mục tiêu, bên owner, contract/handover cần có>
+
 Phân công và liên hệ người dùng:
 - Owner triển khai: <nhãn worker; bắt buộc cho mọi nghiên cứu hoặc thay đổi file/output>
 - Ranh giới Lead: <chỉ yêu cầu người dùng + state .orca-team, xếp lịch, kiểm tra, báo cáo>
@@ -57,6 +63,7 @@ Chất lượng và xem trước:
 - Checklist: <API | UI/UX | data/change | integration | research/review; các mục cần có>
 - Evidence bắt buộc: <test, screenshot, manual step, contract check hoặc none>
 - First-Pass Gate: <worker evidence review | independent QA | smoke riêng | user review>
+- Semantic Integration Gate: <not needed | build/test/smoke toàn cục + integration owner; bắt buộc nếu nhiều writer>
 - Evidence tối thiểu trước DONE: <cụ thể>
 - Phần có thể chưa kiểm tra: <phạm vi + lý do, hoặc none>
 - Preview Gate: <not needed | internal | user review required>
@@ -77,6 +84,12 @@ Parallel Gate:
 - Kết quả: <pass | hard dependency | ownership conflict | contract-first>
 - Lý do và reservation: <path/tài nguyên/contract ID cụ thể>
 
+Checkpoint và giới hạn sửa:
+- Checkpoint/handover: <path/record hoặc none; bắt buộc trước khi mở rộng task đang làm>
+- Tối đa sửa lỗi code/test: <3 lần có evidence cho owner, sau đó resolver hoặc BLOCKED/WAITING_USER>
+- Resolver: <none | một resolver worker, phạm vi/budget/acceptance rõ>
+- Rollback: <không tự động | chỉ phần task sở hữu khi có checkpoint + quyền người dùng>
+
 Ràng buộc:
 - <môi trường, tương thích, bảo mật, approval của người dùng>
 
@@ -96,6 +109,8 @@ Báo cáo:
 - Sau lần làm đầu, event là `READY_FOR_VERIFICATION`, không phải `DONE`.
 - Event cuối phù hợp: `READY_FOR_VERIFICATION`, `BLOCKED`, `NEED_DECISION`, `CONTRACT_CHANGED` hoặc `FAILED`. Chỉ Big Lead ghi `DONE` sau VERIFYING.
 - Nếu model/agent lỗi: evidence, file có thể đã đổi không và recovery an toàn cần gì.
+- Nếu test vẫn hỏng sau mỗi lần sửa: log, giả thuyết, thay đổi và kết quả; đến giới hạn thì đóng băng checkpoint, không lặp vô hạn.
+- Nếu task phình to: chỉ đề xuất fan-out sau khi đã ghi handover và tách được ownership độc lập; không gọi thêm writer vào vùng đang sửa.
 - Thiếu capability: gửi `CAPABILITY_REQUEST`; không tự tìm/cài/chạy skill.
 - Thiếu role: gửi `CAPABILITY_REQUEST`; không tự tải Agency bundle, cài custom agent hoặc dùng raw profile chưa có AR-###.
 - Thiếu evidence nghiên cứu: gửi `RESEARCH_REQUEST`; không browse rộng hay dùng material bên thứ ba ngoài source plan.

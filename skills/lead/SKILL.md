@@ -46,7 +46,7 @@ Chỉ dùng skill này trong terminal Codex mở bởi Orca. Gõ `$`, chọn `Or
 5. Báo trạng thái khởi tạo, viewer hoặc khôi phục trước khi giao worker. Không đoán Run hay terminal cũ từ file state.
 6. Sau mỗi lần Orca mở worker, dùng handle thật để gọi `orca terminal rename --terminal <handle> --title "<role-label>" --json`, kiểm tra `ok: true` và đọc lại `visualLayouts` để chắc chắn tab đã đổi. Chỉ khi cổng đổi tên đạt mới ghi worker là `RUN`; nếu handle cũ thì relist trước, không gửi lại handle stale.
 
-Đọc [schema trạng thái](references/project-state-template.md) khi khởi tạo/khôi phục. Đọc [mẫu giao việc](references/task-contract-template.md) trước khi giao worker. Đọc [mô hình vận hành](references/operating-model.md) khi có nhiều yêu cầu, đổi ưu tiên, mở rộng/thu gọn team, khởi động lại hoặc phối hợp FE.
+Đọc [schema trạng thái](references/project-state-template.md) khi khởi tạo/khôi phục. Đọc [mẫu giao việc](references/task-contract-template.md) trước khi giao worker. Đọc [mô hình vận hành](references/operating-model.md) khi có nhiều yêu cầu, đổi ưu tiên, mở rộng/thu gọn team, khởi động lại hoặc có dependency giữa các nhóm/dự án. Đọc [workload thích ứng và hợp nhất](references/adaptive-workload-and-integration.md) khi chọn một hay nhiều worker, mở rộng giữa chừng, cần integration build, gặp semantic conflict hoặc lặp sửa test.
 
 Đọc [mô hình rule team](references/team-rules.md) khi người dùng đưa rule chung, yêu cầu đổi rule, hoặc rule thay đổi lúc agent đang chạy. Đọc [rule và hook dự án](references/project-rules-and-hooks.md) khi tạo/sửa hook, xử lý conflict policy/rule/hook hoặc chạy `$lead config check`. Đọc [quy tắc báo người dùng](references/user-reporting.md) trước khi báo tiến độ, hoàn tất, blocker hay hỏi quyết định. Đọc [chọn model và khôi phục](references/model-routing-and-recovery.md) và [model policy/runtime](references/model-policy-and-validation.md) trước khi mở/retry Lead hoặc worker hay kiểm tra model. Đọc [nhận diện Lead và terminal](references/lead-identity-and-visibility.md) trước khi khởi tạo, đổi tên terminal, kiểm tra tên tab hoặc nói ai sở hữu task nào.
 
@@ -101,7 +101,7 @@ Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; `TEAM_POLICY.md` vẫn là r
 8. Chỉ chạy task `READY` độc lập khi còn slot và ownership zone không trùng writer đang chạy.
 9. DTO chung, public contract, migration, config, solution/package manifest và path trùng nhau phải được tuần tự hóa hoặc tách thành contract-first.
 10. Dependency thật phải được ghi; dependency giả nên tháo bằng contract, mock, fixture, stub, test hoặc nghiên cứu chỉ-đọc.
-11. Mặc định một Lead và tối đa ba worker triển khai. Dùng lại terminal đã hoàn tất khi phù hợp; chỉ mở worker mới cho task `READY` thật sự.
+11. Mặc định một Lead và tối đa ba worker triển khai. Dùng lại terminal đã hoàn tất khi phù hợp; chỉ mở worker mới cho task `READY` thật sự. Số worker là giới hạn, không phải mục tiêu: task liền mạch ưu tiên một worker làm trọn gói; fan-out chỉ được mở sau Adaptive Workload Gate và phải có integration owner.
 12. P0 có thể ưu tiên hơn queue. Không ngắt writer giữa chừng trừ khi người dùng yêu cầu; gửi follow-up và giữ công việc của nó.
 13. Xử lý completion từng task: kiểm tra kết quả, giữ/dùng lại/giải phóng terminal, cập nhật state rồi xếp task `READY` tiếp theo. Claim `DONE` của worker không tự là bằng chứng.
 14. Worker hỏi Lead qua Orca; Lead trả lời quyết định theo task. Quyết định giữa dự án đi qua hai project Lead.
@@ -128,7 +128,7 @@ Nếu Orca không trả về Task/Dispatch và terminal handle thật, worker ch
 
 Worker thiếu capability gửi `CAPABILITY_REQUEST`; Lead kiểm tra role/skill registry và tạo worker `CAPABILITY-SCOUT` có phạm vi rõ, đưa reference đã duyệt, thu hẹp task hoặc hỏi người dùng — Lead không tự tìm. Capability-scout ưu tiên Agency role đã có/baseline, sau đó mới tìm profile nguồn; Agency role chỉ là card ngắn cho worker, không tự tạo terminal hay cài agent. Worker thiếu evidence research gửi `RESEARCH_REQUEST`; Lead mở worker nghiên cứu chỉ-đọc, không tự bổ sung nghiên cứu. Agent-Reach chỉ do Research Worker dùng khi policy/Task Contract cho phép public-only và tool đã được duyệt/có sẵn.
 
-Không mở worker cho yêu cầu mơ hồ, điều tra không giới hạn, task chờ người dùng hoặc task cần Git mà chưa được duyệt. Không vượt max worker chỉ để làm rỗng queue.
+Không mở worker cho yêu cầu mơ hồ, điều tra không giới hạn, task chờ người dùng hoặc task cần Git mà chưa được duyệt. Không vượt max worker chỉ để làm rỗng queue. Với task có thể làm liền mạch, Lead phải dùng đường một-worker trước; chỉ mở rộng khi các nhánh độc lập, có handover/checkpoint và có owner hợp nhất theo [workload thích ứng và hợp nhất](references/adaptive-workload-and-integration.md).
 
 ## Domain Lead tùy chọn
 
@@ -158,9 +158,9 @@ Dùng `orchestration` và `orca-cli` đã cài cho task có giám sát, dispatch
 
 Không cho hai writer có path trùng nhau cùng chạy trong shared workspace. Chỉ dùng worktree sau khi có Git approval. Orca restart phải kiểm tra inventory live; không tuyên bố terminal cũ còn tồn tại.
 
-## Phối hợp BE và FE
+## Phối hợp bên ngoài tùy nhu cầu
 
-Mỗi project Lead sở hữu worker của dự án mình. Hai Lead trao đổi một contract ngắn: correlation ID, endpoint/event, request/response, permission, state/error, nullable fields, acceptance test và decision owner. Worker-to-worker chỉ được trực tiếp trao đổi trong task QA/smoke test đã được cả hai Lead tạo. Không gửi credential, token, private URL hay thông tin database qua tin nhắn team.
+Mỗi Lead sở hữu worker trong phạm vi của mình. Khi task có dependency với nhóm, dự án hoặc hệ thống bên ngoài, các bên trao đổi một contract ngắn: mục tiêu, đầu vào/đầu ra, phiên bản, quyền, trạng thái/lỗi, acceptance test và decision owner. Chỉ bật kênh worker-to-worker khi dependency thật sự cần; không gắn cứng tên miền hay loại dự án. Không gửi credential, token, private URL hay thông tin database qua tin nhắn team.
 
 ## Cách báo người dùng
 

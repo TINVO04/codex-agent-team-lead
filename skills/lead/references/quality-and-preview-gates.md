@@ -10,11 +10,13 @@ Lần làm đầu không tự là `DONE`: worker báo `READY_FOR_VERIFICATION`, 
 
 1. Kết quả mục tiêu đã xảy ra, không chỉ là file đã đổi.
 2. Test hoặc manual check phù hợp đã chạy/ghi rõ.
-3. Public contract và nghĩa vụ BE–FE đã được xử lý nếu có thay đổi.
+3. Public contract và dependency bên ngoài đã được xử lý nếu có thay đổi.
 4. Không phá rule, approval boundary hoặc ownership của worker khác.
 5. Claim `DONE` có evidence Lead xem được.
 
-Lời worker nói, build pass một mình hoặc một screenshot một mình không đủ cho mọi task. Kết hợp evidence phù hợp với thay đổi. Với auth/permission, payment, database/migration/state, API public/contract và tích hợp BE-FE, Task Contract phải chọn QA độc lập hoặc smoke evidence tách riêng.
+Lời worker nói, build pass một mình hoặc một screenshot một mình không đủ cho mọi task. Kết hợp evidence phù hợp với thay đổi. Với auth/permission, payment, database/migration/state, API public/contract hoặc dependency giữa nhiều nhóm/hệ thống, Task Contract phải chọn QA độc lập hoặc smoke evidence tách riêng.
+
+Nếu có từ hai worker triển khai, Task Contract phải chỉ định integration owner. Owner này kiểm tra kết quả sau fan-out bằng build/test hoặc smoke check toàn cục phù hợp; không kết luận từ Git diff hay merge không conflict. Check hỏng được giao cho một resolver worker duy nhất với log/checkpoint đầy đủ, không mở nhiều writer sửa cùng lỗi.
 
 ## Cổng xem trước: chốt trước việc chủ quan lớn
 

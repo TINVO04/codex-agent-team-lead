@@ -84,7 +84,9 @@ Lead ghi routine, research-first hoặc research-deep lúc nhận task. UI/UX, v
 
 ## Chất lượng, preview và phân công
 
-Mỗi task chọn checklist trong QUALITY_GATES.md, ghi evidence trong Task Contract và chỉ DONE sau Lead kiểm tra. Trang mới, redesign lớn, navigation hoặc user flow quan trọng cần bản tóm tắt để người dùng chốt trước khi worker thay đổi phần quyết định hướng.
+Mỗi task chọn checklist trong QUALITY_GATES.md, ghi evidence trong Task Contract và chỉ DONE sau Lead kiểm tra. Task liền mạch dùng một worker làm trọn gói; chỉ fan-out khi các nhánh độc lập và có integration owner. Nếu có nhiều writer, integration owner bắt buộc chạy build/test hoặc smoke check toàn cục phù hợp, vì merge không conflict không chứng minh logic đã tương thích. Trang mới, redesign lớn, navigation hoặc user flow quan trọng cần bản tóm tắt để người dùng chốt trước khi worker thay đổi phần quyết định hướng.
+
+Không thêm writer vào task đang làm dở. Nếu task phình to, owner hiện tại phải dừng ở checkpoint an toàn và ghi handover gồm quyết định, file đã đổi, test, phần còn lại, dependency, rủi ro và bước tiếp theo trước khi Lead chia nhánh. Lỗi code/test có tối đa ba lần sửa có evidence cho mỗi owner; sau đó đóng băng checkpoint và chỉ mở một resolver worker hoặc chuyển BLOCKED/WAITING_USER. Không tự động revert/xóa toàn bộ diff; rollback chỉ phần task sở hữu khi có checkpoint và quyền phù hợp.
 
 Root/Domain Lead chỉ nhận yêu cầu, ưu tiên, mở worker, ghi quyết định, kiểm tra và báo cáo. Lead không tìm web, scan file, chạy command dài, debug, code, test, sửa config/tài liệu/asset hay tạo output dự án. Orca phải trả Task/Dispatch và terminal handle, terminal phải được đổi tên/ghi dashboard thì worker mới active. Launch lỗi thì task QUEUED/BLOCKED; Lead không làm thay.
 
@@ -97,10 +99,10 @@ MODEL_POLICY.md là nguồn cấu hình thật của dự án: người dùng ch
 Root Lead và Domain Lead: gpt-5.6-terra với xhigh; fallback qwen3.8-max-0902 với xhigh.
 
 Worker:
-- việc khó: qwen3.8-max-0902 với high, rồi deepseek-v4.1-flash, rồi glm-5.3-flash;
-- việc thường: deepseek-v4.1-flash với medium, rồi Qwen, rồi GLM;
-- việc nhanh: glm-5.3-flash với low, rồi DeepSeek, rồi Qwen;
-- kiểm tra cuối: Qwen với high, rồi DeepSeek, rồi GLM.
+- code, sửa bug, contract/state hoặc integration: dùng route việc khó và model mạnh nhất đã verified trong pool người dùng cho phép;
+- việc thường chỉ dùng cho research, tài liệu, phân loại hoặc kiểm tra hẹp nếu policy dự án không quy định khác: deepseek-v4.1-flash với medium, rồi Qwen, rồi GLM;
+- việc nhanh: glm-5.3-flash với low cho đọc/kiểm tra cơ học, không mặc định cho thay đổi cần hiểu nhiều file;
+- kiểm tra cuối/integration: Qwen với high, rồi DeepSeek, rồi GLM.
 
 Ghi model yêu cầu, runtime xác nhận, pool route, effort, lần thử cùng model và fallback. Unknown/disconnected không phải lỗi model. Worker có thể đã sửa file thì giữ ownership, kiểm tra checkpoint rồi retry cùng task bằng chính model đó đến 3/3 khi lỗi model được chứng minh; chỉ sau 3/3 mới xoay sang model `verified` khác trong pool worker. Domain Lead/Root Lead cũng phải thử chính model đủ 3 lần trước replacement trong pool Lead, trừ khi runtime từ chối launch ngay từ đầu. Không lấy model của pool khác để chữa cháy. Tất cả model trong pool lỗi/không có thì WAITING_USER. Root Lead lỗi phải do caller giám sát thay bằng state đã lưu.
 
@@ -108,7 +110,7 @@ Ghi model yêu cầu, runtime xác nhận, pool route, effort, lần thử cùng
 
 TEAM_RULES.md giữ rule; PROJECT_HOOKS.md giữ checklist theo event. Hook được phép kiểm tra state/contract/evidence, yêu cầu acknowledgement hoặc giữ trạng thái task. Hook không được tự chạy script/shell/Git/DB/deploy, login, external write, đổi quyền/model/ownership/scope hay tạo worker vượt capacity.
 
-Mọi task sau lần triển khai đầu chuyển `READY_FOR_VERIFICATION`, rồi `VERIFYING`. Worker nộp evidence đã kiểm tra và phần chưa kiểm tra. Lead chỉ ghi `DONE` sau khi evidence khớp acceptance và mức kiểm tra theo rủi ro. Auth, permission, payment, database/migration/state, API public/contract và tích hợp BE-FE cần QA độc lập hoặc smoke evidence tách riêng.
+Mọi task sau lần triển khai đầu chuyển `READY_FOR_VERIFICATION`, rồi `VERIFYING`. Worker nộp evidence đã kiểm tra và phần chưa kiểm tra. Lead chỉ ghi `DONE` sau khi evidence khớp acceptance và mức kiểm tra theo rủi ro. Auth, permission, payment, database/migration/state, API public/contract hoặc dependency giữa nhiều nhóm/hệ thống cần QA độc lập hoặc smoke evidence tách riêng. Có nhiều writer thì bắt buộc Semantic Integration Gate: một integration owner chạy build/test hoặc smoke toàn cục phù hợp trước DONE.
 
 ## Big Lead và khả năng quan sát
 
@@ -132,10 +134,10 @@ Bảng này do người dùng chỉnh và là nguồn sự thật cho route/pool
 |---|---|---|---|---|---|
 | big-lead | Big Lead mở mới | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool Lead |
 | domain-lead | Lead phụ | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool Lead |
-| difficult-worker | Việc khó | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Pool worker |
-| normal-worker | Việc thường | deepseek-v4.1-flash | medium | deepseek-v4.1-flash → qwen3.8-max-0902 → glm-5.3-flash | Pool worker |
-| quick-worker | Việc nhỏ | glm-5.3-flash | low | glm-5.3-flash → deepseek-v4.1-flash → qwen3.8-max-0902 | Pool worker |
-| final-review | Kiểm tra cuối | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Pool worker |
+| difficult-worker | Code, bug, contract/state, integration | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Route mạnh cho thay đổi cần hiểu sâu |
+| normal-worker | Research, tài liệu, phân loại hoặc kiểm tra hẹp | deepseek-v4.1-flash | medium | deepseek-v4.1-flash → qwen3.8-max-0902 → glm-5.3-flash | Không mặc định cho thay đổi code nhiều file |
+| quick-worker | Đọc hoặc kiểm tra cơ học | glm-5.3-flash | low | glm-5.3-flash → deepseek-v4.1-flash → qwen3.8-max-0902 | Không mặc định cho thay đổi cần suy luận sâu |
+| final-review | Kiểm tra cuối hoặc integration | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Có thể làm integration owner |
 '@
     [System.IO.File]::WriteAllText($modelPolicyPath, $modelPolicyContents, $utf8NoBom)
 }
@@ -529,7 +531,9 @@ Lần triển khai đầu có thể đúng nhưng không tự là DONE. Worker b
 
 - Task hẹp, rủi ro thấp: worker evidence + Lead review evidence.
 - Task trung bình: có test hoặc manual smoke tập trung.
-- Auth/permission, payment, database/migration/state, API public/contract và tích hợp BE-FE: có QA độc lập hoặc smoke evidence tách riêng.
+- Auth/permission, payment, database/migration/state, API public/contract hoặc dependency giữa nhiều nhóm/hệ thống: có QA độc lập hoặc smoke evidence tách riêng.
+- Có từ hai writer: chỉ định integration owner, chạy build/test hoặc smoke check toàn cục phù hợp; merge không conflict không đủ.
+- Test/code hỏng ba lần sửa có evidence: đóng băng checkpoint, chỉ mở một resolver worker hoặc chuyển BLOCKED/WAITING_USER; không tự động revert toàn bộ diff.
 
 Không nói chắc chắn không còn lỗi hoặc sẵn sàng production khi evidence không chứng minh được phạm vi đó.
 
@@ -538,7 +542,7 @@ Không nói chắc chắn không còn lỗi hoặc sẵn sàng production khi ev
 - Request, response, status/error, validation, authorization, idempotency/state rõ khi áp dụng.
 - Endpoint/DTO công khai cập nhật contract/docs/examples.
 - Test tập trung pass, hoặc ghi rõ vì sao không chạy được và manual check an toàn.
-- Client cũ tương thích, hoặc BE/FE contract ghi breaking change đã phối hợp.
+- Client/bên phụ thuộc cũ tương thích, hoặc contract ghi breaking change đã phối hợp.
 
 ## Thay đổi UI / UX
 

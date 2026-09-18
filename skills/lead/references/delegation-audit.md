@@ -19,6 +19,9 @@ Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiế
 9. Task có dùng Agent-Reach không? Nếu có, nó có thuộc Research Worker, ghi `public-only` và không có dấu hiệu login/cookie/token/thao tác ghi ngoài phạm vi không?
 10. Model đã phân công có `verified` trong MODEL_STATUS.md của policy revision hiện tại không?
 11. Task worker nói đã xong có đi qua `READY_FOR_VERIFICATION` và `VERIFYING` với evidence đúng mức rủi ro không?
+12. Nếu task có nhiều writer, Task Contract có integration owner và Semantic Integration Gate với build/test/smoke toàn cục phù hợp không?
+13. Nếu task đang mở rộng giữa chừng, có checkpoint/handover và ownership mới không chồng lấn không?
+14. Worker có đang lặp sửa code/test quá ba lần mà chưa chuyển resolver, `BLOCKED` hoặc `WAITING_USER` không?
 
 ## Kết quả audit
 
@@ -29,6 +32,8 @@ Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiế
 - `CONFLICT`: worker trùng, ownership overlap hoặc Lead bị ghi thành owner nghiên cứu/triển khai.
 - `CONFIG_GAP`: model chưa kiểm tra, hook/rule mâu thuẫn rõ hoặc task bỏ qua First-Pass Gate.
 - `INPUT_NOT_STARTED`: Dispatch đã nhận Task Contract nhưng worker chưa bắt đầu lượt làm; cần một lần Enter fallback hoặc báo blocker, không được ghi `RUN`.
+- `INTEGRATION_GAP`: nhiều thay đổi đã hoàn thành nhưng chưa có owner hợp nhất hoặc chưa có kiểm tra toàn cục.
+- `RETRY_LOOP`: worker đang lặp sửa/test vượt giới hạn mà không có checkpoint hoặc quyết định xử lý tiếp.
 
 Không kết luận worker đã mất chỉ vì dashboard cũ không hiển thị. Inventory Orca live là nguồn đúng. Terminal/worker chưa rõ trạng thái cũng không tự là lỗi; dùng quy trình recovery.
 

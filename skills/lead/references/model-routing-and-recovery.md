@@ -19,6 +19,10 @@ Chỉ dẫn hiện tại của người dùng và `TEAM_POLICY.md` luôn cao hơ
 
 Fallback worker dùng cùng effort trừ khi runtime từ chối. Chỉ model có trạng thái `verified` trong `MODEL_STATUS.md` được launch. Thiếu model, status `unknown`, hoặc policy mới chưa kiểm tra thì giữ task `QUEUED`/`WAITING_USER`; không dùng model ngoài pool của route. Model verified ở pool khác cũng không được dùng để chữa cháy. Không probe lại một model đã `verified` trong cùng revision policy.
 
+## Chọn model theo phần việc thật
+
+Route `quick` chỉ phù hợp cho đọc, phân loại, tài liệu hoặc thay đổi cơ học có acceptance hẹp. Worker viết code, sửa bug, thay đổi contract/state hoặc làm integration phải dùng model mạnh nhất đã `verified` trong pool mà người dùng cho phép; không hạ xuống model nhanh chỉ vì task được gọi là “bình thường”. Reviewer/integration cũng phải đủ mạnh để đọc toàn bộ kết quả. Nếu người dùng chọn route khác, `MODEL_POLICY.md` của dự án vẫn là nguồn sự thật.
+
 ## Thử lại cùng model trước khi đổi
 
 Mặc định mỗi model được chạy **tối đa ba lần liên tiếp cho cùng một task**: lần đầu, lần 2 và lần 3. Đây là tổng số lần chạy, không phải ba lần cộng thêm sau lần đầu.

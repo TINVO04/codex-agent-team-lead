@@ -27,10 +27,10 @@ Same-model max attempts: 3
 |---|---|---|---|---|---|
 | big-lead | Big Lead mở mới | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool của Lead |
 | domain-lead | Lead phụ | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool của Lead |
-| difficult-worker | Việc khó | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Pool worker |
-| normal-worker | Việc thường | deepseek-v4.1-flash | medium | deepseek-v4.1-flash → qwen3.8-max-0902 → glm-5.3-flash | Pool worker |
-| quick-worker | Việc nhỏ | glm-5.3-flash | low | glm-5.3-flash → deepseek-v4.1-flash → qwen3.8-max-0902 | Pool worker |
-| final-review | Kiểm tra cuối | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Pool worker |
+| difficult-worker | Code, bug, contract/state, integration | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Route mạnh cho thay đổi cần hiểu sâu |
+| normal-worker | Research, tài liệu, phân loại hoặc kiểm tra hẹp | deepseek-v4.1-flash | medium | deepseek-v4.1-flash → qwen3.8-max-0902 → glm-5.3-flash | Không mặc định cho thay đổi code nhiều file |
+| quick-worker | Đọc hoặc kiểm tra cơ học | glm-5.3-flash | low | glm-5.3-flash → deepseek-v4.1-flash → qwen3.8-max-0902 | Không mặc định cho thay đổi cần suy luận sâu |
+| final-review | Kiểm tra cuối hoặc integration | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Có thể làm integration owner |
 ```
 
 Người dùng có thể thay model, effort, pool, thứ tự xoay và bật/tắt tự đổi sang dự phòng. `Same-model max attempts: 3` nghĩa là cùng model được chạy tổng cộng ba lần cho một task rồi mới được đổi model; giữ giá trị 3 để hành vi recovery luôn rõ và giới hạn. Khi worker launch, ghi route và pool đọc từ `MODEL_POLICY.md` vào Task Contract; fallback phải lấy đúng từ pool đó, không lấy model ngẫu nhiên trong toàn hệ thống. Big Lead giữ nguyên cấu trúc route để dễ kiểm tra. Nếu cần route hoặc pool mới, ghi rõ mục đích và bổ sung vào Task Contract trước khi dùng.

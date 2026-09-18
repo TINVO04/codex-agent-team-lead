@@ -276,7 +276,18 @@ Task cần việc khác → QUEUED hoặc BLOCKED
 Task cần bạn chọn → WAITING_USER
 ```
 
-Mặc định một Big Lead có tối đa ba worker triển khai. Chỉ tạo Lead phụ khi có ít nhất hai nhánh độc lập, đủ việc dài hạn và Orca còn capacity. Khi hết việc, Lead phụ và worker được thu gọn.
+Mặc định một Big Lead có tối đa ba worker triển khai. Số worker là giới hạn, không phải mục tiêu: việc liền mạch ưu tiên một worker làm trọn gói; chỉ tạo Lead phụ hoặc fan-out khi có ít nhất hai nhánh độc lập, đủ việc dài hạn và Orca còn capacity. Khi hết việc, Lead phụ và worker được thu gọn.
+
+### ⚙️ Workload tự thích ứng
+
+Quy trình không ép mọi yêu cầu phải chia nhiều agent:
+
+- Việc nhỏ, rõ: một worker làm từ đầu đến cuối và tự kiểm tra.
+- Việc vừa: một worker chính; chỉ thêm reviewer khi rủi ro cần.
+- Việc lớn: chia theo wave khi các nhánh thật sự độc lập, ownership không chồng lấn và có integration owner ngay từ đầu.
+- Task phình to giữa chừng: worker hiện tại dừng ở checkpoint an toàn, ghi handover rồi mới chia nhánh; không đưa writer mới vào cùng vùng đang sửa.
+
+Sau khi nhiều worker hoàn thành, integration owner phải chạy build/test hoặc smoke check toàn cục. Merge không conflict không đủ để kết luận logic đã tương thích. Nếu cổng này hỏng, chỉ mở một resolver worker nhận log và checkpoint đầy đủ. Lỗi code/test tối đa ba lần sửa có bằng chứng; sau đó giữ checkpoint, chuyển resolver hoặc `BLOCKED`/`WAITING_USER`, không tự động xóa toàn bộ diff.
 
 ## 🧪 Cổng chất lượng: lần làm đầu chưa phải kết quả cuối
 
@@ -292,14 +303,14 @@ VERIFYING — Big Lead hoặc QA đối chiếu bằng chứng
 DONE — chỉ khi mức kiểm tra phù hợp đã đạt
 ```
 
-Việc nhỏ không bị bắt kiểm tra vòng vo: worker evidence và Big Lead đối chiếu là đủ. Việc có rủi ro cao như quyền truy cập, thanh toán, cập nhật database, API công khai hoặc kết nối BE–FE cần QA riêng hoặc kiểm tra nhanh tách riêng.
+Việc nhỏ không bị bắt kiểm tra vòng vo: worker evidence và Big Lead đối chiếu là đủ. Việc có rủi ro cao như quyền truy cập, thanh toán, cập nhật database, API công khai hoặc dependency giữa nhiều nhóm/hệ thống cần QA riêng hoặc kiểm tra nhanh tách riêng. Nếu có nhiều writer, bắt buộc có Semantic Integration Gate với một integration owner.
 
 Big Lead phải kiểm tra checklist phù hợp:
 
 - **API/backend:** request, response, status/error, permission, state, idempotency và test.
 - **UI/UX:** desktop/mobile, loading, empty, error, accessibility và visual check.
 - **Database/state:** migration, null/legacy data, rollback và compatibility.
-- **Tích hợp BE/FE:** contract, field nullable, permission, error mapping và smoke test.
+- **Dependency bên ngoài:** contract, đầu vào/đầu ra, quyền, error mapping và smoke test phù hợp; chỉ bật khi task thật sự có phụ thuộc.
 - **Research/review:** nguồn, kết luận, đánh đổi, giới hạn và quyết định.
 
 Với màn hình mới, redesign lớn hoặc đổi flow, Big Lead gửi preview để bạn chốt hướng trước khi worker làm phần quyết định.
@@ -313,10 +324,10 @@ Mẫu ban đầu vẫn có sẵn để dùng nhanh:
 | Vai trò / việc | Model chính | Dự phòng |
 |---|---|---|
 | Big Lead / Lead phụ | `gpt-5.6-terra` · `xhigh` | `qwen3.8-max-0902` |
-| Worker việc khó | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
-| Worker việc thường | `deepseek-v4.1-flash` · `medium` | Qwen → GLM |
-| Worker việc nhỏ | `glm-5.3-flash` · `low` | DeepSeek → Qwen |
-| Kiểm tra cuối | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
+| Worker code/bug/contract/integration | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
+| Worker research/tài liệu/kiểm tra hẹp | `deepseek-v4.1-flash` · `medium` | Qwen → GLM |
+| Worker đọc/kiểm tra cơ học | `glm-5.3-flash` · `low` | DeepSeek → Qwen |
+| Kiểm tra cuối/integration | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
 
 Điểm quan trọng: Big Lead chỉ giao việc bằng model có trạng thái `verified` trong `MODEL_STATUS.md`. Khi bạn đổi policy, dùng `$lead models validate`; mỗi model chỉ kiểm tra một lần cho mỗi lần chỉnh policy, không làm tốn slot lặp lại.
 
@@ -376,6 +387,7 @@ skills/lead/
 │   ├── agency-profiles-and-agent-reach.md
 │   ├── capability-discovery-and-skill-gate.md
 │   ├── model-policy-and-validation.md
+│   ├── adaptive-workload-and-integration.md
 │   ├── project-rules-and-hooks.md
 │   ├── first-pass-verification.md
 │   ├── research-first-gate.md
