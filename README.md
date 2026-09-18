@@ -149,6 +149,8 @@ Tên terminal luôn bắt đầu bằng số để nhìn ra quan hệ:
 
 Mở terminal thứ hai trong cùng dự án **không** tạo Big Lead thứ hai. Terminal đó là viewer cho đến khi recovery/takeover được xác minh.
 
+Sau khi mở worker, Lead phải đổi tên tab bằng handle Orca trả về và kiểm tra lại tab đã đổi. Nếu vẫn thấy `worker-task_<id>`, đó là dấu hiệu cổng đổi tên chưa chạy hoặc dùng handle cũ; worker chưa được ghi là `RUN` hoàn chỉnh trên bảng team.
+
 ## 🧠 Agency Agents: chọn đúng chuyên môn
 
 Agency Agents được dùng như **thư viện vai trò chuyên môn**, không phải hệ thống điều phối thứ hai.

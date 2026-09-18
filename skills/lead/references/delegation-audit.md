@@ -11,7 +11,7 @@ Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiế
 1. Đây chỉ là status/clarification/policy hay có nghiên cứu/công việc dự án thật?
 2. Nếu là nghiên cứu/công việc thật, Task Contract có tên worker owner không?
 3. Orca live có Task/Dispatch và terminal handle của worker, hoặc có completion/recovery đã xác minh giải thích vì sao không còn terminal không?
-4. Terminal title và dashboard có đúng vai trò/trạng thái hiện tại không?
+4. Nhãn tab trong `visualLayouts` và dashboard có đúng vai trò/trạng thái hiện tại không? Không dùng riêng `terminals[].title`, vì đó có thể là tiêu đề nội bộ do agent tự đặt.
 5. Root/Domain Lead có chỉ là coordinator, decision owner, verifier hoặc reporter; không phải research/delivery owner không?
 6. Có worker trùng hoặc ownership zone xung đột không?
 7. Task có dùng Agency role không? Nếu có, `AR-###` có tồn tại, đã thu hẹp đúng task và không tự cấp thêm quyền không?

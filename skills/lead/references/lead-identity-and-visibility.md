@@ -26,7 +26,7 @@ Nếu Orca không tự xác định terminal hiện tại, dùng handle thật d
 orca terminal rename --terminal <runtime-handle> --title "00 | BIG | <PROJECT> | RUN" --json
 ```
 
-Sau khi Orca trả handle của terminal mới, đổi tên theo cùng quy tắc ngay:
+Sau khi Orca trả handle của terminal mới, đổi tên theo cùng quy tắc ngay. Worker chưa có nhãn chuẩn thì chưa được ghi là `RUN` trên dashboard:
 
 ```text
 00 | BIG | MEU-HIRE-FE | RUN
@@ -38,6 +38,20 @@ Sau khi Orca trả handle của terminal mới, đổi tên theo cùng quy tắc
 ```
 
 Big Lead chỉ gọi `orca terminal rename` sau khi Lead/worker mở thành công và trước khi ghi role active trong dashboard. Nếu đổi tên lỗi, vẫn giữ task/worker chạy, ghi lỗi và hiện role đúng trong `TEAM_DASHBOARD.md`; không đoán handle hoặc đổi nhầm terminal.
+
+## Cổng đổi tên worker
+
+Với worker, Lead dùng đúng handle mà Orca trả từ Dispatch/Task, không dùng tên tab hay task ID thay cho handle:
+
+```powershell
+orca terminal rename --terminal <worker-runtime-handle> --title "11 | WORKER-<DOMAIN> | <TASK-ID> | RUN" --json
+```
+
+Chỉ coi cổng này đạt khi kết quả có `ok: true` và có `result.rename.title` đúng nhãn. Sau đó đọc lại inventory với `orca terminal list --include-visual-layouts --json` và xác nhận nhãn nằm trong `visualLayouts[].root.tabs[].title`. Trường `terminals[].title` có thể vẫn là tiêu đề nội bộ do Codex/agent tự đặt; tiêu đề trên tab Orca là `visualLayouts` mới là phần người dùng nhìn thấy.
+
+Nếu nhận `terminal_handle_stale`, không gửi lại lệnh với handle cũ. Gọi lại `terminal list`, lấy handle mới của đúng tab/leaf rồi đổi tên lại. Nếu vẫn không đổi được, ghi worker là `UNNAMED` hoặc `RENAME_BLOCKED`, không ghi `RUN` như thể đã nhận diện hoàn chỉnh; task vẫn giữ ownership nhưng Lead phải báo rõ nhãn chưa đổi.
+
+Khi worker đã hoàn tất, đổi state word thành `DONE`, `CHECK` hoặc `BLOCK` trước khi release/giữ terminal. Không để tab hoàn tất tiếp tục mang nhãn `RUN`.
 
 ## Khi mở terminal Codex thứ hai trong cùng dự án
 
