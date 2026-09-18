@@ -92,7 +92,7 @@ Lead audit chỉ đọc board, contract, dashboard và inventory Orca; không m�
 
 ## Chính sách model
 
-MODEL_POLICY.md là nơi người dùng chỉnh model, effort, thứ tự dự phòng và việc có được tự chuyển sang dự phòng hay không. MODEL_STATUS.md là kết quả Orca đã kiểm tra. Bảng dưới chỉ là mẫu khởi tạo; chỉ model `verified` trong MODEL_STATUS.md mới được launch. Model không rõ trạng thái, không có trong policy hoặc đã disabled không được tự dùng.
+MODEL_POLICY.md là nguồn cấu hình thật của dự án: người dùng chỉnh model, effort, pool model và thứ tự xoay tại đây. MODEL_STATUS.md là kết quả Orca đã kiểm tra. Bảng dưới chỉ là mẫu khởi tạo, không phải danh sách model bị khóa; chỉ model `verified` trong MODEL_STATUS.md mới được launch. Model không rõ trạng thái, không có trong pool của route hoặc đã disabled không được tự dùng. Mặc định một model được thử tổng cộng 3 lần cho cùng task trước khi xoay model.
 
 Root Lead và Domain Lead: gpt-5.6-terra với xhigh; fallback qwen3.8-max-0902 với xhigh.
 
@@ -102,7 +102,7 @@ Worker:
 - việc nhanh: glm-5.3-flash với low, rồi DeepSeek, rồi Qwen;
 - kiểm tra cuối: Qwen với high, rồi DeepSeek, rồi GLM.
 
-Ghi model yêu cầu, runtime xác nhận, effort và fallback. Unknown/disconnected không phải lỗi model. Worker có thể đã sửa file thì giữ ownership, kiểm tra checkpoint rồi mới retry cùng task bằng fallback `verified` sau khi lỗi được chứng minh. Tất cả fallback lỗi/không có thì WAITING_USER. Root Lead lỗi phải do caller giám sát thay bằng state đã lưu.
+Ghi model yêu cầu, runtime xác nhận, pool route, effort, lần thử cùng model và fallback. Unknown/disconnected không phải lỗi model. Worker có thể đã sửa file thì giữ ownership, kiểm tra checkpoint rồi retry cùng task bằng chính model đó đến 3/3 khi lỗi model được chứng minh; chỉ sau 3/3 mới xoay sang model `verified` khác trong pool worker. Domain Lead/Root Lead cũng phải thử chính model đủ 3 lần trước replacement trong pool Lead, trừ khi runtime từ chối launch ngay từ đầu. Không lấy model của pool khác để chữa cháy. Tất cả model trong pool lỗi/không có thì WAITING_USER. Root Lead lỗi phải do caller giám sát thay bằng state đã lưu.
 
 ## Hook và First-Pass Gate
 
@@ -124,17 +124,18 @@ if (-not (Test-Path -LiteralPath $modelPolicyPath)) {
 Cập nhật gần nhất: chưa khởi tạo
 Revision: MP-001
 Tự đổi sang dự phòng: có
+Same-model max attempts: 3
 
-Bảng này do người dùng chỉnh. Big Lead chỉ được phân công model có trạng thái `verified` trong MODEL_STATUS.md. Đổi model hoặc effort phải tăng Revision rồi chạy `$lead models validate`; không tự dùng model mới trước khi Orca kiểm tra.
+Bảng này do người dùng chỉnh và là nguồn sự thật cho route/pool của dự án. Big Lead chỉ được phân công model có trạng thái `verified` trong MODEL_STATUS.md. Pool Qwen/DeepSeek/GLM chỉ là mẫu mặc định; model nào được thêm rõ vào pool trong file đều có thể dùng sau khi kiểm tra. `Same-model max attempts: 3` nghĩa là cùng model chạy tổng cộng ba lần cho một task; chỉ lỗi lần 3 mới xoay model trong đúng pool. Đổi model, pool hoặc effort phải tăng Revision rồi chạy `$lead models validate`; không tự dùng model mới trước khi Orca kiểm tra.
 
-| Route | Dùng cho | Model chính | Effort | Dự phòng theo thứ tự | Ghi chú |
+| Route | Dùng cho | Model chính | Effort | Pool được xoay khi lỗi | Ghi chú |
 |---|---|---|---|---|---|
-| big-lead | Big Lead mở mới | gpt-5.6-terra | xhigh | qwen3.8-max-0902 | |
-| domain-lead | Lead phụ | gpt-5.6-terra | xhigh | qwen3.8-max-0902 | |
-| difficult-worker | Việc khó | qwen3.8-max-0902 | high | deepseek-v4.1-flash → glm-5.3-flash | |
-| normal-worker | Việc thường | deepseek-v4.1-flash | medium | qwen3.8-max-0902 → glm-5.3-flash | |
-| quick-worker | Việc nhỏ | glm-5.3-flash | low | deepseek-v4.1-flash → qwen3.8-max-0902 | |
-| final-review | Kiểm tra cuối | qwen3.8-max-0902 | high | deepseek-v4.1-flash → glm-5.3-flash | |
+| big-lead | Big Lead mở mới | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool Lead |
+| domain-lead | Lead phụ | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool Lead |
+| difficult-worker | Việc khó | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Pool worker |
+| normal-worker | Việc thường | deepseek-v4.1-flash | medium | deepseek-v4.1-flash → qwen3.8-max-0902 → glm-5.3-flash | Pool worker |
+| quick-worker | Việc nhỏ | glm-5.3-flash | low | glm-5.3-flash → deepseek-v4.1-flash → qwen3.8-max-0902 | Pool worker |
+| final-review | Kiểm tra cuối | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Pool worker |
 '@
     [System.IO.File]::WriteAllText($modelPolicyPath, $modelPolicyContents, $utf8NoBom)
 }
@@ -185,6 +186,17 @@ Bắt buộc:
 - Có evidence đã kiểm tra và nêu rõ phần chưa kiểm tra.
 - Task rủi ro cao có QA độc lập hoặc smoke evidence tách riêng.
 Nếu không đạt: trả ACTIVE hoặc BLOCKED; không ghi DONE.
+Trạng thái: active
+
+### H-003 — Thử cùng model đủ ba lần trước khi đổi
+Event: on_model_failure
+Khi: Orca xác minh lỗi model hoặc provider cho task đang chạy
+Bắt buộc:
+- Giữ ownership và checkpoint của cùng task.
+- Ghi model, effort và lần lỗi hiện tại trên 3 vào TEAM_STATE.md.
+- Lỗi lần 1 hoặc 2: retry cùng model, cùng effort.
+- Lỗi lần 3: mới được dùng fallback verified theo MODEL_POLICY.md; nếu tắt tự đổi fallback thì WAITING_USER.
+Nếu không đạt: không được đổi model.
 Trạng thái: active
 
 ## Hook đã ngừng

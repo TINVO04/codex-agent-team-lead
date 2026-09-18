@@ -56,10 +56,10 @@ Chi tiết model ở `MODEL_POLICY.md` và `MODEL_STATUS.md`; checklist event �
 
 ## Model và recovery
 
-| Role/task | Lần thử | Model/effort yêu cầu | Model/effort thực tế | Thứ tự fallback | Evidence lỗi | Quyết định recovery |
+| Role/task | Lần thử cùng model | Model/effort yêu cầu | Model/effort thực tế | Thứ tự fallback | Evidence lỗi | Quyết định recovery |
 |---|---:|---|---|---|---|---|
 
-Không retry model từ state unknown. Giữ ownership đến khi worker failed/stopped, file checkpoint và replacement path đã xác minh. Replacement dùng cùng task ID và là writer duy nhất trong vùng đó.
+Không retry model từ state unknown. Với lỗi model đã xác minh, retry cùng model đến `3/3`; chỉ sau đó mới dùng fallback. Giữ ownership đến khi worker failed/stopped, file checkpoint và replacement path đã xác minh. Replacement dùng cùng task ID và là writer duy nhất trong vùng đó.
 
 ## First-Pass Gate
 

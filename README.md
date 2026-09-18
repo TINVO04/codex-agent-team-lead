@@ -316,7 +316,7 @@ Mẫu ban đầu vẫn có sẵn để dùng nhanh:
 
 Điểm quan trọng: Big Lead chỉ giao việc bằng model có trạng thái `verified` trong `MODEL_STATUS.md`. Khi bạn đổi policy, dùng `$lead models validate`; mỗi model chỉ kiểm tra một lần cho mỗi lần chỉnh policy, không làm tốn slot lặp lại.
 
-Nếu worker lỗi model, Big Lead giữ nguyên vùng code và checkpoint, rồi chỉ retry **cùng task** bằng model dự phòng vừa nằm trong policy vừa đã được kiểm tra. Nếu hết model được phép, task dừng ở `WAITING_USER` để bạn chọn; không tự nhảy sang model lạ.
+Nếu worker lỗi model, Big Lead giữ nguyên vùng code và checkpoint, rồi retry **cùng task bằng chính model đó đủ 3 lần** (lần đầu, lần 2, lần 3). Chỉ khi cả 3 lần đều có lỗi model đã xác nhận mới xoay sang model tiếp theo trong pool của worker. Pool Qwen, DeepSeek và GLM trong file setup chỉ là mẫu mặc định; nếu bạn sửa pool trong `.orca-team/MODEL_POLICY.md`, Lead sẽ dùng đúng các model trong file đó. Nếu hết model trong pool đã cấu hình, task dừng ở `WAITING_USER` để bạn chọn.
 
 ## 🪝 Rule và hook dễ chỉnh
 

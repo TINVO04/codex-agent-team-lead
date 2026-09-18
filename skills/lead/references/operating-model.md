@@ -49,7 +49,7 @@ Trước khi coi dependency là cứng, thử gỡ bằng versioned contract, mo
 
 1. Đưa user request mới vào task board.
 2. Đọc inbox Orca theo thứ tự và trả lời worker.
-3. Kiểm tra lỗi model/agent trước khi retry/release; chỉ dùng fallback đã `verified` theo MODEL_POLICY.
+3. Kiểm tra lỗi model/agent trước khi retry/release; lỗi model được xác minh phải retry cùng model đến hết lần 3, rồi mới xoay sang model `verified` tiếp theo trong pool của đúng route theo MODEL_POLICY.
 4. Xử lý acknowledgement rule/hook mới.
 5. Kiểm tra task `READY_FOR_VERIFICATION`/`VERIFYING`, evidence và First-Pass Gate.
 6. Kiểm tra task đã settle và cập nhật state.

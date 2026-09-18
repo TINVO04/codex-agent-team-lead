@@ -82,7 +82,7 @@ Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; `TEAM_POLICY.md` vẫn là r
 - Root Lead và Domain Lead dùng route Lead trong policy: mặc định `gpt-5.6-terra` với `xhigh`, dự phòng `qwen3.8-max-0902`.
 - Worker dùng route khó/thường/nhanh/kiểm tra cuối trong policy, theo đúng thứ tự dự phòng.
 - Worker mất kết nối/chưa rõ trạng thái không phải bằng chứng lỗi model. Phải kiểm tra trước, không tạo writer trùng.
-- Nếu worker lỗi sau khi sửa file, giữ khóa ownership, kiểm tra checkpoint rồi mới retry cùng task bằng model dự phòng đã `verified`.
+- Nếu worker lỗi model sau khi sửa file, giữ khóa ownership và checkpoint. Retry cùng task bằng chính model đó đến hết lần 3; chỉ sau lỗi lần 3 mới xoay sang model `verified` khác trong pool của đúng route worker được ghi trong `MODEL_POLICY.md`. Qwen/DeepSeek/GLM chỉ là mẫu mặc định, không phải danh sách khóa cứng.
 - Root Lead bị lỗi không thể tự thay nó. Caller giám sát dùng `TEAM_STATE.md` để mở Root Lead thay thế bằng Qwen. Domain Lead lỗi do Root Lead thay sau khi xác minh.
 - Nếu model chính và toàn bộ model dự phòng đều lỗi/không có hoặc chưa kiểm tra, chuyển task sang `WAITING_USER` và hỏi người dùng chọn model/chờ thử lại; không âm thầm dùng model ngoài policy.
 

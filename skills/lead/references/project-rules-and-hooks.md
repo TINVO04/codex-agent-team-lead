@@ -43,7 +43,7 @@ Một hook có một điều kiện, một kết quả dừng rõ và không g�
 | `before_worker_launch` | Sắp mở worker | Kiểm tra contract, ownership, model verified, capacity |
 | `before_external_action` | Task cần Git/DB/deploy/remote write | Kiểm tra approval riêng |
 | `before_done` | Muốn đóng task | Bắt First-Pass Gate và evidence |
-| `on_model_failure` | Model/provider lỗi đã xác minh | Giữ checkpoint, dùng fallback verified |
+| `on_model_failure` | Model/provider lỗi đã xác minh | Giữ checkpoint, retry cùng model đến lần 3 rồi mới dùng fallback verified |
 | `on_rule_change` | Rule/policy/hook đổi | Ghi revision và lấy xác nhận checkpoint |
 | `on_daily_report` | Người dùng hỏi tổng kết ngày | Chỉ dùng state/evidence đã có |
 
@@ -77,6 +77,17 @@ Bắt buộc:
 - Có evidence đã kiểm tra và phần chưa kiểm tra.
 - Với task rủi ro cao, có QA độc lập hoặc smoke evidence tách riêng.
 Nếu không đạt: quay task về ACTIVE hoặc BLOCKED, không ghi DONE.
+Trạng thái: active
+
+### H-003 — Thử cùng model đủ ba lần trước khi đổi
+Event: on_model_failure
+Khi: Orca xác minh lỗi model hoặc provider cho task đang chạy
+Bắt buộc:
+- Giữ ownership và checkpoint của cùng task.
+- Ghi model, effort và lần lỗi hiện tại trên 3 vào TEAM_STATE.md.
+- Lỗi lần 1 hoặc 2: retry cùng model, cùng effort.
+- Lỗi lần 3: mới được dùng model verified kế tiếp trong pool của đúng route theo MODEL_POLICY.md; không được lấy model của route khác. Nếu tắt tự đổi fallback thì WAITING_USER.
+Nếu không đạt: không được đổi model.
 Trạng thái: active
 
 ## Hook đã ngừng

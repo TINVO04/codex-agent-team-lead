@@ -21,10 +21,11 @@ Phân công và liên hệ người dùng:
 Kế hoạch model:
 - Route task: <difficult | normal | quick | final review>
 - Model chính: <model ID chính xác và effort nếu có>
+- Pool model của task: <danh sách model đọc từ MODEL_POLICY.md tại route đã chọn>
 - Thứ tự dự phòng: <chỉ model ID được phép>
 - Policy revision / model status: <MP-### | model chính hoặc fallback phải verified>
 - Tự đổi sang dự phòng: <có | không; theo MODEL_POLICY.md>
-- Lần thử: <1/3, 2/3 hoặc 3/3>
+- Lần thử cùng model: <1/3, 2/3 hoặc 3/3; chỉ lỗi lần 3 mới được đổi model>
 - Launch thực tế: <chỉ điền sau khi runtime xác nhận model và effort>
 
 Capability và skill:
@@ -102,8 +103,9 @@ Báo cáo:
 Handover recovery (chỉ điền khi retry):
 - Dispatch/session trước: <ID thật hoặc none>
 - Trạng thái đã chứng minh: <failed | stopped>; không dùng unknown/disconnected.
+- Model/effort và lần thử cùng model: <model | effort | 1/3, 2/3 hoặc 3/3>
 - File/checkpoint đã kiểm tra: <path và kết quả>
-- Tiếp từ: <bước kế tiếp cụ thể; không làm lại phần đã verify>
+- Tiếp từ: <retry cùng model nếu đang 1/3 hoặc 2/3 | model kế tiếp trong đúng pool chỉ sau lỗi 3/3; không làm lại phần đã verify>
 - Ownership: <giữ cùng task đến khi replacement settle>
 ```
 

@@ -41,6 +41,10 @@ if ($errors.Count -eq 0) {
         $errors.Add('MODEL_POLICY.md has no Revision.')
     }
 
+    if ($modelPolicy -notmatch '(?m)^Same-model max attempts:\s*3\s*$') {
+        $warnings.Add('MODEL_POLICY.md does not show Same-model max attempts: 3. The workflow default is still 3; add the line to make it explicit.')
+    }
+
     foreach ($route in @('big-lead', 'domain-lead', 'difficult-worker', 'normal-worker', 'quick-worker', 'final-review')) {
         if ($modelPolicy -notmatch [regex]::Escape("| $route |")) {
             $errors.Add("MODEL_POLICY.md is missing route $route.")
