@@ -53,6 +53,25 @@ Nếu nhận `terminal_handle_stale`, không gửi lại lệnh với handle cũ
 
 Khi worker đã hoàn tất, đổi state word thành `DONE`, `CHECK` hoặc `BLOCK` trước khi release/giữ terminal. Không để tab hoàn tất tiếp tục mang nhãn `RUN`.
 
+## Cổng bắt đầu thật của worker
+
+`worker-start` là cách mặc định để mở worker có giám sát. Không dùng `terminal send --text <Task Contract>` như cách giao việc chính, vì dễ để prompt nằm trong ô nhập mà chưa chạy.
+
+Sau `worker-start`, receipt `input_accepted` chỉ có nghĩa Orca đã đưa nội dung vào terminal; nó **chưa đủ** để gọi worker đang làm. Lead thực hiện theo thứ tự:
+
+1. Lấy Dispatch ID và handle mới từ `orca orchestration worker-show --dispatch <dispatch-id> --json`.
+2. Đổi tên tab, rồi kiểm tra lại `visualLayouts` như cổng đổi tên ở trên.
+3. Kiểm tra `projection.liveness.verdict` và `projection.stage.activity`. Chỉ khi là `live` và `working` mới ghi worker là `RUN` trên dashboard.
+4. Nếu sau một lần chờ ngắn worker vẫn chỉ `input_accepted`, Lead đọc terminal. Khi thấy đúng Task Contract của Dispatch đang nằm ở ô nhập và không có `agentWait` thực sự, Lead gửi **một lần duy nhất** Enter bằng handle mới:
+
+```powershell
+orca terminal send --terminal <fresh-worker-handle> --enter --json
+```
+
+5. Đọc lại `worker-show` hoặc terminal để xác nhận agent đã bắt đầu. Không gửi lại toàn bộ prompt, không nhấn Enter lần hai và không mở worker trùng.
+
+Nếu Enter một lần mà worker vẫn chưa bắt đầu, ghi task `INPUT_NOT_STARTED`/`BLOCKED`, giữ ownership và báo rõ. Không coi `accepted`, tên tab hay terminal có mặt là bằng chứng task đã chạy.
+
 ## Khi mở terminal Codex thứ hai trong cùng dự án
 
 Khi người dùng gọi `$lead` hoặc `$lead init` ở terminal khác:

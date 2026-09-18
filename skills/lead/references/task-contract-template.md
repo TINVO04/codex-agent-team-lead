@@ -16,7 +16,8 @@ Phân công và liên hệ người dùng:
 - Owner triển khai: <nhãn worker; bắt buộc cho mọi nghiên cứu hoặc thay đổi file/output>
 - Ranh giới Lead: <chỉ yêu cầu người dùng + state .orca-team, xếp lịch, kiểm tra, báo cáo>
 - Nói với người dùng: <chỉ Root Lead | role được cho phép rõ; phải nói dễ hiểu>
-- Evidence mở worker: <Orca Task/Dispatch và terminal handle; để pending đến khi Orca trả>
+- Evidence mở worker: <Orca worker-start receipt, Dispatch ID và terminal handle; `input_accepted` chỉ là pending>
+- Evidence bắt đầu thật: <worker-show live + activity working, hoặc một lần Enter fallback đã được xác nhận; nếu chưa có thì INPUT_NOT_STARTED/BLOCKED>
 
 Kế hoạch model:
 - Route task: <difficult | normal | quick | final review>

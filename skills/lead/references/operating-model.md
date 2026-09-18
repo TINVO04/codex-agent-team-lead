@@ -33,7 +33,7 @@ Lead chỉ đọc yêu cầu người dùng và `.orca-team`, phân loại/xếp
 
 Status, clarification, rule hoặc câu trả lời một dòng không cần terminal. Nhiều thay đổi nhỏ liên quan có thể gom một worker. Không có slot/ownership an toàn/launch Orca thành công thì giữ `QUEUED`/`BLOCKED`; Lead không tự làm thay.
 
-Dispatch chỉ thật khi Orca trả Task/Dispatch và terminal handle live. Đổi tên terminal, ghi dashboard ngay. Task research/implementation không có worker hiển thị là thiếu phân công và phải điều tra trước khi báo tiến độ.
+Dispatch chỉ thật khi Orca trả Task/Dispatch, terminal handle live và `worker-show` xác nhận agent đang hoạt động. Receipt `input_accepted` chỉ chứng minh nội dung đã vào terminal, chưa chứng minh prompt đã chạy. Đổi tên terminal, kiểm tra lại tab và cổng bắt đầu thật rồi mới ghi dashboard `RUN`. Khi thấy đúng Task Contract còn nằm ở ô nhập sau một lần chờ ngắn, Lead có thể dùng handle mới gửi **một** Enter; sau đó phải xác nhận activity `working`. Không gửi lại toàn bộ prompt, không Enter lặp và không mở worker trùng. Task research/implementation không có worker hiển thị hoặc chưa qua cổng bắt đầu là thiếu phân công và phải điều tra trước khi báo tiến độ.
 
 ## Năng lực và vùng sở hữu
 

@@ -12,12 +12,13 @@ Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiế
 2. Nếu là nghiên cứu/công việc thật, Task Contract có tên worker owner không?
 3. Orca live có Task/Dispatch và terminal handle của worker, hoặc có completion/recovery đã xác minh giải thích vì sao không còn terminal không?
 4. Nhãn tab trong `visualLayouts` và dashboard có đúng vai trò/trạng thái hiện tại không? Không dùng riêng `terminals[].title`, vì đó có thể là tiêu đề nội bộ do agent tự đặt.
-5. Root/Domain Lead có chỉ là coordinator, decision owner, verifier hoặc reporter; không phải research/delivery owner không?
-6. Có worker trùng hoặc ownership zone xung đột không?
-7. Task có dùng Agency role không? Nếu có, `AR-###` có tồn tại, đã thu hẹp đúng task và không tự cấp thêm quyền không?
-8. Task có dùng Agent-Reach không? Nếu có, nó có thuộc Research Worker, ghi `public-only` và không có dấu hiệu login/cookie/token/thao tác ghi ngoài phạm vi không?
-9. Model đã phân công có `verified` trong MODEL_STATUS.md của policy revision hiện tại không?
-10. Task worker nói đã xong có đi qua `READY_FOR_VERIFICATION` và `VERIFYING` với evidence đúng mức rủi ro không?
+5. Worker có qua cổng bắt đầu thật chưa: `worker-show` có `live` + `activity: working`, hay còn chỉ `input_accepted`/prompt đang nằm ở ô nhập?
+6. Root/Domain Lead có chỉ là coordinator, decision owner, verifier hoặc reporter; không phải research/delivery owner không?
+7. Có worker trùng hoặc ownership zone xung đột không?
+8. Task có dùng Agency role không? Nếu có, `AR-###` có tồn tại, đã thu hẹp đúng task và không tự cấp thêm quyền không?
+9. Task có dùng Agent-Reach không? Nếu có, nó có thuộc Research Worker, ghi `public-only` và không có dấu hiệu login/cookie/token/thao tác ghi ngoài phạm vi không?
+10. Model đã phân công có `verified` trong MODEL_STATUS.md của policy revision hiện tại không?
+11. Task worker nói đã xong có đi qua `READY_FOR_VERIFICATION` và `VERIFYING` với evidence đúng mức rủi ro không?
 
 ## Kết quả audit
 
@@ -27,6 +28,7 @@ Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiế
 - `GAP`: task nghiên cứu/dự án đang chạy hoặc được nói là xong nhưng không có evidence worker/terminal hợp lệ.
 - `CONFLICT`: worker trùng, ownership overlap hoặc Lead bị ghi thành owner nghiên cứu/triển khai.
 - `CONFIG_GAP`: model chưa kiểm tra, hook/rule mâu thuẫn rõ hoặc task bỏ qua First-Pass Gate.
+- `INPUT_NOT_STARTED`: Dispatch đã nhận Task Contract nhưng worker chưa bắt đầu lượt làm; cần một lần Enter fallback hoặc báo blocker, không được ghi `RUN`.
 
 Không kết luận worker đã mất chỉ vì dashboard cũ không hiển thị. Inventory Orca live là nguồn đúng. Terminal/worker chưa rõ trạng thái cũng không tự là lỗi; dùng quy trình recovery.
 

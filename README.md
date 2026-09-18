@@ -151,6 +151,8 @@ Mở terminal thứ hai trong cùng dự án **không** tạo Big Lead thứ hai
 
 Sau khi mở worker, Lead phải đổi tên tab bằng handle Orca trả về và kiểm tra lại tab đã đổi. Nếu vẫn thấy `worker-task_<id>`, đó là dấu hiệu cổng đổi tên chưa chạy hoặc dùng handle cũ; worker chưa được ghi là `RUN` hoàn chỉnh trên bảng team.
 
+Lead cũng phải kiểm tra worker đã bắt đầu thật. Nếu Orca mới báo đã nhận nội dung nhưng worker chưa chạy, Lead sẽ lấy handle mới và gửi Enter một lần; sau đó kiểm tra lại trạng thái. Bạn không cần tự nhấn Enter. Nếu vẫn không chạy, việc đó được báo là đang bị chặn thay vì ghi nhận sai là worker đang làm.
+
 ## 🧠 Agency Agents: chọn đúng chuyên môn
 
 Agency Agents được dùng như **thư viện vai trò chuyên môn**, không phải hệ thống điều phối thứ hai.
