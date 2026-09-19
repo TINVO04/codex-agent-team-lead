@@ -4,7 +4,7 @@ Tài liệu này dùng khi một yêu cầu có thể chạy bằng một worker
 
 ## Nguyên tắc chọn cách chạy
 
-Lead không mặc định mở nhiều worker. Hãy chọn đường chạy ngắn nhất vẫn đủ bằng chứng:
+Lead không mặc định mở nhiều worker. Hãy chọn đường chạy ngắn nhất vẫn đủ bằng chứng và tính cả thời gian chờ, đọc context, handoff, test và hợp nhất:
 
 | Tình huống | Cách chạy mặc định | Cổng chất lượng |
 |---|---|---|
@@ -26,6 +26,8 @@ Trước khi chia một task thành nhiều worker, ghi vào Task Contract:
 5. Thời gian mở, chờ và hợp nhất dự kiến không lớn hơn lợi ích của việc chạy song song.
 
 Nếu thiếu một điều kiện, dùng một worker chính hoặc chạy theo thứ tự. Phối hợp với dự án/nhóm bên ngoài chỉ bật khi dependency thật sự xuất hiện; không gắn cứng theo tên hay loại dự án.
+
+Sau mỗi task, ghi thời gian giao → được chấp nhận, thời gian worker, thời gian test, số handoff/retry và số lần sửa lại. Fan-out chỉ được giữ làm mặc định cho một loại task nếu nó cải thiện first-pass acceptance hoặc giảm thời gian tổng mà không làm chi phí/review tăng quá mức.
 
 ## Semantic Integration Gate
 
@@ -52,6 +54,8 @@ Với một owner đang sửa lỗi kiểm tra, mặc định tối đa ba lần
 
 Không tự động `git revert`, xóa toàn bộ diff hoặc ghi đè phần đã làm đúng. Chỉ rollback đúng thay đổi do task sở hữu khi đã có checkpoint, ownership rõ và người dùng cho phép thao tác đó.
 
+Test không ổn định là một trạng thái riêng, không phải pass. Retry tối đa một lần để phân loại `product-failure`, `environment-failure` hoặc `flaky`; quarantine phải có owner, ticket và hạn xử lý. Không mở resolver chỉ để làm tăng số test pass khi chưa có giả thuyết mới.
+
 ## Mở rộng giữa chừng và bàn giao ngữ cảnh
 
 Không thêm writer mới vào cùng vùng trong lúc worker cũ còn đang sửa dở. Nếu task phình to:
@@ -76,3 +80,5 @@ Model phải được chọn theo phần việc thật, không chỉ theo nhãn 
 ## Đo lợi ích thật
 
 Lead ghi tối thiểu: thời gian từ giao đến kết quả, số lần sửa lại, kết quả kiểm tra, số worker tạo ra giá trị và phần thời gian chờ/hợp nhất. Nếu fan-out lặp lại nhưng không tăng độ đúng hoặc làm p95 chậm hơn, route đó phải quay về một worker chính.
+
+Task Contract cũng phải có test route (`fast`, `boundary`, `release`), test bắt buộc/informational và budget. Fast check chạy trước; boundary/release chỉ chạy khi risk tier hoặc phạm vi thay đổi yêu cầu. Tóm tắt log test, không chuyển toàn bộ log dài qua handoff. Nếu runtime hỗ trợ, ghi trace ID, context hash, model/tool/handoff và chi phí để tìm nút thắt thật.

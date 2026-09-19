@@ -26,9 +26,9 @@ Toàn bộ nội dung/lịch sử rule nằm trong `TEAM_RULES.md`. Ghi mọi th
 
 ## Bảng task
 
-| ID | Yêu cầu | Ưu tiên | Trạng thái | Owner | Vùng sở hữu | Phụ thuộc | Evidence nhận task | Ghi chú |
-|---|---|---|---|---|---|---|---|---|
-| T-001 | ... | P1 | READY | API | src/... | — | dotnet test ... | ... |
+| ID | Yêu cầu | Ưu tiên | Rủi ro/route test | Trạng thái | Owner | Vùng sở hữu | Phụ thuộc | Evidence nhận task | Ghi chú |
+|---|---|---|---|---|---|---|---|---|---|
+| T-001 | ... | P1 | medium/boundary | READY | API | src/... | — | dotnet test ... | ... |
 
 Trạng thái: `INTAKE`, `READY`, `QUEUED`, `ACTIVE`, `READY_FOR_VERIFICATION`, `VERIFYING`, `BLOCKED`, `WAITING_USER`, `DONE`, `FAILED`, `CANCELLED`.
 
@@ -67,6 +67,27 @@ Không retry model từ state unknown. Với lỗi model đã xác minh, retry c
 |---|---|---|---|---|---|
 
 Worker chuyển task sang `READY_FOR_VERIFICATION`; Big Lead chỉ ghi `DONE` sau `VERIFYING` và evidence phù hợp. Chi tiết ở `first-pass-verification.md`.
+
+## Test budget và flaky
+
+| Task | Test bắt buộc | Test informational | Budget dự kiến/thực tế | Rerun flaky | Owner/ticket/expiry | Trạng thái |
+|---|---|---|---|---|---|---|
+
+Không coi test flaky hoặc lỗi môi trường là pass. Rerun tối đa một lần để phân loại; quarantine phải có owner, ticket và ngày hết hạn.
+
+## Đo thời gian và chi phí
+
+| Task | Thời gian chờ | Thời gian worker | Thời gian test | Worker/handoff | Retry/rework | Token/chi phí | First-pass |
+|---|---:|---:|---:|---:|---:|---:|---|
+
+Ghi số liệu khi có thể. Nếu không có runtime metric, ghi `unknown` thay vì đoán. Dùng bảng này để quyết định fan-out có thực sự nhanh và tốt hơn một worker hay không.
+
+## Trace và quan sát
+
+| Task | Trace ID | Context hash/commit | Model/version | Tool/handoff | Nút thắt hoặc lỗi |
+|---|---|---|---|---|---|
+
+Không ghi secret, token, dữ liệu riêng hoặc log nhạy cảm vào state/trace.
 
 ## Ownership và Parallel Gate
 

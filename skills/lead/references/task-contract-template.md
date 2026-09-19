@@ -61,14 +61,26 @@ Nghiên cứu:
 
 Chất lượng và xem trước:
 - Checklist: <API | UI/UX | data/change | integration | research/review; các mục cần có>
+- Risk tier: <low | medium | high | critical>
+- Test route: <fast check | boundary check | release check; chọn theo risk tier và phần bị ảnh hưởng>
+- Test budget: <thời gian tối đa, test bắt buộc, test informational, điều kiện nâng tầng>
+- Impact scope: <dependency graph/path/contract bị ảnh hưởng hoặc chưa biết>
 - Evidence bắt buộc: <test, screenshot, manual step, contract check hoặc none>
 - First-Pass Gate: <worker evidence review | independent QA | smoke riêng | user review>
 - Semantic Integration Gate: <not needed | build/test/smoke toàn cục + integration owner; bắt buộc nếu nhiều writer>
 - Evidence tối thiểu trước DONE: <cụ thể>
 - Phần có thể chưa kiểm tra: <phạm vi + lý do, hoặc none>
+- Flaky/environment policy: <không có | rerun một lần để phân loại + owner/ticket/expiry nếu quarantine>
 - Preview Gate: <not needed | internal | user review required>
 - Preview record: <PV-### hoặc none>
 - Phạm vi phải chờ preview: <path/quyết định hoặc none>
+
+Giới hạn và theo dõi:
+- Giới hạn thời gian thực: <phút hoặc none>
+- Giới hạn tool/model call: <số lượt hoặc none>
+- Giới hạn token/chi phí: <nếu runtime hỗ trợ hoặc none>
+- Điều kiện dừng: <cùng lỗi, không có diff/evidence mới, chạm budget hoặc none>
+- Trace/observability: <trace ID, context hash hoặc none>
 
 Context:
 - <chỉ path, contract hoặc quyết định liên quan>
@@ -115,6 +127,8 @@ Báo cáo:
 - Thiếu role: gửi `CAPABILITY_REQUEST`; không tự tải Agency bundle, cài custom agent hoặc dùng raw profile chưa có AR-###.
 - Thiếu evidence nghiên cứu: gửi `RESEARCH_REQUEST`; không browse rộng hay dùng material bên thứ ba ngoài source plan.
 - Trước `READY_FOR_VERIFICATION`: chạy/báo checklist chất lượng, nêu evidence và phần chưa kiểm tra. File đổi, build pass đơn lẻ hoặc worker claim chưa kiểm tra không đủ evidence.
+- Không thêm test trùng assertion chỉ để tăng số lượng. Tóm tắt log test thay vì chuyển toàn bộ log dài sang worker tiếp theo; nếu test flaky, không coi retry pass là bằng chứng xanh.
+- Khi task kết thúc, báo thời gian làm/chờ/test, số retry/handoff, rework và chi phí/token nếu có để Lead so sánh đường một worker với fan-out.
 
 Handover recovery (chỉ điền khi retry):
 - Dispatch/session trước: <ID thật hoặc none>

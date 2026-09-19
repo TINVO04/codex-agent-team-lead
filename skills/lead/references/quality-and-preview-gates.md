@@ -18,6 +18,22 @@ Lời worker nói, build pass một mình hoặc một screenshot một mình kh
 
 Nếu có từ hai worker triển khai, Task Contract phải chỉ định integration owner. Owner này kiểm tra kết quả sau fan-out bằng build/test hoặc smoke check toàn cục phù hợp; không kết luận từ Git diff hay merge không conflict. Check hỏng được giao cho một resolver worker duy nhất với log/checkpoint đầy đủ, không mở nhiều writer sửa cùng lỗi.
 
+## Test vừa đủ, không test cho đủ số
+
+Task Contract phải ghi risk tier, test route, phần bị ảnh hưởng và test budget. Dùng ladder sau:
+
+| Tầng | Khi dùng | Ví dụ |
+|---|---|---|
+| `fast` | sau mỗi thay đổi hoặc task rủi ro thấp | format, lint, typecheck, unit deterministic liên quan |
+| `boundary` | đổi API, schema, migration, state, permission hoặc tích hợp | contract/integration/smoke tập trung |
+| `release` | thay đổi rộng, module dùng chung hoặc trước release | suite rộng, E2E/production-like có chọn lọc |
+
+Không chạy release suite sau mọi sửa nhỏ. Test mới phải bao phủ rủi ro chưa có bằng chứng; không thêm test trùng assertion. Tách test `required` khỏi `informational`, cache artifact khi an toàn và chỉ song song hóa test độc lập.
+
+Test flaky chỉ được retry một lần để phân loại. Ghi riêng `product-failure`, `environment-failure` và `flaky`; không âm thầm coi retry pass là xanh. Nếu quarantine, phải có owner, ticket và ngày hết hạn. Khi hết test budget hoặc lặp cùng lỗi, dừng và chuyển resolver/`BLOCKED`/`WAITING_USER`.
+
+Lead nên ghi thời gian chờ, thời gian test, số retry/handoff, rework và first-pass acceptance vào state. Đây là bằng chứng để quyết định fan-out có cải thiện thời gian và chất lượng hay không.
+
 ## Cổng xem trước: chốt trước việc chủ quan lớn
 
 Lead phân loại:

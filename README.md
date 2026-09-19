@@ -289,6 +289,33 @@ Quy trình không ép mọi yêu cầu phải chia nhiều agent:
 
 Sau khi nhiều worker hoàn thành, integration owner phải chạy build/test hoặc smoke check toàn cục. Merge không conflict không đủ để kết luận logic đã tương thích. Nếu cổng này hỏng, chỉ mở một resolver worker nhận log và checkpoint đầy đủ. Lỗi code/test tối đa ba lần sửa có bằng chứng; sau đó giữ checkpoint, chuyển resolver hoặc `BLOCKED`/`WAITING_USER`, không tự động xóa toàn bộ diff.
 
+## ⚡ Tốc độ và chất lượng: làm vừa đủ, đo bằng kết quả
+
+Quy trình không coi nhiều agent, nhiều test hoặc nhiều dòng code là chất lượng. Mỗi task được chọn đường chạy ngắn nhất nhưng vẫn đủ bằng chứng:
+
+| Loại việc | Cách chạy | Kiểm tra chính |
+|---|---|---|
+| Nhỏ, rõ, một vùng | Một worker làm trọn gói | `fast`: format/lint, typecheck, unit liên quan |
+| Vừa, một luồng | Một worker; thêm reviewer khi cần | `fast` + `boundary` nếu chạm API/schema/state |
+| Lớn, nhánh độc lập | Fan-out theo wave + integration owner | `fast` từng nhánh + integration/release check |
+| Chưa rõ phạm vi | Worker khảo sát chỉ-đọc trước | Brief và checkpoint trước khi code |
+
+### Test ladder
+
+- `fast`: phản hồi nhanh sau thay đổi; không chạy full suite theo thói quen.
+- `boundary`: dùng khi đổi API, contract, database, state, permission hoặc tích hợp.
+- `release`: suite rộng/E2E/smoke production-like chỉ khi rủi ro hoặc release yêu cầu.
+
+Mỗi task ghi risk tier, phần bị ảnh hưởng, test bắt buộc, test informational và test budget. Test mới phải trả lời một rủi ro cụ thể; không thêm test trùng assertion. Test flaky chỉ retry một lần để phân loại, không âm thầm coi lần retry pass là xanh. Nếu quarantine, phải có người phụ trách, ticket và ngày hết hạn.
+
+Khi cùng lỗi lặp lại hoặc chạm giới hạn thời gian, lượt gọi tool/model, token/chi phí, agent đóng băng checkpoint và chuyển resolver/`BLOCKED`/`WAITING_USER`. Không sửa vô hạn chỉ để làm tăng số test pass.
+
+### Đo hiệu quả thật
+
+Team ghi được bao nhiêu thì ghi: tổng thời gian, thời gian chờ, thời gian test, số worker/handoff/retry, số lần làm lại, flaky, tỷ lệ đạt ngay lần đầu và chi phí/token. Nếu fan-out không làm kết quả tốt hơn hoặc làm thời gian tổng/p95 tăng, loại fan-out đó và quay về một worker.
+
+Chi tiết nằm trong [cổng chất lượng, thời gian và chi phí](skills/lead/references/quality-cost-and-observability.md).
+
 ## 🧪 Cổng chất lượng: lần làm đầu chưa phải kết quả cuối
 
 Một worker nói “xong” chưa đủ để task được đóng. Sau lần làm đầu, task đi qua hai bước rõ ràng:
@@ -390,6 +417,7 @@ skills/lead/
 │   ├── adaptive-workload-and-integration.md
 │   ├── project-rules-and-hooks.md
 │   ├── first-pass-verification.md
+│   ├── quality-cost-and-observability.md
 │   ├── research-first-gate.md
 │   ├── task-contract-template.md
 │   └── ...

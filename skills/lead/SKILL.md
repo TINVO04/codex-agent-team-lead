@@ -52,6 +52,8 @@ Chỉ dùng skill này trong terminal Codex mở bởi Orca. Gõ `$`, chọn `Or
 
 Đọc [cổng tìm skill](references/capability-discovery-and-skill-gate.md) khi task cần khả năng chuyên biệt, worker thiếu kỹ năng, hoặc người dùng yêu cầu tìm/học/dùng skill. Đọc [cổng nghiên cứu trước](references/research-first-gate.md) cho UI/UX, sáng tạo, nội dung, luồng người dùng, kiến trúc, thư viện mới, bảo mật, hiệu năng hay tích hợp lớn. Đọc [cổng chất lượng và xem trước](references/quality-and-preview-gates.md) và [First-Pass Gate](references/first-pass-verification.md) trước khi giao việc, nhận `READY_FOR_VERIFICATION`, chốt `DONE`, hoặc làm thay đổi UI/UX/luồng đáng kể. Đọc [kiểm tra phân công](references/delegation-audit.md) khi gọi `$lead audit`, thấy Lead có vẻ đang làm thay worker, thiếu terminal worker, hoặc khôi phục quyền sở hữu đáng nghi.
 
+Đọc [cổng chất lượng, thời gian và chi phí](references/quality-cost-and-observability.md) khi chọn tầng kiểm thử, đặt test budget, xử lý flaky test, giới hạn vòng lặp tốn token, đo độ trễ hoặc đánh giá fan-out có thật sự hiệu quả.
+
 Đọc [vai trò Agency và Agent-Reach](references/agency-profiles-and-agent-reach.md) khi khởi tạo baseline role, chọn role cho worker, thiếu role phù hợp hoặc muốn dùng Agent-Reach để tìm nguồn công khai. Agency chỉ bổ sung chuyên môn cho worker; Agent-Reach chỉ là đường research public-only đã được duyệt, không thay thế Orca hay Lead.
 
 ## Khôi phục dự án mới và cũ
@@ -93,7 +95,7 @@ Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; `TEAM_POLICY.md` vẫn là r
 
 1. Ghi mọi yêu cầu mới thành root task trước khi giao: ID, ưu tiên, trạng thái, owner, dependency, ownership zone và acceptance evidence.
 2. Áp dụng Delegation Gate. Root/Domain Lead có **0 task nghiên cứu hoặc triển khai**. Tìm web/tài liệu, quét file, phân tích log, debug, tìm/đánh giá skill, code, test, config, tài liệu, asset hay output đều thuộc worker. Lead chỉ đọc yêu cầu của người dùng và state `.orca-team`, xếp lịch, mở worker, ghi quyết định, kiểm tra bằng chứng và báo cáo. Sau khi mở worker, Lead phải xác nhận agent đã thật sự bắt đầu; `input_accepted` chưa đủ. Nếu Task Contract bị dán vào ô nhập mà chưa chạy, Lead được gửi một lần Enter bằng handle mới rồi xác nhận `activity: working`; không gửi prompt lặp. Status/clarification/rule/câu trả lời một dòng không cần worker.
-3. Chọn checklist và First-Pass route phù hợp trong `QUALITY_GATES.md`, ghi bằng chứng cụ thể vào Task Contract. Worker báo `READY_FOR_VERIFICATION`; sửa code hoặc worker tự nói “xong” không đủ để `DONE`.
+3. Chọn checklist, risk tier và First-Pass route phù hợp trong `QUALITY_GATES.md`, ghi test budget cùng bằng chứng cụ thể vào Task Contract. Dùng fast check trước, chỉ nâng lên boundary/release khi rủi ro hoặc thay đổi yêu cầu. Worker báo `READY_FOR_VERIFICATION`; sửa code hoặc worker tự nói “xong” không đủ để `DONE`.
 4. Phân loại Preview Gate là `not needed`, `internal` hoặc `user review required`. Với trang mới, redesign đáng kể, thay đổi điều hướng/luồng người dùng, phải chờ người dùng chốt trước khi worker thay đổi phần quyết định hướng, trừ khi người dùng nói làm trực tiếp.
 5. Phân loại Research Gate là `routine`, `research-first` hoặc `research-deep`. Các task cần evidence hiện hành phải có worker nghiên cứu riêng và brief trước phần triển khai phụ thuộc nó.
 6. Phân loại Capability Gate: dùng Agency role card, skill/reference sẵn có trước; nếu phải tìm ngoài thì giao capability-scout worker, ghi registry và chỉ cài/dùng theo quyền người dùng.
@@ -106,6 +108,9 @@ Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; `TEAM_POLICY.md` vẫn là r
 13. Xử lý completion từng task: kiểm tra kết quả, giữ/dùng lại/giải phóng terminal, cập nhật state rồi xếp task `READY` tiếp theo. Claim `DONE` của worker không tự là bằng chứng.
 14. Worker hỏi Lead qua Orca; Lead trả lời quyết định theo task. Quyết định giữa dự án đi qua hai project Lead.
 15. Orca restart là recovery event: inventory live là nguồn thật. Handle/dispatch cũ chỉ là lịch sử, không phải quyền thao tác.
+16. Mỗi task có giới hạn thời gian, tool/model call, token/chi phí và retry phù hợp. Khi cùng lỗi lặp lại hoặc hết budget, đóng băng checkpoint và chuyển resolver/`BLOCKED`/`WAITING_USER`, không lặp vô hạn.
+17. Test phải theo rủi ro và phần bị ảnh hưởng, không theo số lượng. Tách required khỏi informational, retry flaky tối đa một lần để phân loại, không âm thầm coi flaky là pass và không thêm test trùng assertion.
+18. Ghi số liệu để so sánh single-worker với fan-out: thời gian chờ/làm/test, handoff, retry, rework, first-pass acceptance, flaky và chi phí/token nếu có. Nếu fan-out không cải thiện kết quả hoặc làm chậm p95, quay về một worker.
 
 ## Parallel Gate và nhóm việc
 
@@ -119,6 +124,8 @@ Trước khi mở worker triển khai, ghi kết quả Parallel Gate:
 Nếu câu 1–3 đều không thì giao khi còn slot. Nếu còn dependency thật/trùng ownership thì giữ `BLOCKED`/`QUEUED`, không ép song song. Gom các việc nhỏ liên quan theo module/area/test suite; không mở một worker cho từng lỗi vặt.
 
 Đọc [song song và phân cấp](references/parallel-and-hierarchy.md) khi có yêu cầu cạnh tranh, Domain Lead, dependency giả hoặc cần scale.
+
+Trước khi giao writer, Lead phải chọn risk tier và test route trong [cổng chất lượng, thời gian và chi phí](references/quality-cost-and-observability.md). Không chạy full suite hoặc tạo thêm worker chỉ vì thói quen; phải ghi lý do, thời gian dự kiến và điều kiện nâng tầng kiểm tra.
 
 ## Mở worker và giới hạn vai trò Lead
 

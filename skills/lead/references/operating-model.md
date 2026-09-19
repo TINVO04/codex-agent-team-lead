@@ -56,6 +56,8 @@ Trước khi coi dependency là cứng, thử gỡ bằng versioned contract, mo
 7. Tính lại task `READY`, conflict, dependency, capacity.
 8. Giao task an toàn tiếp theo hoặc báo blocker.
 
+Ở bước kiểm tra, đọc thêm risk tier/test route và test budget. Không nâng lên full suite chỉ vì task đã có worker; chỉ nâng khi acceptance, impact hoặc policy yêu cầu. Ghi thời gian chờ, test, retry và handoff để biết nút thắt nằm ở điều phối hay ở code.
+
 Khi user gửi task mới lúc worker chạy, làm bước 1 và 4 ngay; không chờ wave xong. Task settle thì verify, xử lý event, release/retain terminal và xếp task mới ngay nhưng không vượt dependency/ownership.
 
 ## Workload thích ứng và mở rộng có kiểm soát
@@ -63,6 +65,8 @@ Khi user gửi task mới lúc worker chạy, làm bước 1 và 4 ngay; không 
 Lead không mặc định chia nhiều worker. Task liền mạch ưu tiên một worker làm trọn gói; task vừa chỉ thêm reviewer khi rủi ro cần; task lớn chỉ fan-out khi các nhánh độc lập và có integration owner từ đầu. Số worker là giới hạn, không phải mục tiêu. Đọc [workload thích ứng và hợp nhất](adaptive-workload-and-integration.md) trước khi fan-out, mở rộng giữa chừng, xử lý semantic conflict hoặc lặp sửa test.
 
 Sau khi nhiều worker hoàn thành, integration owner phải kiểm tra trạng thái hợp nhất bằng build/test hoặc smoke check toàn cục phù hợp. Git merge không conflict không phải bằng chứng hệ thống đúng. Nếu cổng hợp nhất hỏng, chỉ mở một resolver worker nhận đầy đủ log, checkpoint, file đã đổi và acceptance; không ném cùng lỗi đồng thời cho các writer cũ.
+
+Integration owner dùng test ladder: fast check trước, boundary check khi chạm contract/schema/state, release check khi rủi ro cao hoặc trước release. Test flaky được phân loại riêng, không âm thầm tính là pass.
 
 ## Checkpoint khi task phình to
 

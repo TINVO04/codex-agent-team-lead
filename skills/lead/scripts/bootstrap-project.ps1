@@ -43,6 +43,8 @@ agency_profile_policy: baseline theo dự án; Agency role chỉ là card hướ
 external_research_policy: ưu tiên source local/tài liệu chính thức; Agent-Reach chỉ do Research Worker dùng ở chế độ public-only khi đã được duyệt/có sẵn, không login/cookie/token/dữ liệu riêng
 research_policy: research-first cho thiết kế, UX, nội dung, user flow, kiến trúc/thư viện mới, bảo mật, hiệu năng và integration lớn
 quality_policy: mọi task phải có evidence quan sát được; dùng checklist phù hợp trước DONE
+test_policy: chọn risk tier và test route fast/boundary/release; có test budget; không thêm test trùng assertion; flaky chỉ retry một lần để phân loại
+cost_observability_policy: task có giới hạn thời gian/tool/model call/token khi có thể; ghi thời gian chờ/làm/test, retry/handoff/rework và trace ID nếu có; chạm budget thì dừng và báo
 first_pass_policy: lần triển khai đầu chỉ READY_FOR_VERIFICATION; phải qua VERIFYING với evidence phù hợp trước DONE
 preview_policy: hỏi người dùng chốt ngắn trước trang mới, redesign UI/UX đáng kể, đổi navigation hoặc user flow, trừ khi người dùng yêu cầu làm trực tiếp
 delegation_policy: Lead có 0 task nghiên cứu/triển khai; tìm web/tài liệu, scan file, phân tích, code, test, config, tài liệu, asset và output đều thuộc worker terminal Orca hiển thị rõ, trừ status, clarification, policy hoặc câu trả lời một dòng
@@ -84,7 +86,7 @@ Lead ghi routine, research-first hoặc research-deep lúc nhận task. UI/UX, v
 
 ## Chất lượng, preview và phân công
 
-Mỗi task chọn checklist trong QUALITY_GATES.md, ghi evidence trong Task Contract và chỉ DONE sau Lead kiểm tra. Task liền mạch dùng một worker làm trọn gói; chỉ fan-out khi các nhánh độc lập và có integration owner. Nếu có nhiều writer, integration owner bắt buộc chạy build/test hoặc smoke check toàn cục phù hợp, vì merge không conflict không chứng minh logic đã tương thích. Trang mới, redesign lớn, navigation hoặc user flow quan trọng cần bản tóm tắt để người dùng chốt trước khi worker thay đổi phần quyết định hướng.
+Mỗi task chọn checklist, risk tier và test route trong QUALITY_GATES.md, ghi evidence và test budget trong Task Contract và chỉ DONE sau Lead kiểm tra. Task liền mạch dùng một worker làm trọn gói; chỉ fan-out khi các nhánh độc lập và có integration owner. Nếu có nhiều writer, integration owner bắt buộc chạy build/test hoặc smoke check toàn cục phù hợp, vì merge không conflict không chứng minh logic đã tương thích. Dùng fast check trước; chỉ nâng lên boundary/release khi risk hoặc impact yêu cầu. Test mới phải bao phủ rủi ro cụ thể, không lặp assertion. Trang mới, redesign lớn, navigation hoặc user flow quan trọng cần bản tóm tắt để người dùng chốt trước khi worker thay đổi phần quyết định hướng.
 
 Không thêm writer vào task đang làm dở. Nếu task phình to, owner hiện tại phải dừng ở checkpoint an toàn và ghi handover gồm quyết định, file đã đổi, test, phần còn lại, dependency, rủi ro và bước tiếp theo trước khi Lead chia nhánh. Lỗi code/test có tối đa ba lần sửa có evidence cho mỗi owner; sau đó đóng băng checkpoint và chỉ mở một resolver worker hoặc chuyển BLOCKED/WAITING_USER. Không tự động revert/xóa toàn bộ diff; rollback chỉ phần task sở hữu khi có checkpoint và quyền phù hợp.
 
@@ -104,13 +106,13 @@ Worker:
 - việc nhanh: glm-5.3-flash với low cho đọc/kiểm tra cơ học, không mặc định cho thay đổi cần hiểu nhiều file;
 - kiểm tra cuối/integration: Qwen với high, rồi DeepSeek, rồi GLM.
 
-Ghi model yêu cầu, runtime xác nhận, pool route, effort, lần thử cùng model và fallback. Unknown/disconnected không phải lỗi model. Worker có thể đã sửa file thì giữ ownership, kiểm tra checkpoint rồi retry cùng task bằng chính model đó đến 3/3 khi lỗi model được chứng minh; chỉ sau 3/3 mới xoay sang model `verified` khác trong pool worker. Domain Lead/Root Lead cũng phải thử chính model đủ 3 lần trước replacement trong pool Lead, trừ khi runtime từ chối launch ngay từ đầu. Không lấy model của pool khác để chữa cháy. Tất cả model trong pool lỗi/không có thì WAITING_USER. Root Lead lỗi phải do caller giám sát thay bằng state đã lưu.
+Ghi model yêu cầu, runtime xác nhận, pool route, effort, lần thử cùng model và fallback. Unknown/disconnected không phải lỗi model. Worker có thể đã sửa file thì giữ ownership, kiểm tra checkpoint rồi retry cùng task bằng chính model đó đến 3/3 khi lỗi model được chứng minh; chỉ sau 3/3 mới xoay sang model `verified` khác trong pool worker. Domain Lead/Root Lead cũng phải thử chính model đủ 3 lần trước replacement trong pool Lead, trừ khi runtime từ chối launch ngay từ đầu. Không lấy model của pool khác để chữa cháy. Tất cả model trong pool lỗi/không có thì WAITING_USER. Root Lead lỗi phải do caller giám sát thay bằng state đã lưu. Lỗi code/test không tự đổi model; tối đa ba lần sửa có evidence, sau đó resolver hoặc BLOCKED/WAITING_USER.
 
 ## Hook và First-Pass Gate
 
 TEAM_RULES.md giữ rule; PROJECT_HOOKS.md giữ checklist theo event. Hook được phép kiểm tra state/contract/evidence, yêu cầu acknowledgement hoặc giữ trạng thái task. Hook không được tự chạy script/shell/Git/DB/deploy, login, external write, đổi quyền/model/ownership/scope hay tạo worker vượt capacity.
 
-Mọi task sau lần triển khai đầu chuyển `READY_FOR_VERIFICATION`, rồi `VERIFYING`. Worker nộp evidence đã kiểm tra và phần chưa kiểm tra. Lead chỉ ghi `DONE` sau khi evidence khớp acceptance và mức kiểm tra theo rủi ro. Auth, permission, payment, database/migration/state, API public/contract hoặc dependency giữa nhiều nhóm/hệ thống cần QA độc lập hoặc smoke evidence tách riêng. Có nhiều writer thì bắt buộc Semantic Integration Gate: một integration owner chạy build/test hoặc smoke toàn cục phù hợp trước DONE.
+Mọi task sau lần triển khai đầu chuyển `READY_FOR_VERIFICATION`, rồi `VERIFYING`. Worker nộp evidence đã kiểm tra và phần chưa kiểm tra. Lead chỉ ghi `DONE` sau khi evidence khớp acceptance và mức kiểm tra theo rủi ro. Auth, permission, payment, database/migration/state, API public/contract hoặc dependency giữa nhiều nhóm/hệ thống cần QA độc lập hoặc smoke evidence tách riêng. Có nhiều writer thì bắt buộc Semantic Integration Gate: một integration owner chạy build/test hoặc smoke toàn cục phù hợp trước DONE. Flaky test phải được ghi riêng, retry tối đa một lần để phân loại; quarantine phải có owner/ticket/expiry, không âm thầm coi là pass.
 
 ## Big Lead và khả năng quan sát
 
@@ -254,8 +256,8 @@ Chưa có.
 
 ## Bảng task
 
-| ID | Yêu cầu | Ưu tiên | Trạng thái | Owner | Vùng sở hữu | Phụ thuộc | Evidence nhận task | Ghi chú |
-|---|---|---|---|---|---|---|---|---|
+| ID | Yêu cầu | Ưu tiên | Rủi ro/route test | Trạng thái | Owner | Vùng sở hữu | Phụ thuộc | Evidence nhận task | Ghi chú |
+|---|---|---|---|---|---|---|---|---|---|
 
 Trạng thái: INTAKE, READY, QUEUED, BLOCKED, WAITING_USER, ACTIVE, READY_FOR_VERIFICATION, VERIFYING, DONE, FAILED, CANCELLED.
 
@@ -287,6 +289,27 @@ Chi tiết model: MODEL_POLICY.md và MODEL_STATUS.md. Chi tiết hook: PROJECT_
 
 | Task | Route kiểm tra | Evidence đã nộp | Phần chưa kiểm tra | Trạng thái xác minh | Quyết định Lead |
 |---|---|---|---|---|---|
+
+## Test budget và flaky
+
+| Task | Test bắt buộc | Test informational | Budget dự kiến/thực tế | Rerun flaky | Owner/ticket/expiry | Trạng thái |
+|---|---|---|---|---|---|---|
+
+Không coi test flaky hoặc lỗi môi trường là pass. Rerun tối đa một lần để phân loại; quarantine phải có owner, ticket và ngày hết hạn.
+
+## Đo thời gian và chi phí
+
+| Task | Thời gian chờ | Thời gian worker | Thời gian test | Worker/handoff | Retry/rework | Token/chi phí | First-pass |
+|---|---:|---:|---:|---:|---:|---:|---|
+
+Ghi số liệu khi có thể. Nếu không có runtime metric, ghi `unknown` thay vì đoán.
+
+## Trace và quan sát
+
+| Task | Trace ID | Context hash/commit | Model/version | Tool/handoff | Nút thắt hoặc lỗi |
+|---|---|---|---|---|---|
+
+Không ghi secret, token, dữ liệu riêng hoặc log nhạy cảm vào state/trace.
 
 ## Ownership và Parallel Gate
 
@@ -524,6 +547,24 @@ if (-not (Test-Path -LiteralPath $qualityGatesPath)) {
 # Cổng chất lượng
 
 Lead chỉ chọn checklist đúng task và ghi evidence cụ thể vào Task Contract; không bắt task hẹp làm checklist không liên quan.
+
+## Risk tier và test ladder
+
+Mỗi task ghi risk tier (`low`, `medium`, `high`, `critical`), phần bị ảnh hưởng, test route và test budget. Chọn tầng thấp nhất vẫn đủ bằng chứng:
+
+- `fast`: format/lint, typecheck/compile và unit deterministic liên quan.
+- `boundary`: API/contract, serialization, migration/state, permission hoặc integration bị ảnh hưởng.
+- `release`: suite rộng, E2E hoặc smoke production-like khi rủi ro cao, module dùng chung hoặc trước release.
+
+Không chạy release suite sau mọi sửa nhỏ. Test mới phải trả lời một rủi ro cụ thể, không lặp assertion. Tách test `required` khỏi `informational`, cache artifact khi an toàn và chỉ chạy song song test độc lập. Ghi thời gian dự kiến/thực tế và điều kiện nâng tầng.
+
+## Test chập chờn và budget
+
+- Flaky chỉ retry tối đa một lần để phân loại, không retry vô hạn.
+- Tách `product-failure`, `environment-failure` và `flaky`; retry pass không tự thành xanh.
+- Quarantine phải có owner, ticket và ngày hết hạn; không dùng làm bằng chứng duy nhất cho task rủi ro cao.
+- Task có giới hạn thời gian, tool/model call và token/chi phí nếu runtime hỗ trợ. Cùng lỗi lặp lại hoặc chạm budget thì đóng băng checkpoint và chuyển resolver/BLOCKED/WAITING_USER.
+- Handoff chỉ đưa tóm tắt log, kết quả và context hash; không lặp toàn bộ log dài.
 
 ## First-Pass Gate
 
