@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$ProjectPath
@@ -32,7 +32,7 @@ max_workers: 3
 max_hierarchy_depth: 2
 default_priority: P1
 scaling_policy: ưu tiên làm song song nhưng phải qua dependency và ownership gate
-git_policy: mọi thao tác Git cần người dùng duyệt rõ ràng
+git_policy: các lệnh Git chỉ-đọc (status, diff, log, rev-parse) chạy tự do; chỉ các lệnh thay đổi trạng thái (commit, push, checkout, branch, merge, rebase, reset, clean) mới cần người dùng duyệt
 database_policy: thay đổi database dùng chung cần người dùng duyệt rõ ràng
 service_policy: restart service hoặc deploy cần người dùng duyệt rõ ràng
 cross_project_policy: cần contract Lead-to-Lead trước khi triển khai
@@ -47,7 +47,7 @@ test_policy: chọn risk tier và test route fast/boundary/release; có test bud
 cost_observability_policy: task có giới hạn thời gian/tool/model call/token khi có thể; ghi thời gian chờ/làm/test, retry/handoff/rework và trace ID nếu có; chạm budget thì dừng và báo
 first_pass_policy: lần triển khai đầu chỉ READY_FOR_VERIFICATION; phải qua VERIFYING với evidence phù hợp trước DONE
 preview_policy: hỏi người dùng chốt ngắn trước trang mới, redesign UI/UX đáng kể, đổi navigation hoặc user flow, trừ khi người dùng yêu cầu làm trực tiếp
-delegation_policy: Lead có 0 task nghiên cứu/triển khai; tìm web/tài liệu, scan file, phân tích, code, test, config, tài liệu, asset và output đều thuộc worker terminal Orca hiển thị rõ, trừ status, clarification, policy hoặc câu trả lời một dòng
+delegation_policy: Lead ưu tiên điều phối; các tác vụ tra cứu nhanh chỉ-đọc (triage read <= 2 calls, 0 write) Lead được làm trực tiếp; mọi tác vụ sửa file, test lâu hoặc nghiên cứu sâu bắt buộc mở worker terminal Orca có Task Contract
 user_language_policy: mọi agent nói trực tiếp với người dùng dùng tiếng Việt ngắn, dễ hiểu và giải thích từ kỹ thuật bắt buộc ngay trong câu
 audit_policy: $lead audit chỉ-đọc, kiểm tra mọi nghiên cứu/thay đổi có worker thật; Git inspection vẫn cần người dùng duyệt riêng
 model_policy: người dùng có thể chỉnh MODEL_POLICY.md; chỉ model verified trong MODEL_STATUS.md mới được phân công; không tự dùng model ngoài policy
@@ -90,7 +90,7 @@ Mỗi task chọn checklist, risk tier và test route trong QUALITY_GATES.md, gh
 
 Không thêm writer vào task đang làm dở. Nếu task phình to, owner hiện tại phải dừng ở checkpoint an toàn và ghi handover gồm quyết định, file đã đổi, test, phần còn lại, dependency, rủi ro và bước tiếp theo trước khi Lead chia nhánh. Lỗi code/test có tối đa ba lần sửa có evidence cho mỗi owner; sau đó đóng băng checkpoint và chỉ mở một resolver worker hoặc chuyển BLOCKED/WAITING_USER. Không tự động revert/xóa toàn bộ diff; rollback chỉ phần task sở hữu khi có checkpoint và quyền phù hợp.
 
-Root/Domain Lead chỉ nhận yêu cầu, ưu tiên, mở worker, ghi quyết định, kiểm tra và báo cáo. Lead không tìm web, scan file, chạy command dài, debug, code, test, sửa config/tài liệu/asset hay tạo output dự án. Orca phải trả Task/Dispatch và terminal handle, terminal phải được đổi tên/ghi dashboard thì worker mới active. Launch lỗi thì task QUEUED/BLOCKED; Lead không làm thay.
+Root/Domain Lead chỉ nhận yêu cầu, ưu tiên, mở worker, ghi quyết định, kiểm tra và báo cáo (ngoại trừ các lượt tra cứu nhanh Triage Fast-Path chỉ-đọc ≤ 2 calls). Lead không tự sửa mã nguồn, không chạy test nặng hay tạo output dự án trong terminal Lead. Orca phải trả Task/Dispatch và terminal handle thì worker mới active. Launch lỗi thì task QUEUED/BLOCKED; Lead không làm thay.
 
 Lead audit chỉ đọc board, contract, dashboard và inventory Orca; không mở/dừng/retry worker, không sửa output và không dùng Git nếu chưa duyệt riêng.
 

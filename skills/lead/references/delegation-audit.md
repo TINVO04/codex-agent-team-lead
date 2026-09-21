@@ -13,7 +13,7 @@ Với mọi task `ACTIVE`, `VERIFYING`, `BLOCKED` hoặc `QUEUED`, đối chiế
 3. Orca live có Task/Dispatch và terminal handle của worker, hoặc có completion/recovery đã xác minh giải thích vì sao không còn terminal không?
 4. Nhãn tab trong `visualLayouts` và dashboard có đúng vai trò/trạng thái hiện tại không? Không dùng riêng `terminals[].title`, vì đó có thể là tiêu đề nội bộ do agent tự đặt.
 5. Worker có qua cổng bắt đầu thật chưa: `worker-show` có `live` + `activity: working`, hay còn chỉ `input_accepted`/prompt đang nằm ở ô nhập?
-6. Root/Domain Lead có chỉ là coordinator, decision owner, verifier hoặc reporter; không phải research/delivery owner không?
+6. Root/Domain Lead có đúng là coordinator, decision owner, verifier hoặc reporter; không tự ôm việc sửa code hoặc nghiên cứu sâu (ngoại trừ các lượt tra cứu nhanh Triage Fast-Path chỉ-đọc ≤ 2 calls) không?
 7. Có worker trùng hoặc ownership zone xung đột không?
 8. Task có dùng Agency role không? Nếu có, `AR-###` có tồn tại, đã thu hẹp đúng task và không tự cấp thêm quyền không?
 9. Task có dùng Agent-Reach không? Nếu có, nó có thuộc Research Worker, ghi `public-only` và không có dấu hiệu login/cookie/token/thao tác ghi ngoài phạm vi không?

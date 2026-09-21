@@ -25,15 +25,17 @@ Khi người dùng đưa rule toàn dự án, Root Lead ghi rule ngắn trong `T
 
 Cùng ưu tiên: task `READY` đến trước làm trước. P1 mới không tự ngắt writer P1 đang chạy.
 
-## Cổng phân công
+## Cổng phân công và Triage Fast-Path
 
-Root/Domain Lead là coordinator, không phải worker nghiên cứu/triển khai. Lead có **0 task research/delivery**. Mọi việc có ý nghĩa — tìm web/tài liệu, scan file, phân tích log, debug, tìm skill, code, test, config, tài liệu, asset hay output — phải thuộc một worker Orca hiển thị rõ, có Task Contract.
+Root/Domain Lead là coordinator. Để tối ưu tốc độ phản hồi và tránh micro-dispatch thrashing:
+- **Triage Fast-Path:** Các tác vụ tra cứu nhanh chỉ-đọc (định vị file, grep 1 biểu thức, đọc lướt config/hàm cụ thể) tốn ≤ 2 tool calls và không ghi sửa mã nguồn thì Lead được phép thực hiện trực tiếp trong terminal Lead và trả lời người dùng ngay.
+- **Worker Delegation:** Mọi tác vụ có ý nghĩa — ghi/sửa mã nguồn, chạy test kéo dài (>10s), debug sâu đa file, phân tích log diện rộng, tìm/đánh giá skill, code, config hoặc output lớn — bắt buộc phải thuộc một worker Orca hiển thị rõ, có Task Contract.
 
-Lead chỉ đọc yêu cầu người dùng và `.orca-team`, phân loại/xếp task, mở worker, ghi quyết định, kiểm tra evidence và báo người dùng. Lead không chạy scan rộng, web/document search, command dài, test, debug hay sửa file dự án trong terminal của mình.
+Lead không chạy scan rộng bừa bãi, test nặng hay sửa file mã nguồn dự án trong terminal của mình.
 
 Status, clarification, rule hoặc câu trả lời một dòng không cần terminal. Nhiều thay đổi nhỏ liên quan có thể gom một worker. Không có slot/ownership an toàn/launch Orca thành công thì giữ `QUEUED`/`BLOCKED`; Lead không tự làm thay.
 
-Dispatch chỉ thật khi Orca trả Task/Dispatch, terminal handle live và `worker-show` xác nhận agent đang hoạt động. Receipt `input_accepted` chỉ chứng minh nội dung đã vào terminal, chưa chứng minh prompt đã chạy. Đổi tên terminal, kiểm tra lại tab và cổng bắt đầu thật rồi mới ghi dashboard `RUN`. Khi thấy đúng Task Contract còn nằm ở ô nhập sau một lần chờ ngắn, Lead có thể dùng handle mới gửi **một** Enter; sau đó phải xác nhận activity `working`. Không gửi lại toàn bộ prompt, không Enter lặp và không mở worker trùng. Task research/implementation không có worker hiển thị hoặc chưa qua cổng bắt đầu là thiếu phân công và phải điều tra trước khi báo tiến độ.
+Dispatch chỉ thật khi Orca trả Task/Dispatch, terminal handle live và worker xác nhận bắt đầu. Lệnh đổi tên terminal gửi bất đồng bộ (non-blocking). Khi thấy đúng Task Contract còn nằm ở ô nhập sau một lần chờ ngắn, Lead có thể dùng handle mới gửi **một** Enter; sau đó xác nhận activity `working`. Không gửi lại toàn bộ prompt, không Enter lặp và không mở worker trùng. Task research sâu/implementation không có worker hiển thị hoặc chưa bắt đầu phải được điều tra trước khi báo tiến độ.
 
 ## Năng lực và vùng sở hữu
 

@@ -74,38 +74,43 @@ Lần đầu khởi tạo sẽ tạo thư mục `.orca-team/` và kiểm tra m�
 
 > Không dùng `/lead`. Dấu `/` là lệnh có sẵn của Codex Terminal; `$lead` là skill điều phối của Orca.
 
-### 3. Giao việc
+### 3. Giao việc & Cơ chế Dual-Mode
 
+**Mode 1: Solo/Lean Mode (Mặc định)**
 ```text
 $lead Thêm API suspend/restore cho job và viết smoke test.
 ```
+Big Lead tự nhận diện: nếu là câu hỏi tra cứu nhanh chỉ-đọc (định vị file, grep ngắn, xem config), Big Lead sẽ trả lời ngay (**Triage Fast-Path**). Nếu là việc sửa code, Big Lead giao cho 1 worker làm trọn gói (end-to-end) để tiết kiệm token và tránh phân tán ngữ cảnh.
 
-Big Lead sẽ ghi task, kiểm tra vùng code, chọn worker phù hợp và chỉ mở worker khi Orca trả về terminal thật.
+**Mode 2: Swarm/Team Mode (Phân nhánh song song)**
+```text
+$lead team Phát triển song song module Auth ở backend và trang Login ở frontend.
+```
+Kích hoạt phân công song song (tối đa 3 worker), kiểm tra Parallel Gate và chỉ định Integration Owner chịu trách nhiệm Semantic Integration Gate.
 
-Lần khởi tạo cũng tạo sẵn ba file dễ chỉnh trong `.orca-team/`:
+Lần khởi tạo tạo sẵn các file điều phối cốt lõi trong `.orca-team/`:
+- `TEAM_POLICY.md`: ranh giới an toàn, chính sách Git (cho phép Git chỉ-đọc tự do) và cổng chất lượng.
+- `TEAM_STATE.md`: bảng trạng thái canonical và tiến độ task.
+- `LEAD_LEASE.md`: cơ chế khóa lease giữ Big Lead duy nhất.
+- `MODEL_POLICY.md` & `MODEL_STATUS.md`: quản lý routing và trạng thái model đã kiểm tra.
 
-- `MODEL_POLICY.md`: chọn model và model dự phòng cho riêng dự án.
-- `PROJECT_HOOKS.md`: checklist theo từng thời điểm để team không quên bước quan trọng.
-- `TEAM_POLICY.md` / `TEAM_RULES.md`: ranh giới an toàn và rule chung của dự án.
-
-Model mới không được dùng ngay chỉ vì đã ghi vào file. Orca phải kiểm tra trước, rồi Big Lead mới phân công.
-
-## 🧭 Nhìn toàn bộ quy trình
+## 🧭 Nhìn toàn bộ quy trình (Chuẩn 2026)
 
 ```mermaid
 flowchart TD
     U["Người dùng giao yêu cầu"] --> B["00 | BIG | Big Lead"]
-    B --> T{"Task đã rõ và không trùng ownership?"}
-    T -- "Chưa" --> Q["QUEUED / BLOCKED / hỏi người dùng"]
-    T -- "Rồi" --> R{"Đã có vai trò phù hợp?"}
-    R -- "Có" --> W["Worker nhận Task Contract"]
-    R -- "Chưa" --> C["CAPABILITY-SCOUT tìm role/skill"]
-    C --> W
-    W --> E["Worker nghiên cứu / code / test"]
-    E --> F["READY_FOR_VERIFICATION"]
-    F --> V["QA hoặc Final Review"]
-    V --> B
-    B --> O["Báo cáo ngắn gọn cho người dùng"]
+    B --> Triage{"Tra cứu nhanh chỉ-đọc?"}
+    Triage -- "Có (≤ 2 calls, 0 write)" --> Fast["Triage Fast-Path: Trả lời ngay"]
+    Triage -- "Không (Task sửa code / test)" --> Mode{"Chế độ vận hành?"}
+    
+    Mode -- "Solo Mode (Mặc định)" --> S["1 Worker trọn gói\n(Task Contract cô lập)"]
+    Mode -- "Team Mode ($lead team)" --> M["Parallel Gate & Ownership\n(Tối đa 3 Workers song song)"]
+    
+    S --> V["First-Pass Gate\n(READY_FOR_VERIFICATION)"]
+    M --> V
+    V --> Int["Semantic Integration Gate\n(Build / Test toàn cục)"]
+    Int --> B
+    B --> O["Báo cáo kết quả ngắn gọn cho User"]
 ```
 
 ## 👥 Ai làm việc gì?
@@ -216,6 +221,8 @@ Nếu cần cài tool, dùng login/cookie hoặc gửi dữ liệu ra dịch v�
 | Lệnh | Dùng khi |
 |---|---|
 | `$lead` | Khôi phục state và xem việc đang làm |
+| `$lead <yêu cầu>` | Giao việc thông thường (mặc định Solo Mode 1 worker, hoặc Triage Fast-Path trả lời ngay nếu là câu hỏi nhanh) |
+| `$lead team <yêu cầu>` | Kích hoạt Swarm/Team Mode để phân nhánh song song nhiều worker |
 | `$lead init` | Khởi tạo team lần đầu trong dự án |
 | `$lead status` | Chỉ xem trạng thái, không mở worker |
 | `$lead audit` | Kiểm tra Lead có ôm việc hoặc task có thiếu worker không |
