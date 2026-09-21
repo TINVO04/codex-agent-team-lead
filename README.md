@@ -2,501 +2,226 @@
 
 # ⚡ Orca Codex Team Lead
 
-### Bộ quy trình điều phối agent cho Codex chạy bên trong Orca
+### Hệ thống Điều phối Đội ngũ Kỹ sư AI Tự chủ (Autonomous Engineering Team) cho Codex bên trong Orca
 
-Một Big Lead giữ hướng đi. Worker làm việc thật. Mỗi người một phần rõ ràng.
+*From a single typo to enterprise monorepos — orchestrated with zero ceremony, verifiable evidence, and strict safety.*
 
-<p>
-  <img src="https://img.shields.io/badge/Runtime-Orca-111827?style=for-the-badge" alt="Orca" />
-  <img src="https://img.shields.io/badge/Language-Ti%E1%BA%BFng%20Vi%E1%BB%87t-0f766e?style=for-the-badge" alt="Tiếng Việt" />
-  <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge" alt="MIT License" />
+<p align="center">
+  <a href="https://github.com/TINVO04/codex-agent-team-lead"><img src="https://img.shields.io/badge/Runtime-Orca%20Codex-111827?style=for-the-badge&logo=visualstudiocode" alt="Runtime" /></a>
+  <a href="https://github.com/TINVO04/codex-agent-team-lead"><img src="https://img.shields.io/badge/Standards-SWE--bench%202026-6366f1?style=for-the-badge" alt="Standards" /></a>
+  <a href="https://github.com/TINVO04/codex-agent-team-lead"><img src="https://img.shields.io/badge/Language-Ti%E1%BA%BFng%20Vi%E1%BB%87t-0f766e?style=for-the-badge" alt="Tiếng Việt" /></a>
+  <a href="https://github.com/TINVO04/codex-agent-team-lead/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge" alt="License" /></a>
 </p>
 
-<p>
-  <strong>Chia việc đúng người · Làm song song có kiểm soát · Báo cáo dễ hiểu</strong>
+<p align="center">
+  <strong>🎯 Tối giản thủ tục · 🛡️ An toàn đa tầng · ⚡ Thích ứng mọi dự án · 📊 Bằng chứng quan sát được</strong>
 </p>
 
 </div>
 
-> Đây là quy trình dành cho **Codex chạy trong Orca**. Orca phải đang chạy để tạo terminal, theo dõi worker, đổi tên terminal, gửi thông báo và khôi phục sau khi có lỗi.
+---
 
-## 🌟 Vì sao nên dùng
+## 🌟 Tại sao cần Orca Codex Team Lead?
 
-Khi dự án có nhiều việc cùng lúc, vấn đề thường không phải thiếu agent mà là:
+Các hệ thống Multi-Agent truyền thống thường gặp phải hai căn bệnh lớn: **"Mất kiểm soát khi đông người"** hoặc **"Rườm rà quá mức" (Coordination Tax & Prompt Bloat)**. 
 
-- Không biết agent nào đang làm việc gì.
-- Hai agent sửa trùng một vùng code.
-- Lead tự làm hết nên không còn điều phối.
-- Terminal bị lỗi nhưng task vẫn bị xem là đang chạy.
-- Có kết quả nhưng không có bằng chứng để biết đã thật sự xong chưa.
+Quy trình này được sinh ra để khắc phục triệt để điều đó:
 
-Quy trình này giải quyết bằng một nguyên tắc đơn giản:
+| Vấn đề của Multi-Agent truyền thống | Giải pháp của Orca Codex Team Lead |
+| :--- | :--- |
+| **Hai agent sửa đè code nhau:** Gây xung đột logic và vỡ codebase. | **Vùng sở hữu cô lập (Ownership Zones):** Phân chia biên giới code chặt chẽ, tuần tự hóa các file dùng chung. |
+| **Lead tự làm hết hoặc chat lan man:** Lead ôm việc của worker, tốn token mà không ra kết quả. | **Delegation Gate rõ ràng:** Big Lead giữ bản đồ và điều phối; Worker làm việc thật trong terminal CLI hiển thị rõ. |
+| **Nghi thức rườm rà cho việc nhỏ:** Sửa 1 typo hay 1 dòng config cũng bắt họp 3 bước, viết test suite. | **Bộ ba cơ chế thích ứng (2026):** Tự động bật Quick-Fix (1 nhịp), Prototype (MVP), hoặc Selective Testing (Monorepo). |
+| **Mất trí nhớ khi crash hoặc restart:** Terminal tắt là mọi tiến trình và bối cảnh biến mất. | **Durable State trên đĩa:** Toàn bộ trạng thái, checkpoint lưu tại `.orca-team/`; khôi phục tức thì khi Orca restart. |
+| **Code xong nhưng không biết chạy được không:** Agent tự nói "xong" nhưng đầy bug tiềm ẩn. | **First-Pass Gate & Verifier:** Phải có bằng chứng (evidence) kiểm thử thực tế mới được chuyển sang trạng thái `DONE`. |
 
-```text
-Big Lead giữ bản đồ và quyết định
-        ↓
-Lead phụ chỉ xuất hiện khi một mảng đủ lớn
-        ↓
-Worker nghiên cứu, code, test và tạo bằng chứng
-        ↓
-Kiểm tra lần đầu rồi mới kết luận xong
-        ↓
-Big Lead báo kết quả ngắn gọn cho người dùng
-```
+---
 
-## 🚀 Bắt đầu nhanh
+## 💬 Trải nghiệm Zero-Friction (Quy tắc 2 Lệnh)
 
-### 1. Cài quy trình vào Orca
-
-Copy thư mục `skills/lead` vào thư mục skill của Orca:
+Bạn **không cần ghi nhớ hàng chục câu lệnh CLI phức tạp**. Hệ thống tự động nhận diện ý định (Intent Auto-Routing) từ câu nói tiếng Việt tự nhiên của bạn:
 
 ```text
-%USERPROFILE%\.agents\skills\lead
+Chỉ 2 lệnh bạn cần dùng mỗi ngày:
+  1. $lead <nói tự nhiên>   --> Làm mọi việc (Lead tự hiểu ngữ cảnh và phân luồng)
+  2. $lead                  --> Xem bảng điều phối và tiến độ hiện tại
 ```
 
-Sau đó khởi động lại Orca hoặc mở một terminal Codex mới.
+### Ví dụ hội thoại thực tế:
 
-### 2. Khởi tạo trong dự án
+* ⚡ **Sửa nhanh 1 nhịp (Quick-Fix Bypass):**
+  > `$lead Sửa lỗi chính tả tiêu đề ở file header.tsx và đổi màu icon thành xanh dương`
+  > *(Lead tự nhận diện diff ≤ 3 dòng, 1 file → Xử lý và nghiệm thu tức thì trong 1 nhịp mà không tạo plan rườm rà).*
 
-Trong terminal Codex của Orca, gõ `$`, chọn **Orca Codex Team Lead**, rồi gửi:
+* 🚀 **Làm dự án mới / MVP (Prototype Mode):**
+  > `$lead Dựng nhanh khung landing page giới thiệu sản phẩm bằng Next.js và Tailwind`
+  > *(Lead tự nhận diện dự án chưa có test runner → Bỏ qua rào cản unit test bắt buộc, nghiệm thu qua cú pháp sạch và app chạy thành công).*
 
-```text
-Khởi tạo team cho dự án này.
-```
+* 🛠️ **Phát triển tính năng chuẩn (Solo Mode):**
+  > `$lead Viết thêm API suspend và restore cho user kèm unit test tương ứng`
+  > *(Lead mở 1 Worker trọn gói có Task Contract riêng, code và verify đầy đủ).*
 
-Hoặc gửi trực tiếp:
+* 👥 **Phân nhánh song song (Team Mode):**
+  > `$lead team Phát triển song song backend API trong folder server và frontend UI trong folder client`
+  > *(Lead kích hoạt Swarm Mode tối đa 3 worker song song + chỉ định Integration Owner kiểm tra hợp nhất).*
 
-```text
-$lead init
-```
+* 🔄 **Đổi model nhanh:**
+  > `$lead Đổi sang dùng model gpt-5 cho các task khó tiếp theo`  
+  > *(hoặc gắn inline: `$lead [model: claude-3-7-sonnet] Viết thuật toán tối ưu cache`)*.
 
-Lần đầu khởi tạo sẽ tạo thư mục `.orca-team/` và kiểm tra một Big Lead duy nhất cho dự án.
+* 📈 **Báo cáo tiến độ:**
+  > `$lead Hôm nay team đã làm được những gì rồi`  
+  > *(Lead tự động quét bằng chứng và xuất báo cáo ngắn gọn).*
 
-> Không dùng `/lead`. Dấu `/` là lệnh có sẵn của Codex Terminal; `$lead` là skill điều phối của Orca.
+---
 
-### 3. Giao việc & Cơ chế thích ứng linh hoạt (Chuẩn 2026)
-
-**Mode 1: Solo/Lean Mode (Mặc định cho tính năng thông thường)**
-```text
-$lead Thêm API suspend/restore cho job và viết smoke test.
-```
-Big Lead tự nhận diện: nếu là câu hỏi tra cứu nhanh chỉ-đọc (định vị file, grep ngắn, xem config), Big Lead sẽ trả lời ngay (**Triage Fast-Path**). Nếu là việc sửa code, Big Lead giao cho 1 worker làm trọn gói (end-to-end) để tiết kiệm token và tránh phân tán ngữ cảnh.
-
-**Mode 2: Swarm/Team Mode (Phân nhánh song song)**
-```text
-$lead team Phát triển song song module Auth ở backend và trang Login ở frontend.
-```
-Kích hoạt phân công song song (tối đa 3 worker), kiểm tra Parallel Gate và chỉ định Integration Owner chịu trách nhiệm Semantic Integration Gate.
-
-**Mode 3: Prototype Mode (Dự án mới / MVP / Greenfield)**
-```text
-$lead proto Xây dựng trang Landing Page giới thiệu sản phẩm bằng Next.js.
-```
-Bỏ qua rào cản bắt buộc unit test suite; nghiệm thu linh hoạt dựa trên cú pháp/lint sạch và ứng dụng khởi chạy thành công không crash (run check).
-
-**Mode 4: Quick-Fix Bypass (Sửa lỗi nhỏ 1 nhịp)**
-```text
-$lead Sửa lỗi chính tả tiêu đề ở file header.tsx và đổi màu button.
-```
-Tự động nhận diện diff nhỏ (≤ 3 dòng, 1 file, không đổi contract/DB/auth). Lead hoặc 1 Worker xử lý và nghiệm thu tức thì trong 1 nhịp, miễn giảm nghi thức 3 bước rườm rà.
-
-Lần khởi tạo tạo sẵn các file điều phối cốt lõi trong `.orca-team/`:
-- `TEAM_POLICY.md`: ranh giới an toàn, chính sách Git (cho phép Git chỉ-đọc tự do) và cổng chất lượng.
-- `TEAM_STATE.md`: bảng trạng thái canonical và tiến độ task.
-- `LEAD_LEASE.md`: cơ chế khóa lease giữ Big Lead duy nhất.
-- `MODEL_POLICY.md` & `MODEL_STATUS.md`: quản lý routing và trạng thái model đã kiểm tra.
-
-## 🧭 Nhìn toàn bộ quy trình (Chuẩn 2026)
+## 🧭 Bản đồ Kiến trúc Điều phối (Chuẩn 2026)
 
 ```mermaid
 flowchart TD
-    U["Người dùng giao yêu cầu"] --> B["00 | BIG | Big Lead"]
-    B --> Triage{"Phân loại yêu cầu?"}
-    Triage -- "Tra cứu nhanh (≤ 2 calls, 0 write)" --> Fast["Triage Fast-Path: Trả lời ngay"]
-    Triage -- "Sửa nhỏ (≤ 3 dòng, 1 file)" --> QF["Quick-Fix Bypass: Xử lý 1 nhịp"]
-    Triage -- "Task dự án / Tính năng" --> Mode{"Chế độ & Dự án?"}
+    User(["👤 Người dùng gửi: $lead <yêu cầu>"]) --> BigLead["00 | BIG | Big Lead
+(Đọc State & Nhận diện ý định)"]
     
-    Mode -- "Prototype Mode ($lead proto / MVP)" --> Proto["1 Worker MVP: Run Check & Lint\n(Không ép Test Suite)"]
-    Mode -- "Solo Mode (Mặc định)" --> S["1 Worker trọn gói\n(Task Contract cô lập)"]
-    Mode -- "Team Mode ($lead team)" --> M["Parallel Gate & Ownership\n(Tối đa 3 Workers song song)"]
+    BigLead --> Triage{"Phân loại yêu cầu"}
     
-    Proto --> B
-    QF --> B
-    S --> V["First-Pass Gate\n(READY_FOR_VERIFICATION)"]
-    M --> V
-    V --> Int["Semantic Integration Gate\n(Selective Test / Build)"]
-    Int --> B
-    B --> O["Báo cáo kết quả ngắn gọn cho User"]
+    Triage -- "Tra cứu nhanh (≤ 2 calls, 0 write)" --> FastPath["⚡ Triage Fast-Path
+(Trả lời ngay trong 1s)"]
+    Triage -- "Sửa cực nhỏ (≤ 3 lines, 1 file)" --> QuickFix["⚡ Quick-Fix Bypass
+(Xử lý & nghiệm thu 1 nhịp)"]
+    Triage -- "Dự án mới / MVP" --> Proto["🚀 Prototype Mode
+(Run check & Lint, không ép test suite)"]
+    Triage -- "Tính năng thường" --> Solo["🛠️ Solo Mode (Mặc định)
+(1 Worker trọn gói trong terminal CLI)"]
+    Triage -- "Nhiều nhánh độc lập" --> Swarm["👥 Team Mode ($lead team)
+(Tối đa 3 Worker song song)"]
+    
+    Solo --> QualityGate{"🛡️ Cổng Chất lượng
+(First-Pass Gate)"}
+    Swarm --> QualityGate
+    
+    QualityGate -- "Pass Evidence" --> Semantic{"🔗 Semantic Integration Gate
+(Selective Test / Build)"}
+    Semantic -- "Đạt chuẩn" --> Report["📢 Báo cáo kết quả ngắn gọn cho User"]
+    
+    FastPath --> Report
+    QuickFix --> Report
+    Proto --> Report
 ```
 
-## 👥 Ai làm việc gì?
+---
 
-| Vai trò | Trách nhiệm | Không làm |
-|---|---|---|
-| **Big Lead** | Nhận yêu cầu, chia việc, xếp ưu tiên, giữ state, kiểm tra bằng chứng, báo người dùng | Không tự code, debug, test hay nghiên cứu thay worker |
-| **Lead phụ** | Điều phối một mảng lớn như `AUTH`, `ADMIN`, `JOBS` | Không sở hữu toàn bộ dự án, policy hoặc Git |
-| **Worker** | Nghiên cứu, sửa code, viết test, cập nhật tài liệu và báo kết quả | Không tự đổi scope, tự dùng quyền ngoài task |
-| **QA / Final Review** | Kiểm tra acceptance, regression, contract và bằng chứng cuối | Không tự sửa phần của worker khác nếu chưa được giao |
-| **Capability Scout** | Tìm vai trò Agency/skill phù hợp khi team đang thiếu năng lực | Không tự cài tool hoặc biến role thành Lead mới |
-| **Research Worker** | Tìm và tổng hợp nguồn cần thiết cho quyết định | Không đưa dữ liệu riêng ra ngoài |
+## ⚡ Bộ ba Cơ chế Thích ứng (All-Terrain Engine)
 
-### Quy tắc quan trọng
-
-**Lead điều phối, worker làm việc thật.** Nếu một task có nghiên cứu, code, test, debug hoặc sửa file mà không có worker terminal hiển thị, dùng:
+Hệ thống tự động biến hóa để phù hợp với quy mô của từng dự án:
 
 ```text
-$lead audit
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. QUICK-FIX BYPASS (Sửa nhanh một nhịp)                                    │
+│    • Kích hoạt: Diff ≤ 3 dòng, đúng 1 file, không chạm API/DB/Auth.         │
+│    • Lợi ích: Tiết kiệm 70% thời gian & token cho việc sửa typo, config.   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 2. PROTOTYPE MODE (Chế độ MVP / Dự án khởi đầu)                             │
+│    • Kích hoạt: Tự phát hiện repo chưa có test runner hoặc qua yêu cầu.     │
+│    • Lợi ích: Dựng PoC/MVP thần tốc; cấm worker viết mock test sáo rỗng.    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 3. SELECTIVE TESTING (Kiểm thử chọn lọc cho Monorepo)                       │
+│    • Kích hoạt: Monorepo (Nx, Turborepo, pnpm workspaces, Gradle, Cargo).   │
+│    • Lợi ích: Chỉ test package bị ảnh hưởng (--filter), không nghẽn build.  │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Lead phải để task chờ kiểm tra, không tự làm thay chỉ để báo nhanh hơn.
+---
 
-## 🖥️ Nhận diện terminal
+## 🤖 Quản lý Model 3 Tầng Linh hoạt (3-Tier System)
 
-Tên terminal luôn bắt đầu bằng số để nhìn ra quan hệ:
+Không cần probe kiểm tra rườm rà. Áp dụng **Optimistic Launch**: worker chạy ngay với model được chọn và tự động lưu `verified` khi thành công:
+
+| Tầng năng lực (Tier) | Model tiêu biểu | Effort | Phạm vi công việc |
+| :--- | :--- | :--- | :--- |
+| **Tier 1: Heavy / Frontier** | `gpt-5.6-terra` / `qwen3.8-max-0902` | `xhigh` | Big Lead, Domain Lead, Kiến trúc sư, Code khó, Bug sâu, Integration |
+| **Tier 2: Standard** | `deepseek-v4.1-flash` / `qwen3.8-max-0902` | `medium` | Code tính năng thông thường, viết unit test, research vừa |
+| **Tier 3: Eco / Fast** | `glm-5.3-flash` | `low` | Đọc file, format code, sửa tài liệu, tra cứu nhỏ |
+
+---
+
+## 🩺 Lệnh Khám sức khỏe: `$lead doctor`
+
+Chỉ với một lệnh duy nhất, bạn có thể kiểm tra toàn diện sức khỏe của cả đội ngũ:
+
+```bash
+$lead doctor
+```
 
 ```text
-00 | BIG          | MEU-HIRE-FE     | RUN
-10 | LEAD-ADMIN   | T-100           | RUN
-11 | WORKER-API   | T-101.1         | RUN
-12 | WORKER-UI    | T-101.2         | RUN
-19 | QA-ADMIN     | T-101.QA        | CHECK
-90 | VIEW         | MEU-HIRE-FE     | VIEWER_ONLY
+═══════════════════ TEAM HEALTH REPORT ═══════════════════
+✔ Big Lead Lease    : Active (00 | BIG | MEU-HIRE | RUN)
+✔ Model Status      : Tier 1 (Verified) | Tier 2 (Verified) | Tier 3 (Verified)
+✔ Delegation Audit  : Pass (0 tasks without workers, 0 orphan terminals)
+✔ Git Boundaries    : Strict (Read-only free, Mutating requires user approval)
+✔ Quality Gates     : Active (Quick-Fix, Prototype, Selective Testing enabled)
+✔ Active Workers    : 1 Worker running (11 | WORKER-API | T-101.1 | RUN)
+══════════════════════════════════════════════════════════
 ```
 
-- `00`: Big Lead duy nhất của dự án.
-- `10–19`: một nhánh Lead phụ và các worker của nhánh đó.
-- `20–29`: nhánh tiếp theo.
-- `90`: terminal xem trạng thái, không được tự mở worker.
+---
 
-Mở terminal thứ hai trong cùng dự án **không** tạo Big Lead thứ hai. Terminal đó là viewer cho đến khi recovery/takeover được xác minh.
+## 🖥️ Quy chuẩn Nhận diện Terminal trong Orca
 
-Sau khi mở worker, Lead phải đổi tên tab bằng handle Orca trả về và kiểm tra lại tab đã đổi. Nếu vẫn thấy `worker-task_<id>`, đó là dấu hiệu cổng đổi tên chưa chạy hoặc dùng handle cũ; worker chưa được ghi là `RUN` hoàn chỉnh trên bảng team.
-
-Lead cũng phải kiểm tra worker đã bắt đầu thật. Nếu Orca mới báo đã nhận nội dung nhưng worker chưa chạy, Lead sẽ lấy handle mới và gửi Enter một lần; sau đó kiểm tra lại trạng thái. Bạn không cần tự nhấn Enter. Nếu vẫn không chạy, việc đó được báo là đang bị chặn thay vì ghi nhận sai là worker đang làm.
-
-## 🧠 Agency Agents: chọn đúng chuyên môn
-
-Agency Agents được dùng như **thư viện vai trò chuyên môn**, không phải hệ thống điều phối thứ hai.
-
-Khi chạy `$lead init`, nếu còn slot, Big Lead giao một worker chỉ-đọc lập danh sách vai trò phù hợp với dự án trong:
+Tất cả terminal được đánh số và đặt nhãn chuẩn để quan sát trực quan ngay trên thanh tab:
 
 ```text
-.orca-team/AGENCY_PROFILE_REGISTRY.md
+00 | BIG          | MEU-HIRE        | RUN           <-- Big Lead duy nhất
+10 | LEAD-ADMIN   | T-100           | RUN           <-- Domain Lead (nếu có)
+11 | WORKER-API   | T-101.1         | RUN           <-- Worker phụ trách API
+12 | WORKER-UI    | T-101.2         | RUN           <-- Worker phụ trách UI
+19 | QA-VERIFIER  | T-101.QA        | CHECK         <-- Verifier độc lập
+90 | VIEW         | MEU-HIRE        | VIEWER_ONLY   <-- Terminal xem trạng thái
 ```
 
-Ví dụ:
+---
 
-| Loại dự án | Vai trò thường phù hợp |
-|---|---|
-| API / Backend | Backend Architect, API Tester, Database Optimizer, Identity & Access Engineer |
-| Frontend / Web | Frontend Developer, UI Designer, Accessibility Auditor, Test Automation Engineer |
-| Auth / dữ liệu nhạy cảm | Application Security Engineer, Privacy Engineer, Code Reviewer |
-| Công nghệ hoặc kiến trúc mới | Research Synthesist trước, rồi worker triển khai |
+## 🚀 Khởi động Nhanh trong 30 Giây
 
-Khi gặp yêu cầu mới:
+### 1. Cài đặt vào Orca
+Sao chép thư mục `skills/lead` vào thư mục skills của máy:
+```powershell
+# Windows PowerShell
+Copy-Item -Recurse skills/lead "$env:USERPROFILE\.agents\skills\lead"
+```
+*(Nếu đã tạo NTFS Junction sang `.codex\skills\lead`, hai thư mục sẽ tự động đồng bộ).*
 
+### 2. Bắt đầu dùng
+Mở terminal Codex bên trong Orca, gõ `$`, chọn **Orca Codex Team Lead**:
 ```text
-Role đã duyệt trong dự án
-        ↓ chưa có
-CAPABILITY-SCOUT tìm profile phù hợp trong Agency
-        ↓ vẫn chưa đủ
-Research Worker tìm tài liệu công khai
-        ↓
-Worker triển khai nhận card role ngắn
+$lead init
 ```
-
-Role Agency không tự:
-
-- tạo Lead hoặc terminal;
-- đổi model;
-- cấp quyền Git, database, deploy hoặc service;
-- tự cài bundle agent;
-- thay đổi scope mà người dùng đã giao.
-
-## 🌐 Agent-Reach: tìm nguồn công khai có kiểm soát
-
-Agent-Reach chỉ dành cho **Research Worker** khi tài liệu nội bộ, tài liệu chính thức và standard chưa đủ.
-
-Được phép mặc định:
-
-- đọc website công khai, RSS, YouTube công khai, GitHub công khai;
-- tìm ví dụ và thảo luận công khai để hỗ trợ quyết định;
-- ghi nguồn, kết luận và giới hạn evidence vào `.orca-team/RESEARCH_NOTES/`.
-
-Không được phép mặc định:
-
-- tự cài Agent-Reach hoặc dependency mới;
-- dùng cookie, token, tài khoản đăng nhập, Chrome profile hoặc proxy;
-- gửi source nội bộ, URL private, log chưa lọc, thông tin khách hàng hoặc dữ liệu production;
-- đăng bài, nhắn tin, like, tạo issue/PR hoặc thao tác ghi bên ngoài.
-
-Nếu cần cài tool, dùng login/cookie hoặc gửi dữ liệu ra dịch vụ ngoài, task chuyển sang `WAITING_USER` để hỏi bạn trước.
-
-## 📋 Các lệnh thường dùng
-
-| Lệnh | Dùng khi |
-|---|---|
-| `$lead` | Khôi phục state và xem việc đang làm |
-| `$lead <yêu cầu>` | Giao việc thông thường (mặc định Solo Mode 1 worker, hoặc Triage Fast-Path trả lời ngay nếu là câu hỏi nhanh) |
-| `$lead team <yêu cầu>` | Kích hoạt Swarm/Team Mode để phân nhánh song song nhiều worker |
-| `$lead proto <yêu cầu>` | Kích hoạt Prototype Mode cho dự án mới/MVP (nghiệm thu qua run check, không ép test suite) |
-| `$lead quick <yêu cầu>` | Chỉ định xử lý nhanh theo Quick-Fix Bypass cho sửa nhỏ (≤ 3 dòng, 1 file) |
-| `$lead init` | Khởi tạo team lần đầu trong dự án |
-| `$lead status` | Chỉ xem trạng thái, không mở worker |
-| `$lead audit` | Kiểm tra Lead có ôm việc hoặc task có thiếu worker không |
-| `$lead roles` | Xem vai trò Agency đang có/chờ duyệt/đang dùng |
-| `$lead capability <nhu cầu>` | Tìm năng lực hoặc role còn thiếu |
-| `$lead research <chủ đề>` | Tạo nghiên cứu có phạm vi rõ |
-| `$lead preview <chủ đề>` | Xin người dùng chốt hướng UI/UX hoặc flow lớn |
-| `$lead models` | Xem cấu hình 3 tầng model (Tier 1 Heavy / Tier 2 Standard / Tier 3 Fast) |
-| `$lead models use <model>` | Đổi nhanh model chính cho Tier 1 hoặc toàn team ngay lập tức |
-| `$lead models fallback <list>` | Đặt nhanh danh sách model dự phòng khi gặp sự cố provider |
-| `$lead models validate` | Kiểm tra trạng thái runtime của các model khi cần |
-| `$lead models set ...` | Cấu hình model chi tiết trong `MODEL_POLICY.md` |
-| `$lead policy` | Xem ranh giới an toàn đang áp dụng |
-| `$lead hooks` | Xem checklist theo từng thời điểm đang áp dụng |
-| `$lead hook add ...` | Thêm checklist mới theo yêu cầu rõ ràng của bạn |
-| `$lead config check` | Kiểm tra nhanh cấu hình team, model và hook |
-| Yêu cầu `$lead report today` | Tổng hợp hôm nay đã làm gì, đang vướng gì và bước tiếp theo |
-| `$lead recover` | Khôi phục sau khi Orca restart |
-| `$lead take over` | Thay Big Lead cũ khi đã xác minh lỗi/dừng hoặc có xác nhận của người dùng |
-| `$lead rules` | Xem rule đang áp dụng |
-
-## ⚡ Bộ ba cơ chế thích ứng (Chuẩn 2026: Quick-Fix, Prototype & Selective Testing)
-
-Khắc phục hoàn toàn hiện tượng **"Over-engineering & Stacked Latency"** thường gặp trong các hệ thống multi-agent:
-
-| Cơ chế | Điều kiện kích hoạt | Cách hoạt động | Giá trị mang lại |
-|---|---|---|---|
-| **Quick-Fix Bypass** | Diff ≤ 3 dòng, chỉ trong 1 file, không đổi public API, DB schema hay auth. | Lead hoặc 1 Worker xử lý và xác nhận kết quả trong đúng 1 nhịp. Miễn giảm việc lập Task Contract 3 bước rườm rà. | Tiết kiệm 70% thời gian & token cho việc sửa typo, sửa cấu hình env nhỏ. |
-| **Prototype Mode** | Dự án mới chưa có test framework hoặc qua lệnh `$lead proto`. | Nới lỏng rào cản unit test bắt buộc. Chỉ yêu cầu kiểm tra cú pháp/lint và ứng dụng/script khởi chạy thành công không crash (run check). | Tạo dự án MVP, PoC nhanh chóng mà không bị worker bịa dummy test sáo rỗng. |
-| **Selective Testing** | Dự án Monorepo (Nx, Turborepo, pnpm workspaces, Gradle, Cargo). | Chỉ test/build package bị ảnh hưởng trực tiếp và các upstream packages phụ thuộc (`--filter`). | Tránh chạy full monorepo build sau mỗi subtask, loại bỏ nút thắt chờ đợi build. |
-
-## 🤖 Quản lý Model linh hoạt (3 Tiers & Optimistic Launch)
-
-Không cần phải cấu hình phức tạp hay chờ probe kiểm tra trước, bạn có thể đổi model cực kỳ linh hoạt:
-
-### 1. Chỉ định model cho từng task cụ thể (Inline Override)
-Ghi đè trực tiếp model cho một task mà không ảnh hưởng cấu hình toàn dự án:
+Và sau đó, chỉ cần trò chuyện tự nhiên:
 ```text
-$lead [model: claude-3.7-sonnet] Viết thuật toán gom cụm dữ liệu này
-```
-hoặc:
-```text
-$lead Dùng model o3-mini cho việc sửa test này: ...
+$lead Hãy giúp tôi xây dựng tính năng đăng nhập OAuth với Google.
 ```
 
-### 2. Đổi nhanh model toàn team (Quick Switch)
-```text
-$lead models use claude-3.7-sonnet
-```
+---
 
-### 3. Khởi chạy lạc quan (Optimistic Launch)
-Worker sẽ chạy ngay với model được yêu cầu. Nếu worker chạy thành công, Big Lead tự động ghi nhận `verified` vào `MODEL_STATUS.md`. Nếu gặp lỗi provider, hệ thống tự động thử lại tối đa 3 lần rồi xoay sang model dự phòng tiếp theo trong pool của Tier tương ứng.
+## 📁 Cấu trúc Thư mục Điều phối `.orca-team/`
 
-## 📝 Báo cáo cuối ngày
-
-Khi bạn hỏi “hôm nay team đã làm gì?”, **Big Lead** sẽ tổng hợp từ state và báo cáo của worker:
-
-1. Đã hoàn thành.
-2. Đang thực hiện.
-3. Bị chặn.
-4. Đã kiểm tra.
-5. Việc tiếp theo.
-
-Ví dụ:
-
-```text
-Hôm nay team đã:
-
-- Hoàn thành API suspend/restore job.
-- Thêm kiểm tra Idempotency-Key.
-- Chạy smoke test cho các trạng thái chính.
-- Đang chờ cấp permission mới từ backend.
-
-Việc tiếp theo: lấy JWT mới và chạy smoke test end-to-end.
-```
-
-Nếu cần tạo báo cáo thành file, Big Lead có thể giao `Technical Writer`, `Meeting Notes Specialist` hoặc `Executive Summary Generator`. Các role này chỉ viết từ bằng chứng đã có, không tự đoán kết quả.
-
-## 🔁 Khi có nhiều yêu cầu cùng lúc
-
-Yêu cầu mới không tự hủy việc đang làm:
-
-```text
-Yêu cầu 1 đang chạy
-        + Yêu cầu 2 đến
-        + Yêu cầu 3 đến
-                ↓
-Big Lead ghi cả 3 vào task board
-                ↓
-Task độc lập → READY / chạy song song
-Task cần việc khác → QUEUED hoặc BLOCKED
-Task cần bạn chọn → WAITING_USER
-```
-
-Mặc định một Big Lead có tối đa ba worker triển khai. Số worker là giới hạn, không phải mục tiêu: việc liền mạch ưu tiên một worker làm trọn gói; chỉ tạo Lead phụ hoặc fan-out khi có ít nhất hai nhánh độc lập, đủ việc dài hạn và Orca còn capacity. Khi hết việc, Lead phụ và worker được thu gọn.
-
-### ⚙️ Workload tự thích ứng
-
-Quy trình không ép mọi yêu cầu phải chia nhiều agent:
-
-- Việc nhỏ, rõ: một worker làm từ đầu đến cuối và tự kiểm tra.
-- Việc vừa: một worker chính; chỉ thêm reviewer khi rủi ro cần.
-- Việc lớn: chia theo wave khi các nhánh thật sự độc lập, ownership không chồng lấn và có integration owner ngay từ đầu.
-- Task phình to giữa chừng: worker hiện tại dừng ở checkpoint an toàn, ghi handover rồi mới chia nhánh; không đưa writer mới vào cùng vùng đang sửa.
-
-Sau khi nhiều worker hoàn thành, integration owner phải chạy build/test hoặc smoke check toàn cục. Merge không conflict không đủ để kết luận logic đã tương thích. Nếu cổng này hỏng, chỉ mở một resolver worker nhận log và checkpoint đầy đủ. Lỗi code/test tối đa ba lần sửa có bằng chứng; sau đó giữ checkpoint, chuyển resolver hoặc `BLOCKED`/`WAITING_USER`, không tự động xóa toàn bộ diff.
-
-## ⚡ Tốc độ và chất lượng: làm vừa đủ, đo bằng kết quả
-
-Quy trình không coi nhiều agent, nhiều test hoặc nhiều dòng code là chất lượng. Mỗi task được chọn đường chạy ngắn nhất nhưng vẫn đủ bằng chứng:
-
-| Loại việc | Cách chạy | Kiểm tra chính |
-|---|---|---|
-| Nhỏ, rõ, một vùng | Một worker làm trọn gói | `fast`: format/lint, typecheck, unit liên quan |
-| Vừa, một luồng | Một worker; thêm reviewer khi cần | `fast` + `boundary` nếu chạm API/schema/state |
-| Lớn, nhánh độc lập | Fan-out theo wave + integration owner | `fast` từng nhánh + integration/release check |
-| Chưa rõ phạm vi | Worker khảo sát chỉ-đọc trước | Brief và checkpoint trước khi code |
-
-### Test ladder
-
-- `fast`: phản hồi nhanh sau thay đổi; không chạy full suite theo thói quen.
-- `boundary`: dùng khi đổi API, contract, database, state, permission hoặc tích hợp.
-- `release`: suite rộng/E2E/smoke production-like chỉ khi rủi ro hoặc release yêu cầu.
-
-Mỗi task ghi risk tier, phần bị ảnh hưởng, test bắt buộc, test informational và test budget. Test mới phải trả lời một rủi ro cụ thể; không thêm test trùng assertion. Test flaky chỉ retry một lần để phân loại, không âm thầm coi lần retry pass là xanh. Nếu quarantine, phải có người phụ trách, ticket và ngày hết hạn.
-
-Khi cùng lỗi lặp lại hoặc chạm giới hạn thời gian, lượt gọi tool/model, token/chi phí, agent đóng băng checkpoint và chuyển resolver/`BLOCKED`/`WAITING_USER`. Không sửa vô hạn chỉ để làm tăng số test pass.
-
-### Đo hiệu quả thật
-
-Team ghi được bao nhiêu thì ghi: tổng thời gian, thời gian chờ, thời gian test, số worker/handoff/retry, số lần làm lại, flaky, tỷ lệ đạt ngay lần đầu và chi phí/token. Nếu fan-out không làm kết quả tốt hơn hoặc làm thời gian tổng/p95 tăng, loại fan-out đó và quay về một worker.
-
-Chi tiết nằm trong [cổng chất lượng, thời gian và chi phí](skills/lead/references/quality-cost-and-observability.md).
-
-## 🧪 Cổng chất lượng: lần làm đầu chưa phải kết quả cuối
-
-Một worker nói “xong” chưa đủ để task được đóng. Sau lần làm đầu, task đi qua hai bước rõ ràng:
-
-```text
-Worker làm xong phần việc
-        ↓
-READY_FOR_VERIFICATION — nộp bằng chứng đã kiểm tra và phần chưa kiểm tra
-        ↓
-VERIFYING — Big Lead hoặc QA đối chiếu bằng chứng
-        ↓
-DONE — chỉ khi mức kiểm tra phù hợp đã đạt
-```
-
-Việc nhỏ không bị bắt kiểm tra vòng vo: worker evidence và Big Lead đối chiếu là đủ. Việc có rủi ro cao như quyền truy cập, thanh toán, cập nhật database, API công khai hoặc dependency giữa nhiều nhóm/hệ thống cần QA riêng hoặc kiểm tra nhanh tách riêng. Nếu có nhiều writer, bắt buộc có Semantic Integration Gate với một integration owner.
-
-Big Lead phải kiểm tra checklist phù hợp:
-
-- **API/backend:** request, response, status/error, permission, state, idempotency và test.
-- **UI/UX:** desktop/mobile, loading, empty, error, accessibility và visual check.
-- **Database/state:** migration, null/legacy data, rollback và compatibility.
-- **Dependency bên ngoài:** contract, đầu vào/đầu ra, quyền, error mapping và smoke test phù hợp; chỉ bật khi task thật sự có phụ thuộc.
-- **Research/review:** nguồn, kết luận, đánh đổi, giới hạn và quyết định.
-
-Với màn hình mới, redesign lớn hoặc đổi flow, Big Lead gửi preview để bạn chốt hướng trước khi worker làm phần quyết định.
-
-## 🤖 Model theo từng dự án
-
-Bạn không bị khóa vào một bộ model. Sau `$lead init`, chỉ cần mở `.orca-team/MODEL_POLICY.md` để chọn model, mức suy nghĩ và thứ tự dự phòng theo ý dự án.
-
-Mẫu ban đầu vẫn có sẵn để dùng nhanh:
-
-| Vai trò / việc | Model chính | Dự phòng |
-|---|---|---|
-| Big Lead / Lead phụ | `gpt-5.6-terra` · `xhigh` | `qwen3.8-max-0902` |
-| Worker code/bug/contract/integration | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
-| Worker research/tài liệu/kiểm tra hẹp | `deepseek-v4.1-flash` · `medium` | Qwen → GLM |
-| Worker đọc/kiểm tra cơ học | `glm-5.3-flash` · `low` | DeepSeek → Qwen |
-| Kiểm tra cuối/integration | `qwen3.8-max-0902` · `high` | DeepSeek → GLM |
-
-Điểm quan trọng: Big Lead chỉ giao việc bằng model có trạng thái `verified` trong `MODEL_STATUS.md`. Khi bạn đổi policy, dùng `$lead models validate`; mỗi model chỉ kiểm tra một lần cho mỗi lần chỉnh policy, không làm tốn slot lặp lại.
-
-Nếu worker lỗi model, Big Lead giữ nguyên vùng code và checkpoint, rồi retry **cùng task bằng chính model đó đủ 3 lần** (lần đầu, lần 2, lần 3). Chỉ khi cả 3 lần đều có lỗi model đã xác nhận mới xoay sang model tiếp theo trong pool của worker. Pool Qwen, DeepSeek và GLM trong file setup chỉ là mẫu mặc định; nếu bạn sửa pool trong `.orca-team/MODEL_POLICY.md`, Lead sẽ dùng đúng các model trong file đó. Nếu hết model trong pool đã cấu hình, task dừng ở `WAITING_USER` để bạn chọn.
-
-## 🪝 Rule và hook dễ chỉnh
-
-Bạn chỉnh giới hạn an toàn trong `TEAM_POLICY.md`, rule chung trong `TEAM_RULES.md`, còn `PROJECT_HOOKS.md` là checklist nhắc team làm đúng thời điểm:
-
-- `before_worker_launch`: có contract, vùng code riêng, model đã kiểm tra và còn chỗ trống.
-- `before_external_action`: có quyền riêng trước Git, database, deploy hoặc thay đổi bên ngoài.
-- `before_done`: đi qua First-Pass Gate và đủ bằng chứng.
-- `on_model_failure`: giữ checkpoint, rồi mới dùng model dự phòng được phép.
-
-Hook không phải chương trình tự chạy. Nó không được phép âm thầm chạy lệnh, chạm Git/database/deploy, đăng nhập, lấy token, tạo hàng loạt worker hoặc đổi quyền của bạn.
-
-## 🗂️ Những gì được tạo trong mỗi dự án
+Khi khởi tạo, dự án sẽ có thư mục điều phối độc lập (không commit vào Git nếu muốn giữ riêng tư):
 
 ```text
 .orca-team/
-├── TEAM_POLICY.md                  # Ranh giới và chính sách team
-├── TEAM_RULES.md                   # Rule do người dùng/Root Lead đặt
-├── PROJECT_HOOKS.md                # Checklist theo từng thời điểm, không tự chạy lệnh
-├── MODEL_POLICY.md                 # Model/effort/fallback do dự án chọn
-├── MODEL_STATUS.md                 # Kết quả Orca kiểm tra model thật
-├── TEAM_STATE.md                   # Mục tiêu, task, owner, dependency
-├── LEAD_LEASE.md                   # Big Lead duy nhất
-├── TEAM_DASHBOARD.md               # Bảng nhìn nhanh toàn team
-├── AGENCY_PROFILE_REGISTRY.md      # Vai trò Agency theo dự án
-├── SKILL_REGISTRY.md               # Skill chờ duyệt/đã duyệt/đang dùng
-├── EXTERNAL_RESEARCH_POLICY.md     # Luật Agent-Reach và nguồn ngoài
-├── QUALITY_GATES.md                # Checklist và First-Pass Gate trước khi báo xong
-└── RESEARCH_NOTES/                 # Brief nghiên cứu dùng lại được
+├── LEAD_LEASE.md             # Khóa bảo vệ Big Lead duy nhất
+├── TEAM_STATE.md             # Bảng trạng thái canonical & tiến độ từng task
+├── TEAM_DASHBOARD.md         # Bảng tóm tắt trực quan cho người đọc
+├── TEAM_POLICY.md            # Hiến pháp ranh giới an toàn & chính sách Git
+├── QUALITY_GATES.md          # Bộ tiêu chuẩn nghiệm thu & test ladders
+├── MODEL_POLICY.md           # Cấu hình 3 tầng model & pool xoay vòng
+├── MODEL_STATUS.md           # Trạng thái runtime quan sát được của các model
+├── PROJECT_HOOKS.md          # Checklist các điểm kiểm tra trước/sau launch
+├── SKILL_REGISTRY.md         # Sổ đăng ký skill chuyên môn (Lazy-loaded)
+└── AGENCY_PROFILE_REGISTRY.md# Thư viện vai trò chuyên gia (Agency Agents)
 ```
 
-State trong `.orca-team` là sổ điều phối, không thay thế inventory Orca live. Sau khi Orca restart, phải dùng `$lead recover` để kiểm tra terminal thật trước khi giao lại việc.
-
-## 🔐 Ranh giới an toàn
-
-- Không tự chạy Git nếu người dùng chưa duyệt theo policy dự án.
-- Không tự chạy migration database dùng chung.
-- Không tự đổi DB target, restart service, deploy hoặc đổi permission remote.
-- Không gửi credential, token, private URL, log nhạy cảm hay dữ liệu khách hàng qua tin nhắn team.
-- Không coi dashboard cũ là bằng chứng worker còn sống sau khi Orca restart.
-- Không tự coi lần làm đầu là đúng; chỉ báo `Đã xong` sau khi đã kiểm tra đúng mức.
-- Không dùng model mới chỉ vì được ghi trong cấu hình; Orca phải xác nhận trước.
-- Hook chỉ là checklist, không phải đường để tự chạy lệnh hay vượt quyền của bạn.
-- Agent nói với người dùng phải nói tiếng Việt ngắn gọn, kết quả trước, không đẩy log nội bộ.
-
-## 🛠️ Cấu trúc repository
-
-```text
-skills/lead/
-├── SKILL.md
-├── agents/openai.yaml
-├── references/
-│   ├── agency-profiles-and-agent-reach.md
-│   ├── capability-discovery-and-skill-gate.md
-│   ├── model-policy-and-validation.md
-│   ├── adaptive-workload-and-integration.md
-│   ├── project-rules-and-hooks.md
-│   ├── first-pass-verification.md
-│   ├── quality-cost-and-observability.md
-│   ├── research-first-gate.md
-│   ├── task-contract-template.md
-│   └── ...
-└── scripts/
-    ├── bootstrap-project.ps1
-    └── test-team-config.ps1
-```
-
-## 📚 Nguồn tham khảo
-
-- [Agency Agents](https://github.com/msitarzewski/agency-agents) — thư viện vai trò chuyên môn.
-- [Agent-Reach](https://github.com/Panniantong/Agent-Reach) — công cụ tìm nguồn công khai, chỉ dùng theo policy.
-- [Codex Skills](https://developers.openai.com/codex/skills/) — cấu trúc và cách Codex sử dụng skill.
-
-## 📄 Giấy phép
-
-MIT. Xem [LICENSE](LICENSE).
+---
 
 <div align="center">
-
-### Làm đúng người · Đúng việc · Đúng bằng chứng
-
+  <sub>Xây dựng với niềm đam mê dành cho cộng đồng Kỹ sư AI · Chuẩn hóa theo thực nghiệm SWE-bench 2026</sub>
 </div>

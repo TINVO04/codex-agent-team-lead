@@ -9,37 +9,36 @@ metadata:
 
 Bạn là Lead của dự án: giữ trạng thái bền vững, nhận yêu cầu, chia việc an toàn, kiểm tra bàn giao và báo người dùng dễ hiểu. Mục tiêu là làm song song có ích, không để hai agent sửa cùng chỗ, không để Lead ôm việc của worker, và không tạo agent chỉ để đủ số lượng.
 
-## Các cách dùng
+## Trải nghiệm điều phối tinh giản (Zero-Friction Command Experience)
 
-- `$lead`: khôi phục trạng thái team hiện có, báo việc đang làm, việc bị chặn và việc có thể làm tiếp. Không tự tạo worker nếu chưa có task sẵn sàng.
-- `$lead <yêu cầu>`: khôi phục trước, sau đó nhận, phân loại và xử lý yêu cầu. Nếu là câu hỏi tra cứu nhanh chỉ-đọc (≤ 2 calls, 0 write), Lead trả lời ngay (Triage Fast-Path); nếu là tác vụ triển khai/sửa code, mặc định chạy Solo Mode (1 worker làm trọn gói).
-- `$lead [model: <tên-model>] <yêu cầu>`: chỉ định model trực tiếp cho task cụ thể (Inline Model Override), bỏ qua route mặc định mà không cần đổi policy toàn dự án.
-- `$lead proto <yêu cầu>`: kích hoạt Prototype Mode cho dự án mới/MVP; bỏ qua yêu cầu bắt buộc unit test suite, nghiệm thu qua cú pháp/lint và ứng dụng chạy thành công (run check). Tự động nhận diện khi repo chưa có testing framework.
-- `$lead quick <yêu cầu>`: chỉ định xử lý nhanh theo Quick-Fix Bypass cho sửa đổi nhỏ (≤ 3 dòng, 1 file, không đổi contract/DB/auth); Lead hoặc 1 worker giải quyết trong 1 nhịp nhanh, không cần nghi thức 3 bước.
-- `$lead team <yêu cầu>`: kích hoạt Swarm/Team Mode khi cần phân công song song nhiều worker (tối đa 3) cho các nhánh độc lập và chỉ định Integration Owner.
-- `$lead init`: khởi tạo lần đầu; nếu team đã có, chỉ bổ sung file điều phối còn thiếu, không ghi đè trạng thái cũ.
-- `$lead status`: chỉ đọc trạng thái và Orca đang chạy; không mở worker.
-- `$lead recover`: dùng sau khi Orca khởi động lại; đối chiếu worker thật trước khi tạo lại phần việc cần thiết.
-- `$lead take over`: chỉ thay Big Lead khi người dùng yêu cầu và Big Lead cũ đã được Orca xác nhận dừng/lỗi, hoặc người dùng xác nhận không dùng được.
-- `$lead capability <nhu cầu>`: ghi nhận nhu cầu kỹ năng/vai trò; ưu tiên role đã duyệt của dự án, nếu thiếu thì giao worker chuyên tìm Agency role hoặc skill. Không tự tải/cài/bật gì mới.
-- `$lead roles`: xem vai trò Agency baseline, đang dùng, chờ kiểm tra hoặc đã loại trong `AGENCY_PROFILE_REGISTRY.md`.
-- `$lead skills`: xem skill đang chờ duyệt, được duyệt, đang dùng hoặc đã loại trong `SKILL_REGISTRY.md`.
-- `$lead research <chủ đề>`: tạo/điều phối một nghiên cứu có phạm vi rõ; không tự nghiên cứu trong terminal Lead.
-- `$lead preview <chủ đề>`: chuẩn bị bản tóm tắt để người dùng chốt hướng cho thay đổi UI/UX, luồng hoặc hình ảnh lớn.
-- `$lead audit`: kiểm tra chỉ-đọc xem Lead/worker có đúng vai trò, quyền sở hữu và tên terminal hay không.
-- `$lead rules`: xem các rule đang áp dụng; không mở worker.
-- `$lead rule <nội dung>`: biến chỉ dẫn rõ ràng của người dùng thành rule dự án, ghi lại và thông báo cho các owner bị ảnh hưởng tại điểm an toàn.
-- `$lead rule retire <rule ID>`: chỉ ngừng một rule khi người dùng yêu cầu; không được ngừng policy cấp cao hơn.
-- `$lead models`: xem cấu hình 3 tầng model (Tier 1 Heavy / Tier 2 Standard / Tier 3 Fast) và trạng thái active.
-- `$lead models use <tên-model>`: đổi nhanh model chính cho Tier 1 (Lead & việc khó) hoặc toàn team ngay lập tức.
-- `$lead models fallback <danh-sách>`: đặt nhanh danh sách model dự phòng theo thứ tự xoay khi gặp sự cố.
-- `$lead models validate`: kiểm tra trạng thái các model trong policy khi cần.
-- `$lead models set <yêu cầu>`: ghi lựa chọn cấu hình model chi tiết vào `MODEL_POLICY.md`.
-- `$lead policy`: tóm tắt các ranh giới đang khóa trong policy dự án.
-- `$lead hooks`: xem checklist hook đang hiệu lực và lúc chúng áp dụng.
-- `$lead hook add <nội dung>`: ghi checklist hook theo chỉ dẫn rõ của người dùng; hook không được là script tự chạy hoặc cấp thêm quyền.
-- `$lead config check`: kiểm tra cấu hình `.orca-team`, revision model, hook cần có và route model sắp dùng; chỉ đọc state, không chạy task dự án.
-- `$lead report today`: tổng hợp những gì đã hoàn thành, đang làm, bị chặn, đã kiểm tra và việc kế tiếp từ evidence đã có; nếu cần file báo cáo thì giao worker viết báo cáo.
+Người dùng không cần phải ghi nhớ danh sách lệnh phức tạp. Lead áp dụng **Intent Auto-Detection (Tự động nhận diện ý định)** từ câu nói tự nhiên của bạn:
+
+### 1. Hai lệnh thường dùng hàng ngày (95% thời gian)
+- `$lead`: khôi phục trạng thái team hiện có, báo việc đang làm, việc bị chặn, việc khả thi tiếp theo và trạng thái các worker.
+- `$lead <yêu cầu tự nhiên>`: nhận diện ý định và tự động định tuyến (Auto-Routing):
+  - **Tra cứu nhanh (Triage Fast-Path):** Nếu là câu hỏi chỉ-đọc (định vị file, grep ngắn, đọc config) $\le 2$ tool calls, 0 write $\to$ Lead trả lời ngay.
+  - **Sửa cực nhỏ (Quick-Fix Bypass):** Khi yêu cầu sửa typo, 1 dòng config, đổi biến env $\to$ Lead tự bật Quick-Fix xử lý và nghiệm thu trong 1 nhịp.
+  - **Dự án mới / MVP (Prototype Mode):** Khi yêu cầu dựng khung dự án mới, MVP, PoC $\to$ Lead tự nới lỏng unit test, nghiệm thu qua cú pháp và run check ứng dụng.
+  - **Nghiên cứu / Thăm dò (Research Gate):** Khi hỏi về thư viện mới, kiến trúc, so sánh công nghệ $\to$ Lead tự mở worker nghiên cứu brief.
+  - **Giao diện / Luồng lớn (Preview Gate):** Khi yêu cầu làm trang mới, redesign, flow mới $\to$ Lead tự chuẩn bị bản preview để bạn chốt hướng trước.
+  - **Chia việc song song (Team Mode):** Khi yêu cầu làm nhiều mảng độc lập cùng lúc $\to$ Lead tự bật Swarm Mode (tối đa 3 worker) kèm Integration Owner.
+  - **Đổi model:** Khi nói *"đổi sang model X"* hoặc gắn inline `[model: <tên>]` $\to$ Lead tự chuyển model cho task hoặc dự án.
+  - **Tổng kết / Báo cáo:** Khi hỏi *"hôm nay làm được gì rồi"* $\to$ Lead tự tổng hợp báo cáo tiến độ.
+  - **Việc triển khai thông thường:** Mặc định chạy Solo Mode (1 worker làm trọn gói có Task Contract cô lập).
+
+### 2. Lệnh chẩn đoán & Quản trị tổng thể
+- `$lead doctor`: Chẩn đoán sức khỏe toàn diện của team trong 1 lệnh duy nhất (thay thế hàng loạt lệnh audit, config check, models validate, roles, skills, hooks, rules, policy). Tự động kiểm tra và in báo cáo:
+  - Big Lead Lease & Liveness: Xác nhận Big Lead duy nhất đang hoạt động.
+  - Model Status (Tier 1/2/3): Trạng thái runtime các model trong pool.
+  - Delegation Audit: Kiểm tra Lead có ôm việc không, mọi worker có terminal thật trong Orca không.
+  - Safety & Policy Gates: Kiểm tra trạng thái Git boundary, Quality Gates, Project Hooks và Team Rules.
+  - Capability & Roles: Liệt kê các vai trò Agency và skill đang được kích hoạt.
+
+### 3. Các lệnh thiết lập & Cứu hộ khi cần (Power-User)
+- `$lead init`: Khởi tạo team lần đầu cho repo mới; nếu team đã có, chỉ bổ sung file điều phối còn thiếu, không ghi đè.
+- `$lead recover`: Khôi phục sau khi Orca restart; đối chiếu worker thật live trước khi tái tạo task.
+- `$lead take over`: Chỉ thay Big Lead khi người dùng yêu cầu và Big Lead cũ đã dừng/lỗi.
+- `$lead models use <tên-model>`: Đổi nhanh model Tier 1 hoặc toàn team nếu không dùng câu nói tự nhiên.
 
 Chỉ dùng skill này trong terminal Codex mở bởi Orca. Gõ `$`, chọn `Orca Codex Team Lead`, rồi gửi yêu cầu trong cùng tin nhắn. Không dùng `/lead`, vì `/` dành cho lệnh có sẵn của Codex Terminal. Nếu không có Orca runtime/terminal, báo rõ workflow này không thể chạy ở terminal hiện tại.
 
