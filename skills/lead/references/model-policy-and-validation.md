@@ -1,82 +1,98 @@
-# Model theo từng dự án và kiểm tra trước khi dùng
+# Cấu hình Model linh hoạt và Khởi chạy lạc quan (3 Tiers & Optimistic Launch)
 
-`MODEL_POLICY.md` là nơi người dùng chọn model cho dự án. `MODEL_STATUS.md` là nơi Big Lead ghi kết quả Orca đã kiểm tra thực tế. Hai file này tách riêng để người dùng có thể đổi lựa chọn mà không làm lẫn với lịch sử kiểm tra.
+`MODEL_POLICY.md` là nơi cấu hình model cho dự án. `MODEL_STATUS.md` là nơi Big Lead ghi nhận kết quả hoạt động thực tế. Hệ thống được thiết kế theo chuẩn 2026: **tối đa độ linh hoạt, khởi chạy tức thì và tự động xác thực**.
 
-## Nguyên tắc
+---
 
-- Bảng model mặc định của skill chỉ là gợi ý ban đầu. Nếu `MODEL_POLICY.md` có cấu hình hợp lệ thì file đó được ưu tiên.
-- Nếu dự án cũ chưa có dòng `Same-model max attempts`, áp dụng mặc định là `3`; nên thêm dòng này để cấu hình nhìn thấy rõ.
-- Không suy đoán model hoạt động chỉ vì model được ghi trong policy. Chỉ model có trạng thái `verified` trong `MODEL_STATUS.md` mới được phân công.
-- Big Lead chỉ được dùng model chính hoặc model dự phòng mà người dùng đã ghi. Không được tự chọn model ngoài danh sách để "chữa cháy".
-- Mỗi worker task chốt một `worker model pool` đúng theo `MODEL_POLICY.md` lúc launch. Khi model lỗi, chỉ được xoay trong pool đó; model verified ở route khác vẫn không được dùng.
-- Pool Qwen/DeepSeek/GLM trong mẫu bootstrap chỉ là cấu hình mặc định. Nếu người dùng sửa pool trong `MODEL_POLICY.md`, pool mới trong file là nguồn sự thật và được dùng thay cho mẫu. Không có model nào bị cấm cứng nếu người dùng đã thêm nó rõ vào route, đã kiểm tra và policy cho phép.
-- Mỗi model khác nhau chỉ kiểm tra một lần cho mỗi revision policy. Không tạo nhiều worker chỉ để kiểm tra cùng một model.
-- Đổi cấu hình Big Lead chỉ áp dụng cho Big Lead được mở ở lần sau hoặc takeover hợp lệ. Không được thay Big Lead hiện tại giữa chừng chỉ vì người dùng đổi file.
+## 1. Nguyên tắc cốt lõi
 
-## Mẫu `MODEL_POLICY.md`
+1. **Inline Override có quyền ưu tiên cao nhất:** Khi người dùng chỉ định model trực tiếp cho một task (ví dụ: `$lead [model: claude-3.7-sonnet] ...` hoặc bằng câu lệnh rõ ràng), Big Lead áp dụng thẳng model đó cho Task Contract của task mà không cần sửa `MODEL_POLICY.md` toàn cục.
+2. **Optimistic Launch (Khởi chạy lạc quan):** Không bắt buộc phải mở worker riêng để kiểm tra trước (probe validation). Khi có model mới hoặc thay đổi cấu hình, Lead cấp thẳng model đó cho Task Worker chạy ngay.
+3. **Auto-Verification (Tự động xác thực):** Nếu worker khởi chạy và làm việc thành công, model được tự động ghi nhận là `verified` trong `MODEL_STATUS.md`.
+4. **Graceful Fallback:** Nếu worker không thể khởi chạy (lỗi runtime, model not found, hết quota): Lead giữ checkpoint, retry tối đa 3 lần với cùng model; nếu sau 3 lần vẫn lỗi thì tự động chuyển sang model dự phòng tiếp theo trong pool và ghi nhận trạng thái lỗi tạm thời.
+5. **Cấu hình 3 Tầng năng lực (3 Tiers):** Thay vì chia nhỏ quá nhiều route, hệ thống quy về 3 tầng trực quan.
+
+---
+
+## 2. Hệ thống 3 Tầng năng lực (3 Tiers)
 
 ```markdown
-# Cấu hình model
+# Cấu hình model dự án
 
-Cập nhật gần nhất: <ISO 8601 giờ địa phương>
-Revision: MP-001
+Revision: MP-002
 Tự đổi sang dự phòng: có
 Same-model max attempts: 3
 
-| Route | Dùng cho | Model chính | Effort | Pool được xoay khi lỗi | Ghi chú |
-|---|---|---|---|---|---|
-| big-lead | Big Lead mở mới | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool của Lead |
-| domain-lead | Lead phụ | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool của Lead |
-| difficult-worker | Code, bug, contract/state, integration | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Route mạnh cho thay đổi cần hiểu sâu |
-| normal-worker | Research, tài liệu, phân loại hoặc kiểm tra hẹp | deepseek-v4.1-flash | medium | deepseek-v4.1-flash → qwen3.8-max-0902 → glm-5.3-flash | Không mặc định cho thay đổi code nhiều file |
-| quick-worker | Đọc hoặc kiểm tra cơ học | glm-5.3-flash | low | glm-5.3-flash → deepseek-v4.1-flash → qwen3.8-max-0902 | Không mặc định cho thay đổi cần suy luận sâu |
-| final-review | Kiểm tra cuối hoặc integration | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Có thể làm integration owner |
+| Tầng năng lực (Tier) | Phạm vi sử dụng | Model chính | Effort | Pool xoay vòng khi lỗi |
+|---|---|---|---|---|
+| **Tier 1: Heavy / Frontier** | Big Lead, Domain Lead, Kiến trúc, Code khó, Bug sâu, Integration | `gpt-5.6-terra` | `xhigh` | `gpt-5.6-terra` → `qwen3.8-max-0902` → `deepseek-v4.1-flash` |
+| **Tier 2: Standard** | Code tính năng thông thường, viết unit test, research vừa | `deepseek-v4.1-flash` | `medium` | `deepseek-v4.1-flash` → `qwen3.8-max-0902` → `glm-5.3-flash` |
+| **Tier 3: Eco / Fast** | Đọc file, format code, sửa tài liệu, tra cứu nhanh | `glm-5.3-flash` | `low` | `glm-5.3-flash` → `deepseek-v4.1-flash` |
 ```
 
-Người dùng có thể thay model, effort, pool, thứ tự xoay và bật/tắt tự đổi sang dự phòng. `Same-model max attempts: 3` nghĩa là cùng model được chạy tổng cộng ba lần cho một task rồi mới được đổi model; giữ giá trị 3 để hành vi recovery luôn rõ và giới hạn. Khi worker launch, ghi route và pool đọc từ `MODEL_POLICY.md` vào Task Contract; fallback phải lấy đúng từ pool đó, không lấy model ngẫu nhiên trong toàn hệ thống. Big Lead giữ nguyên cấu trúc route để dễ kiểm tra. Nếu cần route hoặc pool mới, ghi rõ mục đích và bổ sung vào Task Contract trước khi dùng.
+*(Lưu ý: Hệ thống vẫn hoàn toàn tương thích ngược với các file `MODEL_POLICY.md` 6-route kiểu cũ nếu dự án chưa cập nhật).*
 
-## Kiểm tra model
+---
 
-Khi `$lead init`, `$lead models validate` hoặc policy đổi revision:
+## 3. Cách đổi Model khi người dùng yêu cầu
 
-1. Big Lead đọc `MODEL_POLICY.md`, gom các model không trùng nhau và xem inventory Orca nếu runtime cung cấp.
-2. Nếu inventory chưa đủ bằng chứng và còn slot, Big Lead mở worker chỉ-đọc `MODEL-VALIDATOR` lần lượt cho từng model cần kiểm tra. Chỉ một validator chạy tại một thời điểm; sau khi settle có thể dùng lại terminal để kiểm tra model kế tiếp. Worker không đọc source, không đổi file dự án, không dùng Git và chỉ thực hiện probe Orca tối thiểu được phép.
-3. Worker ghi kết quả có bằng chứng vào `MODEL_STATUS.md`. Khi không mở được probe do hết slot/ràng buộc runtime, ghi `unknown`, không đoán là model hỏng.
-4. Big Lead chỉ phân công task sau khi route có một model `verified`. Nếu chưa có, task giữ `QUEUED` hoặc `WAITING_USER` tùy nguyên nhân.
+### A. Đổi tạm thời cho một task cụ thể (Inline Override)
+Không cần chỉnh file, không ảnh hưởng các task khác:
+```text
+$lead [model: claude-3.7-sonnet] Viết module phân tích log này
+```
+hoặc:
+```text
+$lead Dùng model o3-mini cho việc sửa test này: ...
+```
 
-Trạng thái được dùng:
+### B. Đổi nhanh model chính cho toàn team (Quick Switch)
+```text
+$lead models use claude-3.7-sonnet
+```
+Lead sẽ cập nhật `MODEL_POLICY.md` (đặt model chính của Tier 1 thành `claude-3.7-sonnet`) và thông báo hoàn tất ngay lập tức.
 
-| Trạng thái | Ý nghĩa | Big Lead được làm gì |
-|---|---|---|
-| `verified` | Orca đã xác nhận model/effort dùng được | Có thể phân công |
-| `unavailable` | Runtime từ chối model hoặc model không tồn tại | Bỏ qua đến khi policy/retry đổi |
-| `temporary_error` | Lỗi provider tạm thời có bằng chứng sau lần lỗi thứ ba | Dùng fallback đã verified hoặc chờ |
-| `unknown` | Chưa có đủ bằng chứng | Không được phân công |
-| `disabled` | Người dùng tắt model này | Không được phân công |
+### C. Đặt lại danh sách dự phòng (Fallback Chain)
+```text
+$lead models fallback claude-3.7-sonnet, deepseek-v4.1-flash, qwen3.8-max-0902
+```
 
-## Mẫu `MODEL_STATUS.md`
+### D. Chuyển toàn bộ sang Local / Offline Profile
+```text
+$lead models use local
+```
+Tự động chuyển các Tier sang profile local đã cấu hình trong `~/.codex/config.toml` (như Ollama, vLLM, LMStudio).
+
+---
+
+## 4. Xử lý lỗi trong khi chạy (3-Strike Rule & Rotation)
+
+1. Lần 1 và Lần 2 gặp lỗi provider: Giữ nguyên checkpoint, retry lại chính model đó với cùng effort.
+2. Lần 3 gặp lỗi: Đánh dấu model đó là `temporary_error` trong `MODEL_STATUS.md`.
+3. Tự động xoay: Mở worker mới kế thừa checkpoint bằng model tiếp theo trong danh sách pool của Tier tương ứng.
+4. Toàn bộ pool cạn kiệt: Chuyển task sang `WAITING_USER` và thông báo cho người dùng một câu hỏi lựa chọn rõ ràng (chờ hồi phục quota, đổi model mới hoặc chuyển sang provider khác).
+
+---
+
+## 5. Bảng trạng thái `MODEL_STATUS.md`
+
+`MODEL_STATUS.md` được Lead tự động cập nhật trong quá trình vận hành:
 
 ```markdown
-# Trạng thái model đã kiểm tra
+# Trạng thái model quan sát được
 
-Policy revision đã kiểm tra: MP-001
 Kiểm tra gần nhất: <ISO 8601 giờ địa phương>
 
-| Model | Effort | Trạng thái | Evidence Orca | Kiểm tra lúc | Dùng cho route |
-|---|---|---|---|---|---|
-| gpt-5.6-terra | xhigh | verified | <launch/inventory reference> | <time> | big-lead, domain-lead |
+| Model | Effort | Trạng thái | Ghi chú / Lần cuối thấy hoạt động |
+|---|---|---|---|
+| gpt-5.6-terra | xhigh | verified | Hoạt động bình thường qua worker dispatch |
+| qwen3.8-max-0902 | high | verified | Dự phòng sẵn sàng |
+| deepseek-v4.1-flash | medium | verified | Hoạt động bình thường |
+| glm-5.3-flash | low | verified | Hoạt động bình thường |
 ```
 
-`MODEL_STATUS.md` là trạng thái quan sát, không phải lời hứa model sẽ không lỗi về sau. Nếu provider lỗi trong lúc chạy, xử lý theo recovery trong Task Contract và cập nhật status.
-
-## Lỗi trong khi chạy
-
-Chỉ đổi worker khi có bằng chứng worker thật sự lỗi/dừng hoặc Orca từ chối launch. Giữ ownership và checkpoint; retry cùng task bằng **chính model đang dùng** ở lần 2 và lần 3. Chỉ sau lần lỗi thứ ba mới xoay sang model `verified` kế tiếp trong **pool của chính route worker**. Không dùng model có trạng thái `unknown`, model ở route khác hoặc fallback ngoài pool.
-
-Nếu route hết model `verified`, chuyển task thành `WAITING_USER` và hỏi người dùng một lựa chọn rõ: đổi policy, chờ thử lại, hoặc cho phép model khác. Nếu Big Lead/Domain Lead lỗi, quy tắc takeover/replacement cũ vẫn áp dụng; agent mới cũng phải đọc hai file model trước khi mở worker.
-
-## Các lệnh điều phối
-
-- `$lead models`: nói ngắn route nào đang dùng được, model nào chưa kiểm tra hay đang lỗi.
-- `$lead models validate`: tạo một wave kiểm tra khi policy đổi hoặc status cũ; không kiểm tra lại model đã verified cùng revision.
-- `$lead models set ...`: ghi đúng yêu cầu model của người dùng vào `MODEL_POLICY.md`, tăng revision, đánh dấu status liên quan là cần kiểm tra lại và không tự dùng model mới trước khi xác minh.
+Trạng thái:
+* `verified`: Model đang hoạt động tốt.
+* `temporary_error`: Lỗi tạm thời (rate-limit/timeout), tự động thử lại sau.
+* `unavailable`: Runtime từ chối hoặc không tìm thấy model.
+* `disabled`: Người dùng chủ động tắt.

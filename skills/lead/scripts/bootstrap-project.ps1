@@ -126,37 +126,37 @@ if (-not (Test-Path -LiteralPath $modelPolicyPath)) {
 # Cấu hình model
 
 Cập nhật gần nhất: chưa khởi tạo
-Revision: MP-001
+Revision: MP-002
 Tự đổi sang dự phòng: có
 Same-model max attempts: 3
 
-Bảng này do người dùng chỉnh và là nguồn sự thật cho route/pool của dự án. Big Lead chỉ được phân công model có trạng thái `verified` trong MODEL_STATUS.md. Pool Qwen/DeepSeek/GLM chỉ là mẫu mặc định; model nào được thêm rõ vào pool trong file đều có thể dùng sau khi kiểm tra. `Same-model max attempts: 3` nghĩa là cùng model chạy tổng cộng ba lần cho một task; chỉ lỗi lần 3 mới xoay model trong đúng pool. Đổi model, pool hoặc effort phải tăng Revision rồi chạy `$lead models validate`; không tự dùng model mới trước khi Orca kiểm tra.
+Hệ thống quản lý model theo 3 tầng năng lực (3 Tiers). Người dùng có thể chỉ định model cho từng task bằng tag [model: ...] hoặc lệnh '$lead models use <model>'. Áp dụng Optimistic Launch: worker khởi chạy trực tiếp với model được yêu cầu và tự động xác thực vào MODEL_STATUS.md khi thành công.
 
-| Route | Dùng cho | Model chính | Effort | Pool được xoay khi lỗi | Ghi chú |
-|---|---|---|---|---|---|
-| big-lead | Big Lead mở mới | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool Lead |
-| domain-lead | Lead phụ | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 | Pool Lead |
-| difficult-worker | Code, bug, contract/state, integration | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Route mạnh cho thay đổi cần hiểu sâu |
-| normal-worker | Research, tài liệu, phân loại hoặc kiểm tra hẹp | deepseek-v4.1-flash | medium | deepseek-v4.1-flash → qwen3.8-max-0902 → glm-5.3-flash | Không mặc định cho thay đổi code nhiều file |
-| quick-worker | Đọc hoặc kiểm tra cơ học | glm-5.3-flash | low | glm-5.3-flash → deepseek-v4.1-flash → qwen3.8-max-0902 | Không mặc định cho thay đổi cần suy luận sâu |
-| final-review | Kiểm tra cuối hoặc integration | qwen3.8-max-0902 | high | qwen3.8-max-0902 → deepseek-v4.1-flash → glm-5.3-flash | Có thể làm integration owner |
+| Tầng năng lực (Tier) | Phạm vi sử dụng | Model chính | Effort | Pool xoay vòng khi lỗi |
+|---|---|---|---|---|
+| Tier 1: Heavy / Frontier | Big Lead, Domain Lead, Kiến trúc, Code khó, Bug sâu, Integration | gpt-5.6-terra | xhigh | gpt-5.6-terra → qwen3.8-max-0902 → deepseek-v4.1-flash |
+| Tier 2: Standard | Code tính năng thường, viết unit test, research vừa | deepseek-v4.1-flash | medium | deepseek-v4.1-flash → qwen3.8-max-0902 → glm-5.3-flash |
+| Tier 3: Eco / Fast | Đọc file, format code, sửa tài liệu, tra cứu nhanh | glm-5.3-flash | low | glm-5.3-flash → deepseek-v4.1-flash |
 '@
     [System.IO.File]::WriteAllText($modelPolicyPath, $modelPolicyContents, $utf8NoBom)
 }
 
 if (-not (Test-Path -LiteralPath $modelStatusPath)) {
     $modelStatusContents = @'
-# Trạng thái model đã kiểm tra
+# Trạng thái model quan sát được
 
-Policy revision đã kiểm tra: chưa có
 Kiểm tra gần nhất: chưa khởi tạo
 
-Chỉ model `verified` trong bảng này mới được Big Lead dùng để mở Lead/worker. `unknown` nghĩa là chưa đủ bằng chứng, không phải lỗi. Mỗi model chỉ kiểm tra một lần cho mỗi revision policy.
+Lead tự động cập nhật bảng này khi worker khởi chạy thành công (Optimistic Launch) hoặc gặp lỗi runtime:
 
-| Model | Effort | Trạng thái | Evidence Orca | Kiểm tra lúc | Dùng cho route |
-|---|---|---|---|---|---|
+| Model | Effort | Trạng thái | Ghi chú / Lần cuối hoạt động |
+|---|---|---|---|
+| gpt-5.6-terra | xhigh | verified | Mặc định Tier 1 |
+| qwen3.8-max-0902 | high | verified | Dự phòng sẵn sàng |
+| deepseek-v4.1-flash | medium | verified | Mặc định Tier 2 |
+| glm-5.3-flash | low | verified | Mặc định Tier 3 |
 
-Trạng thái: verified, unavailable, temporary_error, unknown, disabled.
+Trạng thái: verified, temporary_error, unavailable, disabled.
 '@
     [System.IO.File]::WriteAllText($modelStatusPath, $modelStatusContents, $utf8NoBom)
 }

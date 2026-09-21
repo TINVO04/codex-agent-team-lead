@@ -230,9 +230,11 @@ Nếu cần cài tool, dùng login/cookie hoặc gửi dữ liệu ra dịch v�
 | `$lead capability <nhu cầu>` | Tìm năng lực hoặc role còn thiếu |
 | `$lead research <chủ đề>` | Tạo nghiên cứu có phạm vi rõ |
 | `$lead preview <chủ đề>` | Xin người dùng chốt hướng UI/UX hoặc flow lớn |
-| `$lead models` | Xem model nào đã sẵn sàng dùng, model nào cần kiểm tra |
-| `$lead models validate` | Kiểm tra model trong cấu hình trước khi phân việc |
-| `$lead models set ...` | Ghi lựa chọn model mới của bạn cho dự án, rồi chờ Orca kiểm tra |
+| `$lead models` | Xem cấu hình 3 tầng model (Tier 1 Heavy / Tier 2 Standard / Tier 3 Fast) |
+| `$lead models use <model>` | Đổi nhanh model chính cho Tier 1 hoặc toàn team ngay lập tức |
+| `$lead models fallback <list>` | Đặt nhanh danh sách model dự phòng khi gặp sự cố provider |
+| `$lead models validate` | Kiểm tra trạng thái runtime của các model khi cần |
+| `$lead models set ...` | Cấu hình model chi tiết trong `MODEL_POLICY.md` |
 | `$lead policy` | Xem ranh giới an toàn đang áp dụng |
 | `$lead hooks` | Xem checklist theo từng thời điểm đang áp dụng |
 | `$lead hook add ...` | Thêm checklist mới theo yêu cầu rõ ràng của bạn |
@@ -241,6 +243,28 @@ Nếu cần cài tool, dùng login/cookie hoặc gửi dữ liệu ra dịch v�
 | `$lead recover` | Khôi phục sau khi Orca restart |
 | `$lead take over` | Thay Big Lead cũ khi đã xác minh lỗi/dừng hoặc có xác nhận của người dùng |
 | `$lead rules` | Xem rule đang áp dụng |
+
+## 🤖 Quản lý Model linh hoạt (3 Tiers & Optimistic Launch)
+
+Không cần phải cấu hình phức tạp hay chờ probe kiểm tra trước, bạn có thể đổi model cực kỳ linh hoạt:
+
+### 1. Chỉ định model cho từng task cụ thể (Inline Override)
+Ghi đè trực tiếp model cho một task mà không ảnh hưởng cấu hình toàn dự án:
+```text
+$lead [model: claude-3.7-sonnet] Viết thuật toán gom cụm dữ liệu này
+```
+hoặc:
+```text
+$lead Dùng model o3-mini cho việc sửa test này: ...
+```
+
+### 2. Đổi nhanh model toàn team (Quick Switch)
+```text
+$lead models use claude-3.7-sonnet
+```
+
+### 3. Khởi chạy lạc quan (Optimistic Launch)
+Worker sẽ chạy ngay với model được yêu cầu. Nếu worker chạy thành công, Big Lead tự động ghi nhận `verified` vào `MODEL_STATUS.md`. Nếu gặp lỗi provider, hệ thống tự động thử lại tối đa 3 lần rồi xoay sang model dự phòng tiếp theo trong pool của Tier tương ứng.
 
 ## 📝 Báo cáo cuối ngày
 

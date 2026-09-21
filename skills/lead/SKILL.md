@@ -13,6 +13,7 @@ Bạn là Lead của dự án: giữ trạng thái bền vững, nhận yêu c�
 
 - `$lead`: khôi phục trạng thái team hiện có, báo việc đang làm, việc bị chặn và việc có thể làm tiếp. Không tự tạo worker nếu chưa có task sẵn sàng.
 - `$lead <yêu cầu>`: khôi phục trước, sau đó nhận, phân loại và xử lý yêu cầu. Nếu là câu hỏi tra cứu nhanh chỉ-đọc (≤ 2 calls, 0 write), Lead trả lời ngay (Triage Fast-Path); nếu là tác vụ triển khai/sửa code, mặc định chạy Solo Mode (1 worker làm trọn gói).
+- `$lead [model: <tên-model>] <yêu cầu>`: chỉ định model trực tiếp cho task cụ thể (Inline Model Override), bỏ qua route mặc định mà không cần đổi policy toàn dự án.
 - `$lead team <yêu cầu>`: kích hoạt Swarm/Team Mode khi cần phân công song song nhiều worker (tối đa 3) cho các nhánh độc lập và chỉ định Integration Owner.
 - `$lead init`: khởi tạo lần đầu; nếu team đã có, chỉ bổ sung file điều phối còn thiếu, không ghi đè trạng thái cũ.
 - `$lead status`: chỉ đọc trạng thái và Orca đang chạy; không mở worker.
@@ -27,9 +28,11 @@ Bạn là Lead của dự án: giữ trạng thái bền vững, nhận yêu c�
 - `$lead rules`: xem các rule đang áp dụng; không mở worker.
 - `$lead rule <nội dung>`: biến chỉ dẫn rõ ràng của người dùng thành rule dự án, ghi lại và thông báo cho các owner bị ảnh hưởng tại điểm an toàn.
 - `$lead rule retire <rule ID>`: chỉ ngừng một rule khi người dùng yêu cầu; không được ngừng policy cấp cao hơn.
-- `$lead models`: xem route model, model nào đã kiểm tra/chưa kiểm tra/không dùng được; không tự mở worker triển khai.
-- `$lead models validate`: tạo một wave kiểm tra tối thiểu cho model trong `MODEL_POLICY.md` khi policy đổi; không kiểm tra lại model đã `verified` cùng revision.
-- `$lead models set <yêu cầu>`: ghi lựa chọn model rõ của người dùng vào `MODEL_POLICY.md`, tăng revision và giữ task chờ đến khi model được kiểm tra.
+- `$lead models`: xem cấu hình 3 tầng model (Tier 1 Heavy / Tier 2 Standard / Tier 3 Fast) và trạng thái active.
+- `$lead models use <tên-model>`: đổi nhanh model chính cho Tier 1 (Lead & việc khó) hoặc toàn team ngay lập tức.
+- `$lead models fallback <danh-sách>`: đặt nhanh danh sách model dự phòng theo thứ tự xoay khi gặp sự cố.
+- `$lead models validate`: kiểm tra trạng thái các model trong policy khi cần.
+- `$lead models set <yêu cầu>`: ghi lựa chọn cấu hình model chi tiết vào `MODEL_POLICY.md`.
 - `$lead policy`: tóm tắt các ranh giới đang khóa trong policy dự án.
 - `$lead hooks`: xem checklist hook đang hiệu lực và lúc chúng áp dụng.
 - `$lead hook add <nội dung>`: ghi checklist hook theo chỉ dẫn rõ của người dùng; hook không được là script tự chạy hoặc cấp thêm quyền.
@@ -79,18 +82,23 @@ Với mỗi task, Lead phải ghi rule áp dụng và bằng chứng cần có t
 
 Domain Lead chỉ được đề xuất rule; Root Lead mới được ghi rule dự án. Worker tuân thủ rule hoặc báo `BLOCKED`/`NEED_DECISION` nếu rule xung đột.
 
-## Model và khôi phục khi lỗi
+## Model và khôi phục khi lỗi (Linh hoạt 3 Tiers & Optimistic Launch)
 
-Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; `TEAM_POLICY.md` vẫn là ranh giới cao hơn. Ghi model yêu cầu, model thực tế, mức suy nghĩ và thứ tự dự phòng trong Task Contract/state. Chỉ dùng model `verified` ở policy revision hiện tại.
+Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; chỉ thị trực tiếp của người dùng (`[model: ...]`) luôn có quyền ưu tiên cao nhất cho task được chỉ định. Phân chia cấu hình model theo 3 tầng năng lực tinh gọn:
 
-- Root Lead và Domain Lead dùng route Lead trong policy: mặc định `gpt-5.6-terra` với `xhigh`, dự phòng `qwen3.8-max-0902`.
-- Worker dùng route khó/thường/nhanh/kiểm tra cuối trong policy, theo đúng thứ tự dự phòng.
-- Worker mất kết nối/chưa rõ trạng thái không phải bằng chứng lỗi model. Phải kiểm tra trước, không tạo writer trùng.
-- Nếu worker lỗi model sau khi sửa file, giữ khóa ownership và checkpoint. Retry cùng task bằng chính model đó đến hết lần 3; chỉ sau lỗi lần 3 mới xoay sang model `verified` khác trong pool của đúng route worker được ghi trong `MODEL_POLICY.md`. Qwen/DeepSeek/GLM chỉ là mẫu mặc định, không phải danh sách khóa cứng.
-- Root Lead bị lỗi không thể tự thay nó. Caller giám sát dùng `TEAM_STATE.md` để mở Root Lead thay thế bằng Qwen. Domain Lead lỗi do Root Lead thay sau khi xác minh.
-- Nếu model chính và toàn bộ model dự phòng đều lỗi/không có hoặc chưa kiểm tra, chuyển task sang `WAITING_USER` và hỏi người dùng chọn model/chờ thử lại; không âm thầm dùng model ngoài policy.
+- **Tier 1 (Frontier/Heavy):** Root/Domain Lead, kiến trúc, code khó, review cuối, integration. Mặc định `gpt-5.6-terra` / `qwen3.8-max-0902` với effort `xhigh`/`high`.
+- **Tier 2 (Standard):** Code tính năng thường, viết test, research vừa. Mặc định `deepseek-v4.1-flash` / `qwen3.8-max-0902` với effort `medium`.
+- **Tier 3 (Eco/Fast):** Đọc file, format code, sửa tài liệu, tra cứu nhỏ. Mặc định `glm-5.3-flash` với effort `low`.
 
-Đọc [controller đổi model](references/model-routing-and-recovery.md) và [model policy/runtime](references/model-policy-and-validation.md) trước khi xử lý lỗi provider/model. Thay model là một worker Orca mới cho **cùng task** bằng `--retry-of`, không đổi model không xác minh trong terminal cũ.
+Áp dụng cơ chế **Optimistic Launch (Khởi chạy lạc quan & Tự động ghi nhận)**:
+1. **Inline Override:** Khi người dùng chỉ định model riêng cho một task (qua tag `[model: <tên>]` hoặc câu lệnh), Lead gắn thẳng model đó vào Task Contract mà không cần sửa `MODEL_POLICY.md` toàn cục.
+2. **Khởi chạy trực tiếp:** Mở worker ngay với model được yêu cầu, không bắt buộc tạo wave probe kiểm tra trước.
+3. **Tự động xác thực:** Nếu worker launch và làm việc thành công, model tự động được cập nhật `verified` vào `MODEL_STATUS.md`.
+4. **Xử lý lỗi provider/model:** Nếu worker lỗi provider hoặc runtime từ chối model: giữ checkpoint, retry cùng model tối đa 3 lần; nếu lỗi lần 3, tự động xoay sang model dự phòng kế tiếp trong pool của Tier tương ứng và ghi trạng thái lỗi tạm thời.
+5. **Root Lead lỗi:** Caller giám sát dùng `TEAM_STATE.md` để mở Root Lead thay thế bằng model dự phòng Tier 1.
+6. Nếu toàn bộ model trong pool đều lỗi hoặc hết quota, chuyển task sang `WAITING_USER` và hỏi người dùng chọn model/chờ thử lại.
+
+Đọc [controller đổi model](references/model-routing-and-recovery.md) và [model policy/runtime](references/model-policy-and-validation.md) trước khi xử lý lỗi provider/model. Thay model là một worker Orca mới cho **cùng task** bằng `--retry-of`.
 
 ## Quy tắc điều phối cốt lõi
 
