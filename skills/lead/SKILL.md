@@ -14,6 +14,8 @@ Bạn là Lead của dự án: giữ trạng thái bền vững, nhận yêu c�
 - `$lead`: khôi phục trạng thái team hiện có, báo việc đang làm, việc bị chặn và việc có thể làm tiếp. Không tự tạo worker nếu chưa có task sẵn sàng.
 - `$lead <yêu cầu>`: khôi phục trước, sau đó nhận, phân loại và xử lý yêu cầu. Nếu là câu hỏi tra cứu nhanh chỉ-đọc (≤ 2 calls, 0 write), Lead trả lời ngay (Triage Fast-Path); nếu là tác vụ triển khai/sửa code, mặc định chạy Solo Mode (1 worker làm trọn gói).
 - `$lead [model: <tên-model>] <yêu cầu>`: chỉ định model trực tiếp cho task cụ thể (Inline Model Override), bỏ qua route mặc định mà không cần đổi policy toàn dự án.
+- `$lead proto <yêu cầu>`: kích hoạt Prototype Mode cho dự án mới/MVP; bỏ qua yêu cầu bắt buộc unit test suite, nghiệm thu qua cú pháp/lint và ứng dụng chạy thành công (run check). Tự động nhận diện khi repo chưa có testing framework.
+- `$lead quick <yêu cầu>`: chỉ định xử lý nhanh theo Quick-Fix Bypass cho sửa đổi nhỏ (≤ 3 dòng, 1 file, không đổi contract/DB/auth); Lead hoặc 1 worker giải quyết trong 1 nhịp nhanh, không cần nghi thức 3 bước.
 - `$lead team <yêu cầu>`: kích hoạt Swarm/Team Mode khi cần phân công song song nhiều worker (tối đa 3) cho các nhánh độc lập và chỉ định Integration Owner.
 - `$lead init`: khởi tạo lần đầu; nếu team đã có, chỉ bổ sung file điều phối còn thiếu, không ghi đè trạng thái cũ.
 - `$lead status`: chỉ đọc trạng thái và Orca đang chạy; không mở worker.
@@ -100,11 +102,33 @@ Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; chỉ thị trực tiếp c�
 
 Đọc [controller đổi model](references/model-routing-and-recovery.md) và [model policy/runtime](references/model-policy-and-validation.md) trước khi xử lý lỗi provider/model. Thay model là một worker Orca mới cho **cùng task** bằng `--retry-of`.
 
+## Bộ ba cơ chế thích ứng linh hoạt (Adaptive Mechanisms)
+
+Để tối ưu tốc độ và chi phí mà vẫn bảo đảm an toàn chuẩn Enterprise (chuẩn thực nghiệm SWE-bench & multi-agent 2026):
+
+1. **Quick-Fix Bypass (Sửa nhanh 1 nhịp):**
+   - **Điều kiện an toàn:** Tổng diff ≤ 3 dòng, chỉ trong 1 file duy nhất, hoàn toàn không chạm vào public API contract, database schema/migration, authentication, permission logic hay global build config.
+   - **Thực thi:** Cho phép Lead hoặc 1 Worker chỉnh sửa trực tiếp, chạy fast check (cú pháp/lint), xác nhận thay đổi và nghiệm thu ngay mà không cần lập Task Contract 3 bước hay phân công integration reviewer.
+   - **Circuit Breaker:** Nếu trong quá trình sửa phát hiện diff vượt quá 3 dòng hoặc chạm vào các file nhạy cảm, lập tức hủy Bypass và chuyển về quy trình Strict First-Pass Gate.
+
+2. **Prototype Mode (Chế độ MVP / Dự án khởi đầu):**
+   - **Kích hoạt:** Tự động phát hiện khi thư mục dự án chưa có test framework/script (không có npm test, pytest, go test, cargo test...) HOẶC khi người dùng truyền `$lead proto <task>` / `[mode: proto]`.
+   - **Thực thi:** Nới lỏng yêu cầu bắt buộc unit test suite trong `QUALITY_GATES.md`. Tiêu chí nghiệm thu hoàn thành tập trung vào: (1) Cú pháp sạch, không lỗi lint/typecheck; (2) Khởi động ứng dụng hoặc thực thi script thành công không crash (exit code 0 / server listening); (3) Evidence trực quan (log khởi động, curl test, hoặc preview UI).
+   - Tuyệt đối cấm worker tự viết các mock test/dummy test sáo rỗng chỉ để qua gate khi dự án chưa có hạ tầng kiểm thử.
+
+3. **Selective / Targeted Testing (Kiểm thử chọn lọc cho Monorepo):**
+   - **Kích hoạt:** Dự án dạng monorepo hoặc multi-project workspace (Nx, Turborepo, pnpm/yarn workspaces, Lerna, Gradle subprojects, Cargo workspace).
+   - **Thực thi:** Khi worker thực hiện task hoặc khi integration owner xác thực, chỉ chạy test và compile cho các gói bị ảnh hưởng trực tiếp và các upstream dependent packages (ví dụ: `pnpm --filter <pkg>... test`, `turbo run test --filter=...[HEAD^1]`, `cargo test -p <pkg>`).
+   - Cấm chạy full test/build toàn bộ monorepo trên mỗi subtask để tránh nghẽn luồng (stacked latency). Chỉ chạy full-suite khi có chỉ định rõ `$lead full-test` hoặc tại Release Gate cuối cùng.
+
 ## Quy tắc điều phối cốt lõi
 
 1. Ghi mọi yêu cầu mới thành root task trước khi giao: ID, ưu tiên, trạng thái, owner, dependency, ownership zone và acceptance evidence.
-2. Áp dụng Delegation Gate có Triage Fast-Path. Root/Domain Lead tập trung điều phối. Để tránh tắc nghẽn micro-dispatch cho các câu hỏi nhanh: nếu yêu cầu chỉ là tra cứu chỉ-đọc (grep 1 biểu thức, định vị file, đọc lướt config/hàm cụ thể) tốn ≤ 2 tool calls và không ghi sửa mã nguồn, Lead được phép thực hiện trực tiếp và trả lời người dùng ngay. Mọi việc có ý nghĩa — ghi/sửa code, config, chạy test kéo dài (>10s), debug sâu đa file, phân tích log diện rộng, tìm/đánh giá skill — bắt buộc thuộc về worker có Task Contract trong terminal hiển thị rõ. Sau khi mở worker, Lead xác nhận agent đã nhận việc và bắt đầu làm. Status/clarification/rule/câu trả lời một dòng không cần worker.
-3. Chọn checklist, risk tier và First-Pass route phù hợp trong `QUALITY_GATES.md`, ghi test budget cùng bằng chứng cụ thể vào Task Contract. Dùng fast check trước, chỉ nâng lên boundary/release khi rủi ro hoặc thay đổi yêu cầu. Worker báo `READY_FOR_VERIFICATION`; sửa code hoặc worker tự nói “xong” không đủ để `DONE`.
+2. Áp dụng Delegation Gate có Triage Fast-Path và Quick-Fix Bypass. Root/Domain Lead tập trung điều phối. Để tránh tắc nghẽn micro-dispatch cho các câu hỏi nhanh: nếu yêu cầu chỉ là tra cứu chỉ-đọc (grep 1 biểu thức, định vị file, đọc lướt config/hàm cụ thể) tốn ≤ 2 tool calls và không ghi sửa mã nguồn, Lead được phép thực hiện trực tiếp và trả lời người dùng ngay (Triage Fast-Path). Với các sửa đổi cực nhỏ, cô lập (Quick-Fix Bypass: ≤ 3 dòng thay đổi, chỉ 1 file, không chạm API contract, schema, auth, config trọng yếu), Lead hoặc 1 Worker xử lý nhanh trong 1 nhịp, verify cú pháp/lint và nghiệm thu ngay mà không bắt buộc lập kế hoạch 3 bước rườm rà. Mọi việc có ý nghĩa khác — ghi/sửa code diện rộng, config lớn, chạy test kéo dài (>10s), debug sâu đa file, phân tích log diện rộng, tìm/đánh giá skill — bắt buộc thuộc về worker có Task Contract trong terminal hiển thị rõ. Sau khi mở worker, Lead xác nhận agent đã nhận việc và bắt đầu làm. Status/clarification/rule/câu trả lời một dòng không cần worker.
+3. Chọn checklist, risk tier và First-Pass route phù hợp trong `QUALITY_GATES.md`, ghi test budget cùng bằng chứng cụ thể vào Task Contract:
+   - **Chế độ Prototype:** Cho repo mới/MVP hoặc khi gọi `$lead proto`, bỏ qua yêu cầu bắt buộc unit test suite; nghiệm thu dựa trên cú pháp/lint hợp lệ và ứng dụng/script chạy thành công không lỗi (run check).
+   - **Selective Testing (Monorepo):** Với dự án monorepo (Nx, Turborepo, pnpm workspaces, Gradle, Cargo...), chỉ định phạm vi test/build hẹp theo package/module bị ảnh hưởng (`--filter`), không kích hoạt full build toàn bộ repo trừ khi được chỉ định rõ hoặc trước release.
+   - **Strict Mode (Mặc định):** Dùng fast check trước, chỉ nâng lên boundary/release khi rủi ro hoặc thay đổi yêu cầu. Worker báo `READY_FOR_VERIFICATION`; sửa code hoặc worker tự nói “xong” không đủ để `DONE`.
 4. Phân loại Preview Gate là `not needed`, `internal` hoặc `user review required`. Với trang mới, redesign đáng kể, thay đổi điều hướng/luồng người dùng, phải chờ người dùng chốt trước khi worker thay đổi phần quyết định hướng, trừ khi người dùng nói làm trực tiếp.
 5. Phân loại Research Gate là `routine`, `research-first` hoặc `research-deep`. Các task cần evidence hiện hành phải có worker nghiên cứu riêng và brief trước phần triển khai phụ thuộc nó.
 6. Phân loại Capability Gate: dùng Agency role card, skill/reference sẵn có trước; nếu phải tìm ngoài thì giao capability-scout worker, ghi registry và chỉ cài/dùng theo quyền người dùng.

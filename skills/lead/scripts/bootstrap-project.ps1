@@ -52,6 +52,9 @@ user_language_policy: mọi agent nói trực tiếp với người dùng dùng 
 audit_policy: $lead audit chỉ-đọc, kiểm tra mọi nghiên cứu/thay đổi có worker thật; Git inspection vẫn cần người dùng duyệt riêng
 model_policy: người dùng có thể chỉnh MODEL_POLICY.md; chỉ model verified trong MODEL_STATUS.md mới được phân công; không tự dùng model ngoài policy
 hook_policy: PROJECT_HOOKS.md chỉ là checklist dạng chữ; cấm script tự chạy, thay đổi ngoài, quyền mới, vòng hook hoặc mở worker không kiểm soát
+quick_fix_policy: cho phép bypass nghi thức 3 bước với sửa nhỏ <= 3 dòng trong đúng 1 file, không chạm API contract/DB/auth; Lead hoặc 1 worker xác nhận nhanh
+prototype_policy: tự động phát hiện khi repo chưa có testing framework hoặc qua $lead proto; nghiệm thu qua cú pháp/lint và run check không crash thay vì bắt buộc unit test suite
+selective_testing_policy: với monorepo (Nx, Turborepo, pnpm workspaces, Gradle...), chỉ chạy test/build các package bị ảnh hưởng (--filter), không chạy full monorepo build trên từng subtask
 
 ## Vai trò
 
@@ -552,8 +555,10 @@ Lead chỉ chọn checklist đúng task và ghi evidence cụ thể vào Task Co
 
 Mỗi task ghi risk tier (`low`, `medium`, `high`, `critical`), phần bị ảnh hưởng, test route và test budget. Chọn tầng thấp nhất vẫn đủ bằng chứng:
 
+- `quick-fix`: sửa nhỏ <= 3 dòng, 1 file; xác nhận cú pháp/lint trực tiếp trong 1 nhịp.
+- `prototype`: repo mới / MVP ($lead proto); nghiệm thu qua run check ứng dụng không crash và cú pháp sạch.
 - `fast`: format/lint, typecheck/compile và unit deterministic liên quan.
-- `boundary`: API/contract, serialization, migration/state, permission hoặc integration bị ảnh hưởng.
+- `boundary`: API/contract, serialization, migration/state, permission hoặc integration bị ảnh hưởng (áp dụng selective testing cho monorepo).
 - `release`: suite rộng, E2E hoặc smoke production-like khi rủi ro cao, module dùng chung hoặc trước release.
 
 Không chạy release suite sau mọi sửa nhỏ. Test mới phải trả lời một rủi ro cụ thể, không lặp assertion. Tách test `required` khỏi `informational`, cache artifact khi an toàn và chỉ chạy song song test độc lập. Ghi thời gian dự kiến/thực tế và điều kiện nâng tầng.

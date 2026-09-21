@@ -74,9 +74,9 @@ Lần đầu khởi tạo sẽ tạo thư mục `.orca-team/` và kiểm tra m�
 
 > Không dùng `/lead`. Dấu `/` là lệnh có sẵn của Codex Terminal; `$lead` là skill điều phối của Orca.
 
-### 3. Giao việc & Cơ chế Dual-Mode
+### 3. Giao việc & Cơ chế thích ứng linh hoạt (Chuẩn 2026)
 
-**Mode 1: Solo/Lean Mode (Mặc định)**
+**Mode 1: Solo/Lean Mode (Mặc định cho tính năng thông thường)**
 ```text
 $lead Thêm API suspend/restore cho job và viết smoke test.
 ```
@@ -87,6 +87,18 @@ Big Lead tự nhận diện: nếu là câu hỏi tra cứu nhanh chỉ-đọc (
 $lead team Phát triển song song module Auth ở backend và trang Login ở frontend.
 ```
 Kích hoạt phân công song song (tối đa 3 worker), kiểm tra Parallel Gate và chỉ định Integration Owner chịu trách nhiệm Semantic Integration Gate.
+
+**Mode 3: Prototype Mode (Dự án mới / MVP / Greenfield)**
+```text
+$lead proto Xây dựng trang Landing Page giới thiệu sản phẩm bằng Next.js.
+```
+Bỏ qua rào cản bắt buộc unit test suite; nghiệm thu linh hoạt dựa trên cú pháp/lint sạch và ứng dụng khởi chạy thành công không crash (run check).
+
+**Mode 4: Quick-Fix Bypass (Sửa lỗi nhỏ 1 nhịp)**
+```text
+$lead Sửa lỗi chính tả tiêu đề ở file header.tsx và đổi màu button.
+```
+Tự động nhận diện diff nhỏ (≤ 3 dòng, 1 file, không đổi contract/DB/auth). Lead hoặc 1 Worker xử lý và nghiệm thu tức thì trong 1 nhịp, miễn giảm nghi thức 3 bước rườm rà.
 
 Lần khởi tạo tạo sẵn các file điều phối cốt lõi trong `.orca-team/`:
 - `TEAM_POLICY.md`: ranh giới an toàn, chính sách Git (cho phép Git chỉ-đọc tự do) và cổng chất lượng.
@@ -99,16 +111,20 @@ Lần khởi tạo tạo sẵn các file điều phối cốt lõi trong `.orca-
 ```mermaid
 flowchart TD
     U["Người dùng giao yêu cầu"] --> B["00 | BIG | Big Lead"]
-    B --> Triage{"Tra cứu nhanh chỉ-đọc?"}
-    Triage -- "Có (≤ 2 calls, 0 write)" --> Fast["Triage Fast-Path: Trả lời ngay"]
-    Triage -- "Không (Task sửa code / test)" --> Mode{"Chế độ vận hành?"}
+    B --> Triage{"Phân loại yêu cầu?"}
+    Triage -- "Tra cứu nhanh (≤ 2 calls, 0 write)" --> Fast["Triage Fast-Path: Trả lời ngay"]
+    Triage -- "Sửa nhỏ (≤ 3 dòng, 1 file)" --> QF["Quick-Fix Bypass: Xử lý 1 nhịp"]
+    Triage -- "Task dự án / Tính năng" --> Mode{"Chế độ & Dự án?"}
     
+    Mode -- "Prototype Mode ($lead proto / MVP)" --> Proto["1 Worker MVP: Run Check & Lint\n(Không ép Test Suite)"]
     Mode -- "Solo Mode (Mặc định)" --> S["1 Worker trọn gói\n(Task Contract cô lập)"]
     Mode -- "Team Mode ($lead team)" --> M["Parallel Gate & Ownership\n(Tối đa 3 Workers song song)"]
     
+    Proto --> B
+    QF --> B
     S --> V["First-Pass Gate\n(READY_FOR_VERIFICATION)"]
     M --> V
-    V --> Int["Semantic Integration Gate\n(Build / Test toàn cục)"]
+    V --> Int["Semantic Integration Gate\n(Selective Test / Build)"]
     Int --> B
     B --> O["Báo cáo kết quả ngắn gọn cho User"]
 ```
@@ -223,6 +239,8 @@ Nếu cần cài tool, dùng login/cookie hoặc gửi dữ liệu ra dịch v�
 | `$lead` | Khôi phục state và xem việc đang làm |
 | `$lead <yêu cầu>` | Giao việc thông thường (mặc định Solo Mode 1 worker, hoặc Triage Fast-Path trả lời ngay nếu là câu hỏi nhanh) |
 | `$lead team <yêu cầu>` | Kích hoạt Swarm/Team Mode để phân nhánh song song nhiều worker |
+| `$lead proto <yêu cầu>` | Kích hoạt Prototype Mode cho dự án mới/MVP (nghiệm thu qua run check, không ép test suite) |
+| `$lead quick <yêu cầu>` | Chỉ định xử lý nhanh theo Quick-Fix Bypass cho sửa nhỏ (≤ 3 dòng, 1 file) |
 | `$lead init` | Khởi tạo team lần đầu trong dự án |
 | `$lead status` | Chỉ xem trạng thái, không mở worker |
 | `$lead audit` | Kiểm tra Lead có ôm việc hoặc task có thiếu worker không |
@@ -243,6 +261,16 @@ Nếu cần cài tool, dùng login/cookie hoặc gửi dữ liệu ra dịch v�
 | `$lead recover` | Khôi phục sau khi Orca restart |
 | `$lead take over` | Thay Big Lead cũ khi đã xác minh lỗi/dừng hoặc có xác nhận của người dùng |
 | `$lead rules` | Xem rule đang áp dụng |
+
+## ⚡ Bộ ba cơ chế thích ứng (Chuẩn 2026: Quick-Fix, Prototype & Selective Testing)
+
+Khắc phục hoàn toàn hiện tượng **"Over-engineering & Stacked Latency"** thường gặp trong các hệ thống multi-agent:
+
+| Cơ chế | Điều kiện kích hoạt | Cách hoạt động | Giá trị mang lại |
+|---|---|---|---|
+| **Quick-Fix Bypass** | Diff ≤ 3 dòng, chỉ trong 1 file, không đổi public API, DB schema hay auth. | Lead hoặc 1 Worker xử lý và xác nhận kết quả trong đúng 1 nhịp. Miễn giảm việc lập Task Contract 3 bước rườm rà. | Tiết kiệm 70% thời gian & token cho việc sửa typo, sửa cấu hình env nhỏ. |
+| **Prototype Mode** | Dự án mới chưa có test framework hoặc qua lệnh `$lead proto`. | Nới lỏng rào cản unit test bắt buộc. Chỉ yêu cầu kiểm tra cú pháp/lint và ứng dụng/script khởi chạy thành công không crash (run check). | Tạo dự án MVP, PoC nhanh chóng mà không bị worker bịa dummy test sáo rỗng. |
+| **Selective Testing** | Dự án Monorepo (Nx, Turborepo, pnpm workspaces, Gradle, Cargo). | Chỉ test/build package bị ảnh hưởng trực tiếp và các upstream packages phụ thuộc (`--filter`). | Tránh chạy full monorepo build sau mỗi subtask, loại bỏ nút thắt chờ đợi build. |
 
 ## 🤖 Quản lý Model linh hoạt (3 Tiers & Optimistic Launch)
 

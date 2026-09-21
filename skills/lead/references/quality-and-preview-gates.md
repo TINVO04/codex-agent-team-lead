@@ -24,8 +24,10 @@ Task Contract phải ghi risk tier, test route, phần bị ảnh hưởng và t
 
 | Tầng | Khi dùng | Ví dụ |
 |---|---|---|
+| `quick-fix` | sửa cực nhỏ ≤ 3 dòng, 1 file, không đổi API/DB/auth | format, lint, typecheck hoặc manual check trực tiếp trong 1 nhịp |
+| `prototype` | dự án mới / MVP chưa có testing framework ($lead proto) | cú pháp hợp lệ + run/launch check ứng dụng thành công, không ép unit test |
 | `fast` | sau mỗi thay đổi hoặc task rủi ro thấp | format, lint, typecheck, unit deterministic liên quan |
-| `boundary` | đổi API, schema, migration, state, permission hoặc tích hợp | contract/integration/smoke tập trung |
+| `boundary` | đổi API, schema, migration, state, permission hoặc tích hợp | contract/integration/smoke tập trung (dùng selective testing cho monorepo) |
 | `release` | thay đổi rộng, module dùng chung hoặc trước release | suite rộng, E2E/production-like có chọn lọc |
 
 Không chạy release suite sau mọi sửa nhỏ. Test mới phải bao phủ rủi ro chưa có bằng chứng; không thêm test trùng assertion. Tách test `required` khỏi `informational`, cache artifact khi an toàn và chỉ song song hóa test độc lập.
@@ -33,6 +35,23 @@ Không chạy release suite sau mọi sửa nhỏ. Test mới phải bao phủ r
 Test flaky chỉ được retry một lần để phân loại. Ghi riêng `product-failure`, `environment-failure` và `flaky`; không âm thầm coi retry pass là xanh. Nếu quarantine, phải có owner, ticket và ngày hết hạn. Khi hết test budget hoặc lặp cùng lỗi, dừng và chuyển resolver/`BLOCKED`/`WAITING_USER`.
 
 Lead nên ghi thời gian chờ, thời gian test, số retry/handoff, rework và first-pass acceptance vào state. Đây là bằng chứng để quyết định fan-out có cải thiện thời gian và chất lượng hay không.
+
+### 1. Quick-Fix Bypass (Fast-Track)
+Khi thay đổi có diff tổng cộng ≤ 3 dòng và nằm trong đúng 1 file (sửa typo, biến env cục bộ, cập nhật hằng số hẹp, comment):
+- Cho phép Lead hoặc 1 Worker xử lý và xác nhận kết quả trực tiếp trong 1 nhịp.
+- Chỉ cần xác nhận cú pháp và lint sạch; miễn giảm thủ tục tạo Task Contract 3 bước rườm rà.
+- **Ranh giới an toàn:** Nếu phát hiện diff chạm vào API public contract, DB schema/migration, logic xác thực (auth) hoặc lan sang file khác, hủy Bypass và tự động chuyển về quy trình Strict First-Pass Gate.
+
+### 2. Prototype Mode (Nghiệm thu dự án MVP / Greenfield)
+Khi repo chưa có hạ tầng testing framework (không có script test) hoặc khi người dùng truyền `$lead proto`:
+- Nới lỏng yêu cầu bắt buộc unit test suite.
+- Tiêu chí nghiệm thu hoàn thành: (1) Cú pháp/lint/typecheck sạch; (2) Ứng dụng/script chạy được không crash (run check exit code 0 / server ready); (3) Có evidence thực tế (log output hoặc preview UI).
+- Cấm worker viết mock test hoặc dummy test sáo rỗng chỉ để vượt qua rào cản gate.
+
+### 3. Selective Testing cho Monorepo
+Với các codebase monorepo (Nx, Turborepo, pnpm workspaces, Gradle, Cargo):
+- Giới hạn phạm vi test và build chặt chẽ trong các package/module bị ảnh hưởng (`--filter` / `affected`).
+- Không kích hoạt full monorepo build trên từng subtask để tránh dồn ứ thời gian chờ (stacked latency).
 
 ## Cổng xem trước: chốt trước việc chủ quan lớn
 

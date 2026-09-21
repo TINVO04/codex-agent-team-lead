@@ -8,9 +8,11 @@ Lead không mặc định mở nhiều worker. Hãy chọn đường chạy ng�
 
 | Tình huống | Cách chạy mặc định | Cổng chất lượng |
 |---|---|---|
-| Việc nhỏ, rõ, một vùng | Một worker làm trọn gói | Worker tự kiểm tra + đối chiếu acceptance |
+| Sửa cực nhỏ (≤ 3 dòng, 1 file) | Quick-Fix Bypass (Lead hoặc 1 Worker) | Fast-check cú pháp/lint trực tiếp trong 1 nhịp |
+| Dự án mới / MVP ($lead proto) | Prototype Mode (1 worker trọn gói) | Run/launch check không crash + cú pháp sạch, không ép test suite |
+| Việc nhỏ, rõ, một vùng | Một worker làm trọn gói (Solo Mode) | Worker tự kiểm tra + đối chiếu acceptance |
 | Việc vừa, có một luồng chính | Một worker chính; chỉ thêm reviewer khi rủi ro cần | Reviewer hoặc smoke check có mục tiêu |
-| Việc lớn, nhiều nhánh độc lập | Fan-out theo wave, ownership không chồng lấn | Một integration worker hợp nhất + kiểm tra toàn cục |
+| Việc lớn, nhiều nhánh độc lập | Fan-out theo wave, ownership không chồng lấn ($lead team) | Một integration worker hợp nhất + kiểm tra toàn cục |
 | Phạm vi chưa rõ | Một worker khảo sát chỉ-đọc | Brief/checkpoint trước khi triển khai |
 
 Không mở thêm worker chỉ để đủ số lượng. Nếu các phần phải chờ cùng một ngữ cảnh, cùng file hoặc cùng quyết định thì giữ một owner chính thay vì chia giả.
@@ -33,7 +35,7 @@ Sau mỗi task, ghi thời gian giao → được chấp nhận, thời gian wor
 
 Merge không có conflict dòng không chứng minh hệ thống đúng. Sau khi nhiều worker hoàn thành:
 
-- Integration worker phải đọc các thay đổi và chạy build/test hoặc smoke check toàn cục phù hợp với task.
+- Integration worker phải đọc các thay đổi và chạy build/test hoặc smoke check toàn cục phù hợp với task (áp dụng Selective Testing đối với monorepo: chỉ test/build các package bị ảnh hưởng và upstream dependencies liên quan).
 - Kiểm tra cả contract, tên tham số, schema, cấu hình, trạng thái và đường gọi giữa các vùng; không chỉ xem Git diff.
 - Nếu dùng nhiều worktree, mọi thao tác merge/Git vẫn cần quyền Git của người dùng theo policy. Nếu chưa có quyền, integration worker kiểm tra trên trạng thái được phép và báo phần chưa thể hợp nhất.
 - Nếu build/test toàn cục hỏng, chỉ mở **một** resolver worker cho cùng integration task. Resolver nhận build log, checkpoint, các file đã đổi và acceptance; không ném lỗi ngược đồng thời cho các writer cũ.

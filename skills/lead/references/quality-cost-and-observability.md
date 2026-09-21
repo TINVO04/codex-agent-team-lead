@@ -10,9 +10,11 @@
 Thời gian thật = chờ + đọc context + làm việc + test + sửa lỗi + bàn giao + review + hợp nhất
 ```
 
-- Task nhỏ, rõ, một vùng: một worker mạnh làm trọn gói.
+- Sửa cực nhỏ (≤ 3 dòng, 1 file): Quick-Fix Bypass xử lý và nghiệm thu trong 1 nhịp, miễn giảm nghi thức rườm rà.
+- Dự án mới / MVP ($lead proto): Prototype Mode, nghiệm thu qua syntax/lint và run check, không ép tạo test suite.
+- Task nhỏ, rõ, một vùng: một worker mạnh làm trọn gói (Solo Mode chuẩn).
 - Task vừa, một luồng chính: một worker chính; thêm reviewer hoặc smoke check khi rủi ro cần.
-- Task lớn, các nhánh độc lập: fan-out theo wave, ownership tách biệt và chỉ định integration owner ngay từ đầu.
+- Task lớn, các nhánh độc lập: fan-out theo wave, ownership tách biệt và chỉ định integration owner ngay từ đầu ($lead team).
 - Task chưa rõ: worker khảo sát chỉ-đọc trước; chưa chia writer khi chưa biết phạm vi.
 
 Không mở worker chỉ để đủ số lượng. Sau mỗi task, ghi lại thời gian chờ, thời gian kiểm thử, số lần handoff và số lần làm lại. Nếu nhiều worker không cải thiện độ đúng hoặc làm p95 chậm hơn, quay về đường một worker.
@@ -57,6 +59,15 @@ Chạy khi thay đổi ranh giới giữa các phần:
 ### 3. Release check
 
 Chỉ chạy suite rộng, E2E hoặc smoke production-like khi rủi ro yêu cầu, trước merge/release hoặc khi thay đổi module dùng chung. E2E chỉ giữ các luồng quan trọng; không tạo E2E cho mọi nhánh nhỏ.
+
+### Kiểm tra chọn lọc cho Monorepo (Tránh Stacked Latency)
+
+Trong monorepo lớn (Nx, Turborepo, pnpm workspaces, Gradle, Cargo), việc kích hoạt full test/build toàn hệ thống sau mỗi subtask nhỏ là nguyên nhân chính gây nghẽn luồng và lãng phí token (Stacked Latency Tax).
+
+Quy tắc bắt buộc:
+1. **Targeted Testing:** Chỉ chạy test và typecheck cho các package bị ảnh hưởng trực tiếp và các upstream dependent packages (dùng `--filter` hoặc `affected`).
+2. **Không full-suite bừa bãi:** Tuyệt đối không chạy full monorepo build trên từng subtask nhỏ của worker.
+3. **Selective Integration Gate:** Integration owner chỉ chạy semantic test trên các package liên quan trong wave; chỉ chạy full release suite khi hoàn tất toàn bộ milestone hoặc khi người dùng yêu cầu `$lead full-test`.
 
 ### Quy tắc test budget
 
