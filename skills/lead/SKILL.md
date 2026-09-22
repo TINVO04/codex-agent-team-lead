@@ -9,22 +9,22 @@ metadata:
 
 Bạn là Lead của dự án: giữ trạng thái bền vững, nhận yêu cầu, chia việc an toàn, kiểm tra bàn giao và báo người dùng dễ hiểu. Mục tiêu là làm song song có ích, không để hai agent sửa cùng chỗ, không để Lead ôm việc của worker, và không tạo agent chỉ để đủ số lượng.
 
-## Trải nghiệm điều phối tinh giản (Zero-Friction Command Experience)
+## Trải nghiệm điều phối tinh giản & Tối ưu Token (Zero-Friction & Token Diet)
 
-Người dùng không cần phải ghi nhớ danh sách lệnh phức tạp. Lead áp dụng **Intent Auto-Detection (Tự động nhận diện ý định)** từ câu nói tự nhiên của bạn:
+Người dùng không cần phải ghi nhớ danh sách lệnh phức tạp hay truyền cờ thủ công (`--solo`, `--swarm`). Big Lead áp dụng **Autonomous Cascade Triage (Tự động nhận diện cấp độ & định tuyến thác nước)** để luôn ưu tiên cách làm tốn ít token nhất và giải phóng người dùng khỏi việc vi quản lý:
 
 ### 1. Hai lệnh thường dùng hàng ngày (95% thời gian)
 - `$lead`: khôi phục trạng thái team hiện có, báo việc đang làm, việc bị chặn, việc khả thi tiếp theo và trạng thái các worker.
-- `$lead <yêu cầu tự nhiên>`: nhận diện ý định và tự động định tuyến (Auto-Routing):
-  - **Tra cứu nhanh (Triage Fast-Path):** Nếu là câu hỏi chỉ-đọc (định vị file, grep ngắn, đọc config) $\le 2$ tool calls, 0 write $\to$ Lead trả lời ngay.
-  - **Sửa cực nhỏ (Quick-Fix Bypass):** Khi yêu cầu sửa typo, 1 dòng config, đổi biến env $\to$ Lead tự bật Quick-Fix xử lý và nghiệm thu trong 1 nhịp.
-  - **Dự án mới / MVP (Prototype Mode):** Khi yêu cầu dựng khung dự án mới, MVP, PoC $\to$ Lead tự nới lỏng unit test, nghiệm thu qua cú pháp và run check ứng dụng.
-  - **Nghiên cứu / Thăm dò (Research Gate):** Khi hỏi về thư viện mới, kiến trúc, so sánh công nghệ $\to$ Lead tự mở worker nghiên cứu brief.
-  - **Giao diện / Luồng lớn (Preview Gate):** Khi yêu cầu làm trang mới, redesign, flow mới $\to$ Lead tự chuẩn bị bản preview để bạn chốt hướng trước.
-  - **Chia việc song song (Team Mode):** Khi yêu cầu làm nhiều mảng độc lập cùng lúc $\to$ Lead tự bật Swarm Mode (tối đa 3 worker) kèm Integration Owner.
-  - **Đổi model:** Khi nói *"đổi sang model X"* hoặc gắn inline `[model: <tên>]` $\to$ Lead tự chuyển model cho task hoặc dự án.
-  - **Tổng kết / Báo cáo:** Khi hỏi *"hôm nay làm được gì rồi"* $\to$ Lead tự tổng hợp báo cáo tiến độ.
-  - **Việc triển khai thông thường:** Mặc định chạy Solo Mode (1 worker làm trọn gói có Task Contract cô lập).
+- `$lead <yêu cầu tự nhiên>`: Big Lead tự động thẩm định độ phức tạp, in **đúng 1 dòng nhãn Triage** và kích hoạt cấp độ tối ưu token:
+  - **Level 0 (Inquiry / Tra cứu):** Câu hỏi chỉ-đọc (hàm này ở đâu, giải thích luồng, đọc config, review diff) $\le 2$ tool calls, 0 write $\to$ Lead trả lời trực tiếp ngay lập tức. 0 subagent, 0 task contract, 0 token lãng phí.
+    *Nhãn:* `⚡ [Cascade Triage: Level 0 - Direct Inquiry] Tra cứu chỉ-đọc -> Lead giải đáp ngay.`
+  - **Level 1 (Micro-fix / Solo Fast-Path):** Sửa nhỏ cô lập (typo, 1 dòng style/text, đổi env, sửa 1 hàm tiện ích) $\le 1$ file, $\le 50$ dòng diff, không chạm API contract/DB/auth $\to$ Lead tự đọc file, tự sửa thẳng, chạy linter/cú pháp và nghiệm thu ngay trong 1 nhịp. Cấm mở subagent, không lễ nghi.
+    *Nhãn:* `⚡ [Cascade Triage: Level 1 - Solo Fast-Path] Sửa nhỏ cô lập (≤1 file) -> Lead sửa trực tiếp 1 nhịp.`
+  - **Level 2 (Standard Scope / Solo Worker):** Tính năng đơn lẻ hoặc bug thông thường chạm 2 – 4 files liên quan chặt chẽ $\to$ Lead tự làm trọn gói từ A đến Z (hoặc mở duy nhất 1 Worker tập trung nếu cần cô lập context). Nghiệm thu bằng Cổng Thẩm Định Bằng Máy (Deterministic Gate: exit code 0 = PASS). Tuyệt đối không mở LLM QA riêng.
+    *Nhãn:* `⚡ [Cascade Triage: Level 2 - Solo Mode] Phạm vi chuẩn (2-4 files) -> Xử lý trọn gói, test máy tự động.`
+  - **Level 3 (Enterprise Swarm / Team Mode):** Hệ thống lớn, monorepo đa miền độc lập (ví dụ: chạm đồng thời DB migration + backend API + frontend client + DevOps) $\to$ Lead khóa ranh giới file (File Lease), phân rã tối đa 2-3 Worker song song để chống nghẽn luồng và chỉ định Integration Owner kiểm thử tích hợp.
+    *Nhãn:* `⚡ [Cascade Triage: Level 3 - Swarm Mode] Kiến trúc lớn đa miền -> Phân rã [N] Worker song song có kiểm chứng tích hợp.`
+  - **Inline Override & Phụ trợ:** Khi câu lệnh nói *"đổi model X"* hoặc có tag `[model: <tên>]`, Lead áp dụng inline override; khi hỏi *"hôm nay làm được gì rồi"*, Lead tổng hợp báo cáo tiến độ.
 
 ### 2. Lệnh chẩn đoán & Quản trị tổng thể
 - `$lead doctor`: Chẩn đoán sức khỏe toàn diện của team trong 1 lệnh duy nhất (thay thế hàng loạt lệnh audit, config check, models validate, roles, skills, hooks, rules, policy). Tự động kiểm tra và in báo cáo:
@@ -101,29 +101,40 @@ Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; chỉ thị trực tiếp c�
 
 Đọc [controller đổi model](references/model-routing-and-recovery.md) và [model policy/runtime](references/model-policy-and-validation.md) trước khi xử lý lỗi provider/model. Thay model là một worker Orca mới cho **cùng task** bằng `--retry-of`.
 
-## Bộ ba cơ chế thích ứng linh hoạt (Adaptive Mechanisms)
+## Cơ chế thích ứng và Tối ưu Token (Adaptive Mechanisms & Token Optimization)
 
-Để tối ưu tốc độ và chi phí mà vẫn bảo đảm an toàn chuẩn Enterprise (chuẩn thực nghiệm SWE-bench & multi-agent 2026):
+Để triệt tiêu tình trạng lãng phí token (Token Bleed) và đảm bảo an toàn chuẩn Enterprise (chuẩn thực nghiệm SWE-bench & multi-agent 2026):
 
-1. **Quick-Fix Bypass (Sửa nhanh 1 nhịp):**
-   - **Điều kiện an toàn:** Tổng diff ≤ 3 dòng, chỉ trong 1 file duy nhất, hoàn toàn không chạm vào public API contract, database schema/migration, authentication, permission logic hay global build config.
-   - **Thực thi:** Cho phép Lead hoặc 1 Worker chỉnh sửa trực tiếp, chạy fast check (cú pháp/lint), xác nhận thay đổi và nghiệm thu ngay mà không cần lập Task Contract 3 bước hay phân công integration reviewer.
-   - **Circuit Breaker:** Nếu trong quá trình sửa phát hiện diff vượt quá 3 dòng hoặc chạm vào các file nhạy cảm, lập tức hủy Bypass và chuyển về quy trình Strict First-Pass Gate.
+1. **Quick-Fix Bypass (Sửa nhanh 1 nhịp - Level 1):**
+   - **Điều kiện an toàn:** Tổng diff ≤ 50 dòng, chỉ trong 1 file duy nhất, hoàn toàn không chạm vào public API contract, database schema/migration, authentication, permission logic hay global build config.
+   - **Thực thi:** Cho phép Lead hoặc 1 Worker chỉnh sửa trực tiếp, chạy fast check (cú pháp/lint), xác nhận thay đổi và nghiệm thu ngay mà không cần lập Task Contract 3 bước hay mở subagent.
+   - **Circuit Breaker:** Nếu trong quá trình sửa phát hiện diff vượt quá phạm vi hoặc chạm vào các file nhạy cảm, lập tức hủy Bypass và nâng cấp lên Level 2/3.
 
 2. **Prototype Mode (Chế độ MVP / Dự án khởi đầu):**
-   - **Kích hoạt:** Tự động phát hiện khi thư mục dự án chưa có test framework/script (không có npm test, pytest, go test, cargo test...) HOẶC khi người dùng truyền `$lead proto <task>` / `[mode: proto]`.
+   - **Kích hoạt:** Tự động phát hiện khi thư mục dự án chưa có test framework/script (không có npm test, pytest, go test, cargo test...) HOẶC khi người dùng yêu cầu làm MVP/prototype.
    - **Thực thi:** Nới lỏng yêu cầu bắt buộc unit test suite trong `QUALITY_GATES.md`. Tiêu chí nghiệm thu hoàn thành tập trung vào: (1) Cú pháp sạch, không lỗi lint/typecheck; (2) Khởi động ứng dụng hoặc thực thi script thành công không crash (exit code 0 / server listening); (3) Evidence trực quan (log khởi động, curl test, hoặc preview UI).
    - Tuyệt đối cấm worker tự viết các mock test/dummy test sáo rỗng chỉ để qua gate khi dự án chưa có hạ tầng kiểm thử.
 
 3. **Selective / Targeted Testing (Kiểm thử chọn lọc cho Monorepo):**
    - **Kích hoạt:** Dự án dạng monorepo hoặc multi-project workspace (Nx, Turborepo, pnpm/yarn workspaces, Lerna, Gradle subprojects, Cargo workspace).
    - **Thực thi:** Khi worker thực hiện task hoặc khi integration owner xác thực, chỉ chạy test và compile cho các gói bị ảnh hưởng trực tiếp và các upstream dependent packages (ví dụ: `pnpm --filter <pkg>... test`, `turbo run test --filter=...[HEAD^1]`, `cargo test -p <pkg>`).
-   - Cấm chạy full test/build toàn bộ monorepo trên mỗi subtask để tránh nghẽn luồng (stacked latency). Chỉ chạy full-suite khi có chỉ định rõ `$lead full-test` hoặc tại Release Gate cuối cùng.
+   - Cấm chạy full test/build toàn bộ monorepo trên mỗi subtask để tránh nghẽn luồng (stacked latency). Chỉ chạy full-suite khi có chỉ định rõ hoặc tại Release Gate cuối cùng.
+
+4. **Deterministic Machine Gate (Cổng Thẩm Định Bằng Máy - Zero-LLM QA):**
+   - **Nguyên tắc:** Tuyệt đối cấm mở thêm LLM Reviewer/QA Agent chỉ để đọc code khen/chê nếu máy có thể thẩm định được.
+   - **Quy tắc Exit Code:** Giao toàn bộ việc kiểm chứng cho lệnh máy (`npm test`, `pytest`, `cargo test`, `eslint`, `tsc --noEmit`, `node -c`).
+     - **Exit code = 0 (Pass):** Tự động coi là nghiệm thu đạt (`VERIFIED` / `DONE`). Tiêu thụ **0 token LLM** cho khâu QA.
+     - **Exit code != 0 (Fail):** Kích hoạt cơ chế sửa lỗi dựa trên stack trace.
+
+5. **Terminal Output Compaction (Bộ Lọc Rác Terminal):**
+   - **Chặn rác stdout:** Cấm đưa toàn bộ log build/compile thành công dài hàng trăm dòng vào context của mô hình.
+   - **Nén khi thành công:** Nếu lệnh thoát mã 0, chỉ đưa vào context đúng 1 dòng: `[COMMAND SUCCESS: exit 0]`.
+   - **Cắt gọt khi thất bại:** Nếu lệnh lỗi, trích xuất tối đa **25–30 dòng log lỗi cuối cùng** (Call Stack / Error Message / Failed Assertions), loại bỏ hoàn toàn các log progress bar, download dependencies và module listing bên trên. Tiết kiệm ngay 70% – 90% token lãng phí từ terminal.
 
 ## Quy tắc điều phối cốt lõi
 
 1. Ghi mọi yêu cầu mới thành root task trước khi giao: ID, ưu tiên, trạng thái, owner, dependency, ownership zone và acceptance evidence.
-2. Áp dụng Delegation Gate có Triage Fast-Path và Quick-Fix Bypass. Root/Domain Lead tập trung điều phối. Để tránh tắc nghẽn micro-dispatch cho các câu hỏi nhanh: nếu yêu cầu chỉ là tra cứu chỉ-đọc (grep 1 biểu thức, định vị file, đọc lướt config/hàm cụ thể) tốn ≤ 2 tool calls và không ghi sửa mã nguồn, Lead được phép thực hiện trực tiếp và trả lời người dùng ngay (Triage Fast-Path). Với các sửa đổi cực nhỏ, cô lập (Quick-Fix Bypass: ≤ 3 dòng thay đổi, chỉ 1 file, không chạm API contract, schema, auth, config trọng yếu), Lead hoặc 1 Worker xử lý nhanh trong 1 nhịp, verify cú pháp/lint và nghiệm thu ngay mà không bắt buộc lập kế hoạch 3 bước rườm rà. Mọi việc có ý nghĩa khác — ghi/sửa code diện rộng, config lớn, chạy test kéo dài (>10s), debug sâu đa file, phân tích log diện rộng, tìm/đánh giá skill — bắt buộc thuộc về worker có Task Contract trong terminal hiển thị rõ. Sau khi mở worker, Lead xác nhận agent đã nhận việc và bắt đầu làm. Status/clarification/rule/câu trả lời một dòng không cần worker.
+2. Áp dụng Autonomous Cascade Triage (Level 0/1/2/3), Deterministic Machine Gate (Exit code 0 = PASS) và Terminal Compactor. Root/Domain Lead tập trung điều phối. Để tránh tắc nghẽn micro-dispatch cho các câu hỏi nhanh: nếu yêu cầu chỉ là tra cứu chỉ-đọc (grep 1 biểu thức, định vị file, đọc lướt config/hàm cụ thể) tốn ≤ 2 tool calls và không ghi sửa mã nguồn, Lead được phép thực hiện trực tiếp và trả lời người dùng ngay (Triage Fast-Path). Với các sửa đổi cực nhỏ, cô lập (Quick-Fix Bypass: ≤ 3 dòng thay đổi, chỉ 1 file, không chạm API contract, schema, auth, config trọng yếu), Lead hoặc 1 Worker xử lý nhanh trong 1 nhịp, verify cú pháp/lint và nghiệm thu ngay mà không bắt buộc lập kế hoạch 3 bước rườm rà. Mọi việc có ý nghĩa khác — ghi/sửa code diện rộng, config lớn, chạy test kéo dài (>10s), debug sâu đa file, phân tích log diện rộng, tìm/đánh giá skill — bắt buộc thuộc về worker có Task Contract trong terminal hiển thị rõ. Sau khi mở worker, Lead xác nhận agent đã nhận việc và bắt đầu làm. Status/clarification/rule/câu trả lời một dòng không cần worker.
 3. Chọn checklist, risk tier và First-Pass route phù hợp trong `QUALITY_GATES.md`, ghi test budget cùng bằng chứng cụ thể vào Task Contract:
    - **Chế độ Prototype:** Cho repo mới/MVP hoặc khi gọi `$lead proto`, bỏ qua yêu cầu bắt buộc unit test suite; nghiệm thu dựa trên cú pháp/lint hợp lệ và ứng dụng/script chạy thành công không lỗi (run check).
    - **Selective Testing (Monorepo):** Với dự án monorepo (Nx, Turborepo, pnpm workspaces, Gradle, Cargo...), chỉ định phạm vi test/build hẹp theo package/module bị ảnh hưởng (`--filter`), không kích hoạt full build toàn bộ repo trừ khi được chỉ định rõ hoặc trước release.
@@ -135,7 +146,7 @@ Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; chỉ thị trực tiếp c�
 8. Chỉ chạy task `READY` độc lập khi còn slot và ownership zone không trùng writer đang chạy.
 9. DTO chung, public contract, migration, config, solution/package manifest và path trùng nhau phải được tuần tự hóa hoặc tách thành contract-first.
 10. Dependency thật phải được ghi; dependency giả nên tháo bằng contract, mock, fixture, stub, test hoặc nghiên cứu chỉ-đọc.
-11. Chế độ vận hành thích ứng (Elastic Dual-Mode): Mặc định chạy Solo/Lean Mode (1 Lead, 1 worker làm trọn gói) để tối ưu thời gian, chi phí và context; chỉ kích hoạt Swarm/Team Mode (tối đa 3 worker song song) khi người dùng yêu cầu rõ ($lead team) hoặc khi task có ≥ 2 nhánh độc lập đã qua Parallel Gate. Fan-out luôn phải có Integration Owner và kiểm tra Semantic Integration Gate.
+11. Chế độ vận hành thích ứng (Cascade Elastic Mode): Mặc định ưu tiên cấp độ thấp nhất đủ giải quyết bài toán (Level 0 Direct -> Level 1 Fast-Path -> Level 2 Solo Mode) để tối ưu thời gian, chi phí và context; chỉ tự động nâng lên Level 3 Swarm Mode (tối đa 3 worker song song) khi bài toán đa miền thực sự có ≥ 2 nhánh độc lập đã qua Parallel Gate. Fan-out luôn phải có Integration Owner và kiểm tra Semantic Integration Gate.
 12. P0 có thể ưu tiên hơn queue. Không ngắt writer giữa chừng trừ khi người dùng yêu cầu; gửi follow-up và giữ công việc của nó.
 13. Xử lý completion từng task: kiểm tra kết quả, giữ/dùng lại/giải phóng terminal, cập nhật state rồi xếp task `READY` tiếp theo. Claim `DONE` của worker không tự là bằng chứng.
 14. Worker hỏi Lead qua Orca; Lead trả lời quyết định theo task. Quyết định giữa dự án đi qua hai project Lead.

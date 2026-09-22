@@ -31,7 +31,7 @@ Quy trình này được sinh ra để khắc phục triệt để điều đó:
 | :--- | :--- |
 | **Hai agent sửa đè code nhau:** Gây xung đột logic và vỡ codebase. | **Vùng sở hữu cô lập (Ownership Zones):** Phân chia biên giới code chặt chẽ, tuần tự hóa các file dùng chung. |
 | **Lead tự làm hết hoặc chat lan man:** Lead ôm việc của worker, tốn token mà không ra kết quả. | **Delegation Gate rõ ràng:** Big Lead giữ bản đồ và điều phối; Worker làm việc thật trong terminal CLI hiển thị rõ. |
-| **Nghi thức rườm rà cho việc nhỏ:** Sửa 1 typo hay 1 dòng config cũng bắt họp 3 bước, viết test suite. | **Bộ ba cơ chế thích ứng (2026):** Tự động bật Quick-Fix (1 nhịp), Prototype (MVP), hoặc Selective Testing (Monorepo). |
+| **Nghi thức rườm rà & ngốn token:** Sửa 1 typo hay 1 dòng config cũng lập plan 3 bước, gọi LLM QA tốn 20k token. | **Cascade Triage & Token Diet (2026):** Tự động nhận diện 4 cấp độ (Level 0–3), nghiệm thu bằng máy (Exit 0) & nén log terminal. |
 | **Mất trí nhớ khi crash hoặc restart:** Terminal tắt là mọi tiến trình và bối cảnh biến mất. | **Durable State trên đĩa:** Toàn bộ trạng thái, checkpoint lưu tại `.orca-team/`; khôi phục tức thì khi Orca restart. |
 | **Code xong nhưng không biết chạy được không:** Agent tự nói "xong" nhưng đầy bug tiềm ẩn. | **First-Pass Gate & Verifier:** Phải có bằng chứng (evidence) kiểm thử thực tế mới được chuyển sang trạng thái `DONE`. |
 
@@ -49,21 +49,21 @@ Chỉ 2 lệnh bạn cần dùng mỗi ngày:
 
 ### Ví dụ hội thoại thực tế:
 
-* ⚡ **Sửa nhanh 1 nhịp (Quick-Fix Bypass):**
-  > `$lead Sửa lỗi chính tả tiêu đề ở file header.tsx và đổi màu icon thành xanh dương`
-  > *(Lead tự nhận diện diff ≤ 3 dòng, 1 file → Xử lý và nghiệm thu tức thì trong 1 nhịp mà không tạo plan rườm rà).*
+* ⚡ **Level 0 · Tra cứu chỉ-đọc (Direct Inquiry):**
+  > `$lead Hàm validateToken nằm ở file nào và kiểm tra những trường gì?`
+  > *`⚡ [Cascade Triage: Level 0 - Direct Inquiry] Tra cứu chỉ-đọc -> Lead giải đáp ngay trong 1 lượt (0 worker, 0 token lãng phí).*`
 
-* 🚀 **Làm dự án mới / MVP (Prototype Mode):**
-  > `$lead Dựng nhanh khung landing page giới thiệu sản phẩm bằng Next.js và Tailwind`
-  > *(Lead tự nhận diện dự án chưa có test runner → Bỏ qua rào cản unit test bắt buộc, nghiệm thu qua cú pháp sạch và app chạy thành công).*
+* ⚡ **Level 1 · Sửa nhỏ 1 nhịp (Solo Fast-Path):**
+  > `$lead Sửa lại tiêu đề trong Header và đổi màu nút CTA thành xanh dương`
+  > *`⚡ [Cascade Triage: Level 1 - Solo Fast-Path] Sửa nhỏ cô lập (≤1 file) -> Lead tự sửa trực tiếp 1 nhịp, không mở subagent.*`
 
-* 🛠️ **Phát triển tính năng chuẩn (Solo Mode):**
+* 🛠️ **Level 2 · Tính năng chuẩn (Solo Worker):**
   > `$lead Viết thêm API suspend và restore cho user kèm unit test tương ứng`
-  > *(Lead mở 1 Worker trọn gói có Task Contract riêng, code và verify đầy đủ).*
+  > *`⚡ [Cascade Triage: Level 2 - Solo Mode] Phạm vi chuẩn (2-4 files) -> Xử lý trọn gói, nghiệm thu máy (Exit 0).*`
 
-* 👥 **Phân nhánh song song (Team Mode):**
-  > `$lead team Phát triển song song backend API trong folder server và frontend UI trong folder client`
-  > *(Lead kích hoạt Swarm Mode tối đa 3 worker song song + chỉ định Integration Owner kiểm tra hợp nhất).*
+* 👥 **Level 3 · Hệ thống lớn đa miền (Swarm Team Mode):**
+  > `$lead Tái cấu trúc lại luồng xác thực JWT cho cả backend server và frontend client`
+  > *`⚡ [Cascade Triage: Level 3 - Swarm Mode] Kiến trúc lớn đa miền -> Phân rã 2 Worker song song có kiểm chứng tích hợp.*`
 
 * 🔄 **Đổi model nhanh:**
   > `$lead Đổi sang dùng model gpt-5 cho các task khó tiếp theo`  
