@@ -25,9 +25,9 @@ Same-model max attempts: 3
 
 | Tầng năng lực (Tier) | Phạm vi sử dụng | Model chính | Effort | Pool xoay vòng khi lỗi |
 |---|---|---|---|---|
-| **Tier 1: Heavy / Frontier** | Big Lead, Domain Lead, Kiến trúc, Code khó, Bug sâu, Integration | `gpt-5.6-terra` | `xhigh` | `gpt-5.6-terra` → `qwen3.8-max-0902` → `deepseek-v4.1-flash` |
-| **Tier 2: Standard** | Code tính năng thông thường, viết unit test, research vừa | `deepseek-v4.1-flash` | `medium` | `deepseek-v4.1-flash` → `qwen3.8-max-0902` → `glm-5.3-flash` |
-| **Tier 3: Eco / Fast** | Đọc file, format code, sửa tài liệu, tra cứu nhanh | `glm-5.3-flash` | `low` | `glm-5.3-flash` → `deepseek-v4.1-flash` |
+| **Tier 1: Heavy / Frontier** | Big Lead, Domain Lead, Kiến trúc, Code khó, Bug sâu, Integration | `gpt-6-sol` (1.05M) | `xhigh` | `gpt-6-sol` → `gpt-6-astra` → `qwen3.8-max-0902` |
+| **Tier 2: Standard** | Code tính năng thông thường, viết unit test, research vừa | `gpt-6-sol` (1.05M) | `medium` | `gpt-6-sol` → `deepseek-v4.1-flash` → `gpt-6-luna` |
+| **Tier 3: Eco / Fast** | Đọc file, format code, sửa tài liệu, tra cứu nhanh, Level 0/1 | `gpt-6-luna` (1.05M) | `low` | `gpt-6-luna` → `glm-5.3-flash` → `deepseek-v4.1-flash` |
 ```
 
 *(Lưu ý: Hệ thống vẫn hoàn toàn tương thích ngược với các file `MODEL_POLICY.md` 6-route kiểu cũ nếu dự án chưa cập nhật).*
