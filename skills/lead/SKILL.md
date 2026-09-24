@@ -87,8 +87,8 @@ Domain Lead chỉ được đề xuất rule; Root Lead mới được ghi rule 
 
 Tuân theo `MODEL_POLICY.md` và `MODEL_STATUS.md`; chỉ thị trực tiếp của người dùng (`[model: ...]`) luôn có quyền ưu tiên cao nhất cho task được chỉ định. Phân chia cấu hình model theo 3 tầng năng lực tinh gọn:
 
-- **Tier 1 (Frontier/Heavy):** Root/Domain Lead, kiến trúc, code khó, review cuối, integration. Mặc định `gpt-6-sol` (1.05M context) / `gpt-6-astra` với effort `xhigh`/`max`.
-- **Tier 2 (Standard):** Code tính năng thường, viết test, research vừa. Mặc định `gpt-6-sol` (1.05M context, effort `medium`) hoặc `deepseek-v4.1-flash`.
+- **Tier 1 (Frontier/Heavy):** Root/Domain Lead, kiến trúc, code khó, review cuối, integration. Mặc định `claude-opus-5-5` (1M context, effort `max`) / `gpt-6-sol` (1.05M context, effort `xhigh`/`max`).
+- **Tier 2 (Standard):** Code tính năng thường, viết test, research vừa. Mặc định `claude-fable-5-1` (1M context, effort `max`) / `gpt-6-sol` (1.05M context, effort `medium`).
 - **Tier 3 (Eco/Fast):** Đọc file, format code, sửa tài liệu, tra cứu nhỏ, Level 0/1 Fast-Path. Mặc định `gpt-6-luna` (1.05M context, siêu rẻ $0.10/1M) với effort `low`/`none`.
 
 Áp dụng cơ chế **Optimistic Launch (Khởi chạy lạc quan & Tự động ghi nhận)**:

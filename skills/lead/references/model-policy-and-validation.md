@@ -25,8 +25,8 @@ Same-model max attempts: 3
 
 | Tầng năng lực (Tier) | Phạm vi sử dụng | Model chính | Effort | Pool xoay vòng khi lỗi |
 |---|---|---|---|---|
-| **Tier 1: Heavy / Frontier** | Big Lead, Domain Lead, Kiến trúc, Code khó, Bug sâu, Integration | `gpt-6-sol` (1.05M) | `xhigh` | `gpt-6-sol` → `gpt-6-astra` → `qwen3.8-max-0902` |
-| **Tier 2: Standard** | Code tính năng thông thường, viết unit test, research vừa | `gpt-6-sol` (1.05M) | `medium` | `gpt-6-sol` → `deepseek-v4.1-flash` → `gpt-6-luna` |
+| **Tier 1: Heavy / Frontier** | Big Lead, Domain Lead, Kiến trúc, Code khó, Bug sâu, Integration | `claude-opus-5-5` (1M) / `gpt-6-sol` (1.05M) | `max` / `xhigh` | `claude-opus-5-5` → `gpt-6-sol` → `claude-fable-5-1` → `gpt-6-astra` |
+| **Tier 2: Standard** | Code tính năng thông thường, viết unit test, research vừa | `claude-fable-5-1` (1M) / `gpt-6-sol` (1.05M) | `max` / `medium` | `claude-fable-5-1` → `gpt-6-sol` → `deepseek-v4.1-flash` → `gpt-6-luna` |
 | **Tier 3: Eco / Fast** | Đọc file, format code, sửa tài liệu, tra cứu nhanh, Level 0/1 | `gpt-6-luna` (1.05M) | `low` | `gpt-6-luna` → `glm-5.3-flash` → `deepseek-v4.1-flash` |
 ```
 
