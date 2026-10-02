@@ -45,22 +45,34 @@ Hai writer không được có allowed path trùng nhau trong shared workspace. 
 
 Trước khi coi dependency là cứng, thử gỡ bằng versioned contract, mock, fixture, stub hoặc test. Ghi contract và reservation rõ.
 
-## Vòng lặp Lead
+## Vòng lặp Điều phối Hướng Sự Kiện (Event-Driven Reactive Loop & Sleep on Dispatch)
 
-Ở mỗi checkpoint:
+Big Lead **tuyệt đối không chạy vòng lặp thăm dò liên tục** (Cấm Polling Loop / Zero Busy-Waiting, không gọi `worker-show` hay kiểm tra terminal lặp đi lặp lại, không thăm dò model/connection). Big Lead vận hành hoàn toàn dựa trên sự kiện (Event-Driven):
 
-1. Đưa user request mới vào task board.
-2. Đọc inbox Orca theo thứ tự và trả lời worker.
-3. Kiểm tra lỗi model/agent trước khi retry/release; lỗi model được xác minh phải retry cùng model đến hết lần 3, rồi mới xoay sang model `verified` tiếp theo trong pool của đúng route theo MODEL_POLICY.
-4. Xử lý acknowledgement rule/hook mới.
-5. Kiểm tra task `READY_FOR_VERIFICATION`/`VERIFYING`, evidence và First-Pass Gate.
-6. Kiểm tra task đã settle và cập nhật state.
-7. Tính lại task `READY`, conflict, dependency, capacity.
-8. Giao task an toàn tiếp theo hoặc báo blocker.
+1. **Giai đoạn Xử lý Yêu cầu (Request Phase):**
+   - Đưa user request mới vào task board (`TEAM_STATE.md`).
+   - Triage theo cấp độ (Level 0 Direct / Level 1 Fast-Path / Level 2 Solo / Level 3 Swarm).
+   - Nếu cần mở Worker: Lập Task Contract kèm thông tin `Lead Terminal Handle` và Lệnh Callback Wakeup.
+   - Khởi chạy worker bằng lệnh Orca (non-blocking rename).
 
-Ở bước kiểm tra, đọc thêm risk tier/test route và test budget. Không nâng lên full suite chỉ vì task đã có worker; chỉ nâng khi acceptance, impact hoặc policy yêu cầu. Ghi thời gian chờ, test, retry và handoff để biết nút thắt nằm ở điều phối hay ở code.
+2. **Giai đoạn Ngủ tiết kiệm Token (Sleep on Dispatch - 0 Token):**
+   - Cập nhật task sang `IN_PROGRESS` trong `TEAM_STATE.md`.
+   - Xuất đúng 1 dòng thông báo cho người dùng: `⚡ [DISPATCHED: Worker <handle> đang thực thi <task_id>. Big Lead chuyển sang trạng thái SLEEP chờ callback.]`.
+   - **KẾT THÚC LƯỢT NGAY LẬP TỨC (END TURN / YIELD)**. Không gọi thêm bất kỳ tool nào. Tiêu thụ 0 token trong suốt thời gian worker đang làm việc.
 
-Khi user gửi task mới lúc worker chạy, làm bước 1 và 4 ngay; không chờ wave xong. Task settle thì verify, xử lý event, release/retain terminal và xếp task mới ngay nhưng không vượt dependency/ownership.
+3. **Giai đoạn Thức dậy phản ứng (Dual-Trigger Reactive Wakeup):**
+   Big Lead CHỈ thức dậy khi có 1 trong 2 sự kiện:
+   - **Trigger 1 (User Event):** Người dùng gửi tin nhắn hoặc yêu cầu mới trong chat $\to$ Lead thức dậy tiếp nhận, cập nhật task board, ưu tiên P0 hoặc xếp queue.
+   - **Trigger 2 (Worker Callback Event):** Worker hoàn tất và kiểm thử máy đạt (Exit code 0), worker gửi tin nhắn qua `orca terminal send` vào terminal của Big Lead:
+     `orca terminal send --terminal <LEAD_HANDLE> --text "TASK_FINISHED: [<TaskID>] đã hoàn tất nghiệm thu máy (exit 0). Mời Big Lead thức dậy tổng kết." --enter`
+     (Hoặc gửi `TASK_BLOCKED` nếu gặp blocker).
+   - Khi nhận callback, Big Lead thức dậy:
+     + Đọc báo cáo và bằng chứng của worker.
+     + Kiểm tra First-Pass Gate và Semantic Integration Gate (nếu có nhiều writer).
+     + Cập nhật `TEAM_STATE.md` sang `DONE` (hoặc `BLOCKED`).
+     + Settle/giải phóng hoặc tái sử dụng terminal worker.
+     + Nếu còn task `READY` trong queue: dispatch task tiếp theo rồi lại Sleep on Dispatch.
+     + Nếu hết việc: Báo cáo kết quả trực tiếp và ngắn gọn cho người dùng.
 
 ## Workload thích ứng và mở rộng có kiểm soát
 

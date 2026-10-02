@@ -20,17 +20,18 @@ Chiến lược workload:
 
 Phân công và liên hệ người dùng:
 - Owner triển khai: <nhãn worker; bắt buộc cho mọi nghiên cứu hoặc thay đổi file/output>
-- Ranh giới Lead: <chỉ yêu cầu người dùng + state .orca-team, xếp lịch, kiểm tra, báo cáo>
+- Lead Terminal Handle: <LEAD_HANDLE> (ví dụ: `00 | BIG | ...` để worker gửi callback đánh thức)
+- Ranh giới Lead: <chỉ yêu cầu người dùng + state .orca-team, xếp lịch, kiểm tra, báo cáo; Lead ngủ (Sleep on Dispatch) trong lúc worker chạy>
 - Nói với người dùng: <chỉ Root Lead | role được cho phép rõ; phải nói dễ hiểu>
 - Evidence mở worker: <Orca worker-start receipt, Dispatch ID và terminal handle; `input_accepted` chỉ là pending>
 - Evidence bắt đầu thật: <worker-show live + activity working, hoặc một lần Enter fallback đã được xác nhận; nếu chưa có thì INPUT_NOT_STARTED/BLOCKED>
 
-Kế hoạch model:
+Kế hoạch model (Optimistic Execution):
 - Route task: <difficult | normal | quick | final review>
 - Model chính: <model ID chính xác và effort nếu có>
 - Pool model của task: <danh sách model đọc từ MODEL_POLICY.md tại route đã chọn>
 - Thứ tự dự phòng: <chỉ model ID được phép>
-- Policy revision / model status: <MP-### | model chính hoặc fallback phải verified>
+- Policy revision: <MP-### | Optimistic Execution: model mặc định sẵn sàng, không cần validator probe>
 - Tự đổi sang dự phòng: <có | không; theo MODEL_POLICY.md>
 - Lần thử cùng model: <1/3, 2/3 hoặc 3/3; chỉ lỗi lần 3 mới được đổi model>
 - Launch thực tế: <chỉ điền sau khi runtime xác nhận model và effort>
@@ -116,7 +117,8 @@ Acceptance:
 
 Báo cáo:
 - File thực tế đã thay đổi.
-- Lệnh đã chạy và kết quả.
+- Lệnh đã chạy và kết quả (nén log: Exit 0 chỉ ghi `[COMMAND SUCCESS: exit 0]`).
+- Tự động kích hoạt Callback Wakeup gửi tin nhắn vào terminal Big Lead ngay khi nghiệm thu đạt.
 - Giả định, blocker hoặc contract follow-up cần có.
 - Sau lần làm đầu, event là `READY_FOR_VERIFICATION`, không phải `DONE`.
 - Event cuối phù hợp: `READY_FOR_VERIFICATION`, `BLOCKED`, `NEED_DECISION`, `CONTRACT_CHANGED` hoặc `FAILED`. Chỉ Big Lead ghi `DONE` sau VERIFYING.
@@ -129,6 +131,13 @@ Báo cáo:
 - Trước `READY_FOR_VERIFICATION`: chạy/báo checklist chất lượng, nêu evidence và phần chưa kiểm tra. File đổi, build pass đơn lẻ hoặc worker claim chưa kiểm tra không đủ evidence.
 - Không thêm test trùng assertion chỉ để tăng số lượng. Tóm tắt log test thay vì chuyển toàn bộ log dài sang worker tiếp theo; nếu test flaky, không coi retry pass là bằng chứng xanh.
 - Khi task kết thúc, báo thời gian làm/chờ/test, số retry/handoff, rework và chi phí/token nếu có để Lead so sánh đường một worker với fan-out.
+
+Cơ chế Callback đánh thức Big Lead (Bắt buộc sau nghiệm thu máy):
+- Lead đang ở trạng thái ngủ (Sleep on Dispatch) và KHÔNG thăm dò/polling worker.
+- Sau khi kiểm thử máy hoàn tất với Exit code 0, worker BẮT BUỘC gửi lệnh terminal send để đánh thức Big Lead:
+  `orca terminal send --terminal <LEAD_HANDLE> --text "TASK_FINISHED: [<TaskID>] đã hoàn tất nghiệm thu máy (exit 0). Mời Big Lead thức dậy tổng kết." --enter`
+- Nếu gặp sự cố/blocker không thể tự giải quyết:
+  `orca terminal send --terminal <LEAD_HANDLE> --text "TASK_BLOCKED: [<TaskID>] gặp sự cố: <mô tả ngắn>. Cần Big Lead hỗ trợ." --enter`
 
 Handover recovery (chỉ điền khi retry):
 - Dispatch/session trước: <ID thật hoặc none>

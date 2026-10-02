@@ -31,6 +31,7 @@ Quy trình này được sinh ra để khắc phục triệt để điều đó:
 | :--- | :--- |
 | **Hai agent sửa đè code nhau:** Gây xung đột logic và vỡ codebase. | **Vùng sở hữu cô lập (Ownership Zones):** Phân chia biên giới code chặt chẽ, tuần tự hóa các file dùng chung. |
 | **Lead tự làm hết hoặc chat lan man:** Lead ôm việc của worker, tốn token mà không ra kết quả. | **Delegation Gate rõ ràng:** Big Lead giữ bản đồ và điều phối; Worker làm việc thật trong terminal CLI hiển thị rõ. |
+| **Lead polling liên tục ngốn token:** Lead chạy loop kiểm tra liveness/worker-show, tiêu tốn 500k token chỉ để chờ. | **Sleep on Dispatch & Reactive Wakeup:** Lead ngủ ngay khi giao việc (0 token). Worker làm xong tự gửi callback `terminal send` đánh thức Lead. |
 | **Nghi thức rườm rà & ngốn token:** Sửa 1 typo hay 1 dòng config cũng lập plan 3 bước, gọi LLM QA tốn 20k token. | **Cascade Triage & Token Diet (2026):** Tự động nhận diện 4 cấp độ (Level 0–3), nghiệm thu bằng máy (Exit 0) & nén log terminal. |
 | **Mất trí nhớ khi crash hoặc restart:** Terminal tắt là mọi tiến trình và bối cảnh biến mất. | **Durable State trên đĩa:** Toàn bộ trạng thái, checkpoint lưu tại `.orca-team/`; khôi phục tức thì khi Orca restart. |
 | **Code xong nhưng không biết chạy được không:** Agent tự nói "xong" nhưng đầy bug tiềm ẩn. | **First-Pass Gate & Verifier:** Phải có bằng chứng (evidence) kiểm thử thực tế mới được chuyển sang trạng thái `DONE`. |
@@ -134,7 +135,7 @@ Hệ thống tự động biến hóa để phù hợp với quy mô của từn
 
 ## 🤖 Quản lý Model 3 Tầng Linh hoạt (3-Tier System)
 
-Không cần probe kiểm tra rườm rà. Áp dụng **Optimistic Launch**: worker chạy ngay với model được chọn và tự động lưu `verified` khi thành công:
+Triệt tiêu lãng phí token probe/validator. Áp dụng **Optimistic Execution**: worker chạy ngay với model được chọn trong policy mà không cần wave probe trước; tự động cập nhật `verified` khi thành công. Lead không chạy loop kiểm tra kết nối model hay liveness worker.
 
 | Tầng năng lực (Tier) | Model tiêu biểu | Effort | Phạm vi công việc |
 | :--- | :--- | :--- | :--- |

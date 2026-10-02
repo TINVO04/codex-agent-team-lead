@@ -5,7 +5,12 @@ Revision: MP-005
 Tự đổi sang dự phòng: có
 Same-model max attempts: 3
 
-Hệ thống quản lý model theo 3 tầng năng lực (3 Tiers). Người dùng có thể chỉ định model cho từng task bằng tag [model: ...] hoặc lệnh '$lead models use <model>'. Áp dụng Optimistic Launch: worker khởi chạy trực tiếp với model được yêu cầu và tự động xác thực vào MODEL_STATUS.md khi thành công.
+Hệ thống quản lý model theo 3 tầng năng lực (3 Tiers). Người dùng có thể chỉ định model cho từng task bằng tag [model: ...] hoặc lệnh '$lead models use <model>'.
+
+### Nguyên tắc Optimistic Execution (Bãi bỏ MODEL-VALIDATOR):
+- **Triệt tiêu lãng phí Token kiểm tra:** Bãi bỏ hoàn toàn các agent `MODEL-VALIDATOR` và các wave probe kiểm tra model khởi đầu. Toàn bộ model trong bảng dưới mặc định được coi là sẵn sàng hoạt động.
+- **Không Polling kết nối/độ ổn định:** Tuyệt đối không chạy vòng lặp kiểm tra model có ổn định hay gián đoạn kết nối không. Quá trình kiểm chứng chuyển sang cơ chế thụ động (Passive Verification): khi worker chạy task thật và thoát mã 0, model tự động được xác thực `verified` trong `MODEL_STATUS.md`.
+- **Xử lý sự cố tại chỗ:** Nếu worker gặp lỗi provider/outage thật sự, worker tự bắt exception và gửi callback `TASK_BLOCKED` về Big Lead để kích hoạt pool xoay vòng.
 
 | Tầng năng lực (Tier) | Phạm vi sử dụng | Model chính | Effort | Context Chuẩn | Max Output | Pool xoay vòng khi lỗi |
 |---|---|---|---|---|---|---|

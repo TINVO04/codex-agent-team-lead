@@ -17,7 +17,7 @@ Chỉ dẫn hiện tại của người dùng và `TEAM_POLICY.md` luôn cao hơ
 | Worker nhanh | `glm-5.3-flash` | `low` | Pool worker: `glm-5.3-flash` → `deepseek-v4.1-flash` → `qwen3.8-max-0902` |
 | Kiểm tra cuối | `qwen3.8-max-0902` | `high` | Pool worker: `qwen3.8-max-0902` → `deepseek-v4.1-flash` → `glm-5.3-flash` |
 
-Fallback worker dùng cùng effort trừ khi runtime từ chối. Chỉ model có trạng thái `verified` trong `MODEL_STATUS.md` được launch. Thiếu model, status `unknown`, hoặc policy mới chưa kiểm tra thì giữ task `QUEUED`/`WAITING_USER`; không dùng model ngoài pool của route. Model verified ở pool khác cũng không được dùng để chữa cháy. Không probe lại một model đã `verified` trong cùng revision policy.
+Fallback worker dùng cùng effort trừ khi runtime từ chối. Áp dụng Optimistic Execution: mọi model hợp lệ trong pool của policy mặc định sẵn sàng được launch trực tiếp mà không cần chờ probe hay status verified từ trước. Trạng thái `verified` sẽ tự động ghi nhận khi worker chạy thành công. Không dùng model ngoài pool của route. Model ở pool khác không được dùng để chữa cháy.
 
 ## Chọn model theo phần việc thật
 
