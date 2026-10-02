@@ -61,6 +61,8 @@ Chỉ dùng skill này trong terminal Codex mở bởi Orca. Gõ `$`, chọn `Or
 
 Đọc [vai trò Agency và Agent-Reach](references/agency-profiles-and-agent-reach.md) khi khởi tạo baseline role, chọn role cho worker, thiếu role phù hợp hoặc muốn dùng Agent-Reach để tìm nguồn công khai. Agency chỉ bổ sung chuyên môn cho worker; Agent-Reach chỉ là đường research public-only đã được duyệt, không thay thế Orca hay Lead.
 
+Đọc [kỹ năng GSAP Animation](../gsap/SKILL.md) khi phân chia task Frontend liên quan đến hiệu ứng chuyển động, Landing Page, ScrollTrigger, pinning, scrubbing, hero motion hoặc tối ưu 60fps. Big Lead chỉ định `[role: frontend] [skill: gsap]` cho Worker thực thi On-Demand; tuyệt đối không nạp GSAP vào prompt toàn cục của Big Lead để tối ưu token.
+
 ## Khôi phục dự án mới và cũ
 
 Dùng cùng một vòng điều phối, nhưng bằng chứng cần đọc khác nhau:

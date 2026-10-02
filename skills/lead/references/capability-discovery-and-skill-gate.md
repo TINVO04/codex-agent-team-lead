@@ -107,3 +107,11 @@ Nói ngắn, dễ hiểu. Ví dụ:
 > Đang làm: phần này cần cách kiểm tra bảo mật chuyên biệt. Team đã tìm được lựa chọn từ nguồn chính thức, nhưng nó cần cài thêm công cụ. Bạn có đồng ý cho dùng không?
 
 Skill đã cài và an toàn không cần hỏi lại; ghi việc dùng vào registry rồi tiếp tục.
+
+## Danh mục Skill đã duyệt sẵn (Pre-Approved Vendor Skills)
+
+| Mã Skill | Tên Skill / Thư viện | Nhà phát hành | Phạm vi áp dụng | Ranh giới & Rủi ro |
+|---|---|---|---|---|
+| `SK-001` | **`gsap`** (GSAP 3, ScrollTrigger, useGSAP) | GreenSock (Official) | Hoạt cảnh Frontend, Landing Page, ScrollTrigger, timeline, tối ưu FPS | LOW: Mã nguồn mở MIT, 100% JavaScript DOM/SVG client-side, 0 network egress, 0 credential |
+| `SK-002` | **`ui-ux-pro-max`** / `design-taste` | Community Standard | Thiết kế giao diện, phối màu, typography, responsive layout | LOW: Chỉ dẫn UI/UX và styling |
+
