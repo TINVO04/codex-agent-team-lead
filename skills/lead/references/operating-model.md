@@ -2,6 +2,14 @@
 
 ## Nhận yêu cầu và xếp hàng
 
+### Tiếp nhận Hàng loạt & Cơ chế Chống bỏ quên Task (Zero-Drop Batch Ingestion)
+Khi người dùng giao nhiều việc cùng lúc (từ 2 đến 20+ yêu cầu trong một prompt):
+1. **Turn-1 Atomic Breakdown:** Tuyệt đối không nhảy vào code hoặc mở worker bừa bãi. Big Lead bóc tách toàn bộ các yêu cầu thành từng mục nguyên tử độc lập, gán ID duy nhất (`T-001` đến `T-NNN`).
+2. **Durable Task Ledger:** Ghi cứng toàn bộ danh sách vào bảng task trong `.orca-team/TEAM_STATE.md` với trạng thái ban đầu là `QUEUED` (hoặc `READY` cho task đầu). Xuất bảng checklist trực quan cho người dùng.
+3. **WIP-Constrained Execution (Giới hạn WIP):** Tối đa 1 đến 3 worker chạy đồng thời (`IN_PROGRESS`). Toàn bộ task còn lại nằm chờ trong hàng đợi (`QUEUED`), mỗi worker chỉ nhận đúng 1 Task Contract độc lập để bảo toàn context sạch.
+4. **Deterministic Reconciliation Loop:** Khi mỗi task hoàn thành qua tín hiệu callback (Exit code 0), Big Lead thức dậy cập nhật `DONE`, tính toán tỷ lệ tiến độ dạng `[Tiến độ: X/N hoàn thành]`, pop task tiếp theo từ queue để dispatch, rồi tiếp tục ngủ (Sleep on Dispatch).
+5. **Khóa Hoàn Thành (Deterministic Termination Gate):** Big Lead chỉ được phép kết luận `Hoàn thành toàn bộ` khi số task `DONE` trên đĩa bằng đúng $N/N$. Tuyệt đối không xảy ra tình trạng "quên việc ở giữa".
+
 Mọi yêu cầu mới thành root task trước khi giao:
 
 | Kết quả | Ý nghĩa | Lead làm gì |

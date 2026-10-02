@@ -32,6 +32,7 @@ Quy trình này được sinh ra để khắc phục triệt để điều đó:
 | **Hai agent sửa đè code nhau:** Gây xung đột logic và vỡ codebase. | **Vùng sở hữu cô lập (Ownership Zones):** Phân chia biên giới code chặt chẽ, tuần tự hóa các file dùng chung. |
 | **Lead tự làm hết hoặc chat lan man:** Lead ôm việc của worker, tốn token mà không ra kết quả. | **Delegation Gate rõ ràng:** Big Lead giữ bản đồ và điều phối; Worker làm việc thật trong terminal CLI hiển thị rõ. |
 | **Lead polling liên tục ngốn token:** Lead chạy loop kiểm tra liveness/worker-show, tiêu tốn 500k token chỉ để chờ. | **Sleep on Dispatch & Reactive Wakeup:** Lead ngủ ngay khi giao việc (0 token). Worker làm xong tự gửi callback `terminal send` đánh thức Lead. |
+| **Bỏ quên yêu cầu khi giao danh sách dài (10–20 tasks):** LLM bị "Lost in the Middle" và trôi ngữ cảnh, bỏ sót các việc ở giữa. | **Zero-Drop Batch Ingestion & Task Ledger:** Bóc tách 100% việc ra đĩa (`T-001` đến `T-NNN`), khóa nghiệm thu $N/N$ trước khi báo xong. |
 | **Nghi thức rườm rà & ngốn token:** Sửa 1 typo hay 1 dòng config cũng lập plan 3 bước, gọi LLM QA tốn 20k token. | **Cascade Triage & Token Diet (2026):** Tự động nhận diện 4 cấp độ (Level 0–3), nghiệm thu bằng máy (Exit 0) & nén log terminal. |
 | **Mất trí nhớ khi crash hoặc restart:** Terminal tắt là mọi tiến trình và bối cảnh biến mất. | **Durable State trên đĩa:** Toàn bộ trạng thái, checkpoint lưu tại `.orca-team/`; khôi phục tức thì khi Orca restart. |
 | **Code xong nhưng không biết chạy được không:** Agent tự nói "xong" nhưng đầy bug tiềm ẩn. | **First-Pass Gate & Verifier:** Phải có bằng chứng (evidence) kiểm thử thực tế mới được chuyển sang trạng thái `DONE`. |
@@ -111,7 +112,7 @@ flowchart TD
 
 ---
 
-## ⚡ Bộ ba Cơ chế Thích ứng (All-Terrain Engine)
+## ⚡ Bộ Cơ chế Thích ứng (All-Terrain Engine)
 
 Hệ thống tự động biến hóa để phù hợp với quy mô của từng dự án:
 
@@ -128,6 +129,10 @@ Hệ thống tự động biến hóa để phù hợp với quy mô của từn
 │ 3. SELECTIVE TESTING (Kiểm thử chọn lọc cho Monorepo)                       │
 │    • Kích hoạt: Monorepo (Nx, Turborepo, pnpm workspaces, Gradle, Cargo).   │
 │    • Lợi ích: Chỉ test package bị ảnh hưởng (--filter), không nghẽn build.  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 4. ZERO-DROP BATCH INGESTION (Cam kết 100% không sót việc)                   │
+│    • Kích hoạt: Khi nhận danh sách từ 2 đến 20+ yêu cầu cùng một lúc.       │
+│    • Lợi ích: Bóc tách ghi đĩa (T-001..T-NNN), khóa nghiệm thu đủ 100%.     │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
