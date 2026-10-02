@@ -26,7 +26,20 @@ Người dùng không cần phải ghi nhớ danh sách lệnh phức tạp hay 
     *Nhãn:* `⚡ [Cascade Triage: Level 3 - Swarm Mode] Kiến trúc lớn đa miền -> Phân rã [N] Worker song song có kiểm chứng tích hợp.`
   - **Inline Override & Phụ trợ:** Khi câu lệnh nói *"đổi model X"* hoặc có tag `[model: <tên>]`, Lead áp dụng inline override; khi hỏi *"hôm nay làm được gì rồi"*, Lead tổng hợp báo cáo tiến độ.
 
-### 2. Lệnh chẩn đoán & Quản trị tổng thể
+### 2. Tự động Nhận diện Ý định & Gán Skill ngầm (Zero-Skill-Name Overhead)
+Người dùng **không cần phải nhớ hay gõ bất kỳ tên skill nào** (`[skill: ...]`, `gsap`, `ui-ux-pro-max`). Big Lead tự động phân tích ngữ cảnh tự nhiên của câu lệnh để quyết định:
+1. **Có cần skill hay không?**
+   - Các task Backend, Database, Migration, REST API logic, DevOps, refactor, debug thuật toán: Big Lead đánh dấu `Capability Gate: not needed`. Tuyệt đối **không** nạp skill UI/Animation vào để tránh lãng phí token vô ích.
+2. **Cần skill nào? (Ánh xạ tự động theo ý định):**
+   - **Chuyển động & Hoạt cảnh (Motion & Animation):** Khi yêu cầu nhắc tới *animation, chuyển động, hoạt cảnh, cuộn mượt, scroll effect, ScrollTrigger, timeline, hero motion, micro-interactions, 60fps, lướt mượt, chuyển cảnh* $\to$ Tự động ngầm gán **`gsap`** cho Frontend Worker thực thi.
+   - **Thẩm mỹ & Thiết kế Giao diện (UI/UX Design):** Khi yêu cầu nhắc tới *thiết kế, làm đẹp trang, UI/UX, typography, phối màu, nhìn sang trọng/pro, responsive, redesign, style hiện đại* $\to$ Tự động ngầm gán **`ui-ux-pro-max`** hoặc **`design-taste-frontend`**.
+   - **Tài sản Hình ảnh & Banner (Visual Assets):** Khi yêu cầu nhắc tới *tạo banner, mockup ảnh, illustration cho web, chuyển ảnh mẫu thành code* $\to$ Tự động ngầm gán **`image-to-code`** hoặc **`imagegen-frontend-web`**.
+3. **Minh bạch trên dòng nhãn Triage duy nhất:** Khi có skill được tự động kích hoạt, Big Lead đính kèm `| Auto-Skill: <tên_skill>` vào dòng nhãn Triage để người dùng dễ theo dõi:
+   - *Ví dụ:* `⚡ [Cascade Triage: Level 2 - Solo Mode | Auto-Skill: gsap] Xây dựng Landing Page cuộn mượt -> Giao Frontend Worker áp dụng chuẩn GSAP 3.x 60fps.`
+   - *Ví dụ:* `⚡ [Cascade Triage: Level 2 - Solo Mode | Auto-Skill: ui-ux-pro-max, gsap] Làm lại Hero section có chuyển động sang trọng -> Giao Frontend Worker.`
+   - *Ví dụ:* `⚡ [Cascade Triage: Level 2 - Solo Mode] Viết API JWT Auth & Unit test -> Xử lý trọn gói (0 skill overhead).`
+
+### 3. Lệnh chẩn đoán & Quản trị tổng thể
 - `$lead doctor`: Chẩn đoán sức khỏe toàn diện của team trong 1 lệnh duy nhất (thay thế hàng loạt lệnh audit, config check, models validate, roles, skills, hooks, rules, policy). Tự động kiểm tra và in báo cáo:
   - Big Lead Lease & Liveness: Xác nhận Big Lead duy nhất đang hoạt động.
   - Model Status (Tier 1/2/3): Trạng thái runtime các model trong pool.
